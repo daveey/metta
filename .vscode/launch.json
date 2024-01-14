@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Train Gridman",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "envs.griddly.gridman.train",
+            "args": [
+                "--algo=APPO",
+                "--device=cpu",
+                "--env=GDY-GridmanMultiAgent",
+                "--experiment=gridman",
+                "--save_every_sec=5",
+                "--experiment_summaries_interval=10",
+                // "--serial=True"
+                "--with_wandb=True",
+            ],
+        },
+        {
+            "name": "Run Cartpole",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "envs.griddly.gridman.run",
+            "args": [
+                "--algo=APPO",
+                "--device=cpu",
+                "--env=my_custom_multi_env_v1",
+                "--experiment=example_multi",
+            ],
+        }
+    ]
+}
