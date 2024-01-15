@@ -21,15 +21,20 @@
             ],
         },
         {
-            "name": "Run Cartpole",
+            "name": "Run Gridman",
             "type": "debugpy",
             "request": "launch",
-            "module": "envs.griddly.gridman.run",
+            "module": "envs.griddly.gridman.enjoy",
             "args": [
                 "--algo=APPO",
                 "--device=cpu",
-                "--env=my_custom_multi_env_v1",
-                "--experiment=example_multi",
+                "--serial=True",
+                // "--no_render",
+                // "--save_video",
+                // "--video_name=gridman",
+                "--max_num_frames=1000",
+                "--env=GDY-GridmanMultiAgent",
+                "--experiment=gridman",
             ],
         }
     ]

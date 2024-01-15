@@ -6,7 +6,12 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 
-from griddly import GymWrapperFactory, gd
+from griddly import GymWrapperFactory
+from griddly.wrappers.render_wrapper import RenderWrapper
+from griddly.gym import GymWrapper
+from griddly import gd
+from griddly.util.render_tools import RenderToVideo
+
 from sample_factory.envs.env_utils import RewardShapingInterface, TrainingInfoInterface
 
 class GridmanMultiEnv(gym.Env, TrainingInfoInterface):
@@ -17,17 +22,15 @@ class GridmanMultiEnv(gym.Env, TrainingInfoInterface):
         self.name = full_env_name
         self.cfg = cfg
 
-        wrapper = GymWrapperFactory()
-        wrapper.build_gym_from_yaml('GridmanMultiAgent', './envs/griddly/gridman/gridman_multiagent.yaml')
-
-        self.gym_env = gym.make(
-            full_env_name,
+        self.gym_env = GymWrapper(
+            "./envs/griddly/gridman/gridman_multiagent.yaml",
             player_observer_type="VectorGridMan",
-            global_observer_type=gd.ObserverType.VECTOR,
+            global_observer_type="HumanPlayerBlockObserver",
             level=0,
             max_steps=2000,
             render_mode=render_mode
         )
+        self.gym_env_global = RenderWrapper(self.gym_env, "global")
         self.num_agents = self.gym_env.player_count
 
         self._player_done_variable = "done_variable"
@@ -41,6 +44,7 @@ class GridmanMultiEnv(gym.Env, TrainingInfoInterface):
         self.episode_rewards = [[] for _ in range(self.num_agents)]
 
         self.render_mode = render_mode
+        self.global_recorder = RenderToVideo(self.gym_env_global, "global_video_test.mp4")
 
     def reset(self, **kwargs):
         self._active_agents.update([a + 1 for a in range(self.num_agents)])
@@ -71,17 +75,14 @@ class GridmanMultiEnv(gym.Env, TrainingInfoInterface):
         #     if is_done:
         #         self._active_agents.discard(agent_id)
 
-        rewards = list(map(float, rewards))
         terminated = [terminated] * self.num_agents
         truncated = [truncated] * self.num_agents
-        # if len(infos) > 0:
-        #     print("infos", infos)
         infos = [{}] * self.num_agents
         return obs, rewards, terminated, truncated, infos
 
-    def render(self):
-        pass
-
+    def render(self, *args, **kwargs):
+        self.gym_env_global.render()
+        self.global_recorder.capture_frame()
 
     def _resolve_player_done_variable(self):
         resolved_variables = self.gym_env.game.get_global_variable([self._player_done_variable])

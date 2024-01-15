@@ -18,7 +18,6 @@ from sample_factory.train import run_rl
 from envs.griddly.gridman.env import GridmanMultiEnv
 from sample_factory.envs.env_utils import register_env
 from sample_factory.algo.utils.context import global_model_factory
-from sample_factory.utils.typing import Config, ObsSpace
 
 from envs.griddly.gridman.model import make_custom_encoder
 
