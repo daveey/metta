@@ -17,7 +17,7 @@
                 "--save_every_sec=5",
                 "--experiment_summaries_interval=10",
                 // "--serial=True"
-                "--with_wandb=True",
+                // "--with_wandb=True",
             ],
         },
         {
@@ -30,9 +30,11 @@
                 "--device=cpu",
                 "--serial=True",
                 // "--no_render",
-                // "--save_video",
-                // "--video_name=gridman",
+                "--save_video",
+                "--video_name=gridman",
+                "--fps=1",
                 "--max_num_frames=1000",
+                "--eval_env_frameskip=1",
                 "--env=GDY-GridmanMultiAgent",
                 "--experiment=gridman",
             ],
