@@ -22,22 +22,6 @@ from sample_factory.algo.utils.context import global_model_factory
 from envs.griddly.gridman.model import make_custom_encoder
 
 def make_multienv_func(full_env_name, cfg=None, env_config=None, render_mode: Optional[str] = None):
-    env_config={
-        # A video every 50 iterations
-        'record_video_config': {
-            'fps': 20,
-            'frequency': 5000,
-            'directory': "videos",
-
-            # Will record a video of the global observations
-            'include_global': True,
-
-            # Will record a video of the agent's perspective
-            'include_agents': False,
-        },
-        'player_done_variable': "player_done",
-        'random_level_on_reset': True,
-        },
     return GridmanMultiEnv(full_env_name, cfg, render_mode=render_mode)
 
 

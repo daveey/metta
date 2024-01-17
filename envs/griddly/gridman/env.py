@@ -25,12 +25,12 @@ class GridmanMultiEnv(gym.Env, TrainingInfoInterface):
         self.gym_env = GymWrapper(
             "./envs/griddly/gridman/gridman_multiagent.yaml",
             player_observer_type="VectorGridMan",
-            global_observer_type="HumanPlayerBlockObserver",
+            global_observer_type="GlobalBlockObserver",
             level=0,
             max_steps=2000,
             render_mode=render_mode
         )
-        self.gym_env_global = RenderWrapper(self.gym_env, "global")
+        self.gym_env_global = RenderWrapper(self.gym_env, "global", render_mode=render_mode)
         self.num_agents = self.gym_env.player_count
 
         self._player_done_variable = "done_variable"
@@ -44,7 +44,6 @@ class GridmanMultiEnv(gym.Env, TrainingInfoInterface):
         self.episode_rewards = [[] for _ in range(self.num_agents)]
 
         self.render_mode = render_mode
-        self.global_recorder = RenderToVideo(self.gym_env_global, "global_video_test.mp4")
 
     def reset(self, **kwargs):
         self._active_agents.update([a + 1 for a in range(self.num_agents)])
@@ -81,8 +80,7 @@ class GridmanMultiEnv(gym.Env, TrainingInfoInterface):
         return obs, rewards, terminated, truncated, infos
 
     def render(self, *args, **kwargs):
-        self.gym_env_global.render()
-        self.global_recorder.capture_frame()
+        return self.gym_env_global.render()
 
     def _resolve_player_done_variable(self):
         resolved_variables = self.gym_env.game.get_global_variable([self._player_done_variable])
