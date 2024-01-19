@@ -29,14 +29,15 @@
                 "--algo=APPO",
                 "--device=cpu",
                 "--serial=True",
+                "--train_dir=./train_dir/",
                 // "--no_render",
                 "--save_video",
                 "--video_name=gridman",
-                "--fps=1",
+                "--fps=10",
                 "--max_num_frames=1000",
                 "--eval_env_frameskip=1",
                 "--env=GDY-GridmanMultiAgent",
-                "--experiment=gridman",
+                "--experiment=gm.rnn=1024",
             ],
         }
     ]

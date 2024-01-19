@@ -14,7 +14,7 @@ from griddly.util.render_tools import RenderToVideo
 
 from sample_factory.envs.env_utils import RewardShapingInterface, TrainingInfoInterface
 
-class GridmanMultiEnv(gym.Env, TrainingInfoInterface):
+class GriddlyEnv(gym.Env, TrainingInfoInterface):
 
     def __init__(self, full_env_name, cfg, render_mode: Optional[str] = None):
         TrainingInfoInterface.__init__(self)
