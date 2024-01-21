@@ -44,22 +44,6 @@ class ForageEnvFactory:
             level[i][0] = "W"
             level[i][-1] = "W"
 
-        # make obstacles
-        for i in range(width*height//10):
-            x = np.random.randint(1, width-1)
-            y = np.random.randint(1, height-1)
-            if level[y][x] == ".":
-                level[y][x] = "W"
-
-        # make the energy
-        for i in range(num_food):
-            while True:
-                x = np.random.randint(1, width-1)
-                y = np.random.randint(1, height-1)
-                if level[y][x] == ".":
-                    level[y][x] = "e"
-                    break
-
         # make the agents
         for i in range(num_agents):
             while True:
@@ -69,4 +53,19 @@ class ForageEnvFactory:
                     level[y][x] = f"A{i+1}"
                     break
 
+        # make the energy
+        for i in range(num_food):
+            for _ in range(10):
+                x = np.random.randint(1, width-1)
+                y = np.random.randint(1, height-1)
+                if level[y][x] == ".":
+                    level[y][x] = "e"
+                    break
+
+        # make obstacles
+        for i in range(width*height//10):
+            x = np.random.randint(1, width-1)
+            y = np.random.randint(1, height-1)
+            if level[y][x] == ".":
+                level[y][x] = "W"
         return level

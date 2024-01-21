@@ -17,9 +17,12 @@
                 "--save_every_sec=5",
                 "--experiment_summaries_interval=10",
                 "--lr_schedule=kl_adaptive_epoch",
-                "--decorrelate_experience_max_seconds=100",
-                // "--serial=True"
+                // "--decorrelate_experience_max_seconds=100",
+                "--serial=True",
+                "--async_rl=False",
                 "--with_wandb=True",
+                "--num_workers=1",
+                "--batch_size=1792"
             ],
         },
         {
@@ -40,42 +43,6 @@
                 "--eval_env_frameskip=1",
                 "--env=GDY-Forage",
                 "--experiment=griddly-v1",
-            ],
-        },
-        {
-            "name": "Train Gridman",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "envs.griddly.gridman.train",
-            "args": [
-                "--algo=APPO",
-                "--device=cpu",
-                "--env=GDY-GridmanMultiAgent",
-                "--experiment=gridman",
-                "--save_every_sec=5",
-                "--experiment_summaries_interval=10",
-                // "--serial=True"
-                // "--with_wandb=True",
-            ],
-        },
-        {
-            "name": "Run Gridman",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "envs.griddly.gridman.enjoy",
-            "args": [
-                "--algo=APPO",
-                "--device=cpu",
-                "--serial=True",
-                "--train_dir=./train_dir/",
-                // "--no_render",
-                "--save_video",
-                "--video_name=gridman",
-                "--fps=10",
-                "--max_num_frames=1000",
-                "--eval_env_frameskip=1",
-                "--env=GDY-GridmanMultiAgent",
-                "--experiment=gm.rnn=1024",
             ],
         }
     ]
