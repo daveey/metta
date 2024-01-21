@@ -2,7 +2,7 @@
 
 python -m envs.griddly.train \
     --algo=APPO \
-    --env=GDY-GDY-Forage \
+    --env=GDY-Forage \
     --with_wandb=True \
     --num_workers=25 \
     --decorrelate_experience_max_seconds=100 \
