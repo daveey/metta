@@ -1,4 +1,4 @@
-.pyc
+*.pyc
 __pycache__
 wandb
 train_dir
