@@ -37,3 +37,6 @@ RUN apt upgrade -y libopenblas-dev
 RUN pip uninstall -y numpy
 RUN pip install numpy
 
+RUN pip install aws
+RUN git clone https://github.com/daveey/metta.git
+
