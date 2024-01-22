@@ -13,7 +13,7 @@
                 "--algo=APPO",
                 "--device=cpu",
                 "--env=GDY-Forage",
-                "--experiment=griddly-v1",
+                "--experiment=g.pbt",
                 "--save_every_sec=5",
                 "--experiment_summaries_interval=10",
                 "--lr_schedule=kl_adaptive_epoch",
@@ -21,8 +21,11 @@
                 "--serial=True",
                 "--async_rl=False",
                 "--with_wandb=True",
-                "--num_workers=1",
-                "--batch_size=1792"
+                "--num_workers=4",
+                "--batch_size=1792",
+
+                "--with_pbt=True",
+                "--num_policies=4",
             ],
         },
         {
@@ -42,7 +45,7 @@
                 "--max_num_frames=1000",
                 "--eval_env_frameskip=1",
                 "--env=GDY-Forage",
-                "--experiment=griddly-v1",
+                "--experiment=g.pbt.4090",
             ],
         }
     ]

@@ -22,6 +22,7 @@ class ForageEnvFactory:
 
     def make_level_string(self):
         width = height = np.random.randint(10, 50)
+        width = height = 20
         # height = np.random.randint(10, 50)
         level = self._make_level(
             width=width, height=height,
