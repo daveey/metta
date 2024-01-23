@@ -45,7 +45,7 @@
                 "--max_num_frames=1000",
                 "--eval_env_frameskip=1",
                 "--env=GDY-Forage",
-                "--experiment=g.pbt.4090",
+                "--experiment=decoder",
             ],
         }
     ]
