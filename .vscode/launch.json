@@ -23,6 +23,7 @@
                 // "--with_wandb=True",
                 "--num_workers=4",
                 "--batch_size=1792",
+                "--forage.num_agents=7",
 
                 // "--with_pbt=True",
                 // "--num_policies=4",
@@ -46,6 +47,14 @@
                 "--eval_env_frameskip=1",
                 "--env=GDY-Forage",
                 "--experiment=decoder",
+                "--forage.num_agents=2",
+
+                "--forage.width_min=5",
+                "--forage.width_max=6",
+                "--forage.height_min=5",
+                "--forage.height_max=6",
+                "--forage.energy_per_agent=2",
+                "--forage.wall_density=0",
             ],
         }
     ]

@@ -54,7 +54,6 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
             return self.gym_env.reset()
 
     def step(self, actions):
-        actions = self.gym_env.action_space.sample()
         obs, rewards, terminated, truncated, infos = self.gym_env.step(list(actions))
         self.curr_episode_steps += 1
 

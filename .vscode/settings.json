@@ -1,0 +1,15 @@
+{
+    "[yaml]":{
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.quickSuggestions": {
+          "other": true,
+          "comments": false,
+          "strings": true
+        },
+        "editor.autoIndent": "none",
+      },
+      "yaml.schemas": {
+        "envs/griddly/gdy-schema.json": "envs/griddly/forage/*.yaml"
+      }
+}

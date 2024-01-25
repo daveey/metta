@@ -1,7 +1,9 @@
+from calendar import c
 from typing import Optional
 from griddly.gym import GymWrapper
 import numpy as np
 import yaml
+import argparse
 
 GYM_ENV_NAME = "GDY-Forage"
 
@@ -9,7 +11,11 @@ class ForageEnvFactory:
     def __init__(self, cfg=None):
         self.cfg = cfg
         self.game_config = yaml.safe_load(open("./envs/griddly/forage/forage.yaml"))
-        self.num_agents = int(self.game_config["Environment"]["Player"]["Count"])
+        self.num_agents = cfg["forage.num_agents"]
+
+        if self.game_config["Environment"]["Player"]["Count"] != self.num_agents:
+            self.game_config["Environment"]["Player"]["Count"] = self.num_agents
+            self.game_config["Environment"]["Levels"][0] = self.make_level_string()
 
     def make(self):
         return GymWrapper(
@@ -21,20 +27,12 @@ class ForageEnvFactory:
         )
 
     def make_level_string(self):
-        width = height = np.random.randint(10, 50)
-        height = np.random.randint(10, 50)
-        level = self._make_level(
-            width=width, height=height,
-            num_agents=self.num_agents,
-            num_food=self.num_agents*10
-        )
-        return "\n".join(["  ".join(row) for row in level])
+        return "\n".join(["  ".join(row) for row in self._make_level()])
 
-    def _make_level(self,
-                    width: int = 10,
-                    height: int = 10,
-                    num_agents: int = 1,
-                    num_food: int = 1):
+    def _make_level(self):
+        width = np.random.randint(self.cfg["forage.width_min"], self.cfg["forage.width_max"])
+        height = np.random.randint(self.cfg["forage.height_min"], self.cfg["forage.height_max"])
+        energy = self.num_agents * self.cfg["forage.energy_per_agent"]
 
         # make the bounding box
         level = [["."] * width for _ in range(height)]
@@ -45,7 +43,7 @@ class ForageEnvFactory:
             level[i][-1] = "W"
 
         # make the agents
-        for i in range(num_agents):
+        for i in range(self.num_agents):
             while True:
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
@@ -54,7 +52,7 @@ class ForageEnvFactory:
                     break
 
         # make the energy
-        for i in range(num_food):
+        for i in range(energy):
             for _ in range(10):
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
@@ -63,9 +61,23 @@ class ForageEnvFactory:
                     break
 
         # make obstacles
-        for i in range(width*height//10):
+        for i in range(int(width*height*self.cfg["forage.wall_density"])):
             x = np.random.randint(1, width-1)
             y = np.random.randint(1, height-1)
             if level[y][x] == ".":
                 level[y][x] = "W"
         return level
+
+def add_env_args(parser: argparse.ArgumentParser) -> None:
+    p = parser
+
+    p.add_argument("--forage.num_agents", default=8, type=int, help="number of agents in the environment")
+
+    p.add_argument("--forage.width_max", default=20, type=int, help="max level width")
+    p.add_argument("--forage.width_min", default=10, type=int, help="min level width")
+
+    p.add_argument("--forage.height_min", default=10, type=int, help="min level height")
+    p.add_argument("--forage.height_max", default=20, type=int, help="max level height")
+
+    p.add_argument("--forage.energy_per_agent", default=10, type=int)
+    p.add_argument("--forage.wall_density", default=0.1, type=float)

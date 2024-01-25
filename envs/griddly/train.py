@@ -32,8 +32,10 @@ def register_custom_components():
 
 def parse_custom_args(argv=None, evaluation=False):
     parser, cfg = parse_sf_args(argv=argv, evaluation=evaluation)
+    forage_env.add_env_args(parser)
     cfg = parse_full_cfg(parser, argv)
     return cfg
+
 
 def main():
     """Script entry point."""

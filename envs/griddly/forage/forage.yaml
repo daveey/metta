@@ -89,6 +89,8 @@ Actions:
           Object: agent
           Commands:
             - mov: _dest
+        Dst:
+          Object: [_empty]
       - Src:
           Object: agent
           Commands:
