@@ -27,8 +27,8 @@ Environment:
       - eq:
           - energy:count
           - 0
-    Lose:
-      - eq: [_steps, 5]
+    # Lose:
+    #   - eq: [_steps, 5]
 
   Levels:
     - >

@@ -23,7 +23,7 @@ class ForageEnvFactory:
             player_observer_type="VectorAgent",
             global_observer_type="GlobalSpriteObserver",
             level=0,
-            max_steps=1024
+            max_steps=self.cfg["forage.max_env_steps"],
         )
 
     def make_level_string(self):
@@ -81,3 +81,5 @@ def add_env_args(parser: argparse.ArgumentParser) -> None:
 
     p.add_argument("--forage.energy_per_agent", default=10, type=int)
     p.add_argument("--forage.wall_density", default=0.1, type=float)
+
+    p.add_argument("--forage.max_env_steps", default=1000, type=int)

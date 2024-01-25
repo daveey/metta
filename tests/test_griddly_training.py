@@ -21,7 +21,7 @@ def train_and_eval(args):
         train_cfg = parse_custom_args(argv=train_args)
         run_rl(train_cfg)
         eval_args = train_args + [
-            "--max_num_episodes=100",
+            "--max_num_episodes=10",
             "--no_render"
         ]
         eval_config = parse_custom_args(argv=eval_args, evaluation=True)
@@ -32,23 +32,37 @@ if __name__ == "__main__":
     register_custom_components()
 
     train_and_eval([
-            "--train_for_env_steps=40000",
+            "--train_for_env_steps=80000",
             "--forage.num_agents=2",
-            "--forage.width_min=5",
-            "--forage.width_max=6",
-            "--forage.height_min=5",
-            "--forage.height_max=6",
+            "--forage.width_min=4",
+            "--forage.width_max=5",
+            "--forage.height_min=4",
+            "--forage.height_max=5",
             "--forage.energy_per_agent=1",
             "--forage.wall_density=0",
+            "--forage.max_env_steps=2",
     ])
 
     train_and_eval([
-            "--train_for_env_steps=1000000",
+            "--train_for_env_steps=80000",
             "--forage.num_agents=2",
-            "--forage.width_min=10",
-            "--forage.width_max=11",
-            "--forage.height_min=10",
-            "--forage.height_max=11",
+            "--forage.width_min=9",
+            "--forage.width_max=10",
+            "--forage.height_min=9",
+            "--forage.height_max=10",
             "--forage.energy_per_agent=1",
             "--forage.wall_density=0",
+            "--forage.max_env_steps=16",
+    ])
+
+    train_and_eval([
+            "--train_for_env_steps=400000",
+            "--forage.num_agents=2",
+            "--forage.width_min=15",
+            "--forage.width_max=16",
+            "--forage.height_min=15",
+            "--forage.height_max=16",
+            "--forage.energy_per_agent=1",
+            "--forage.wall_density=0",
+            "--forage.max_env_steps=30",
     ])
