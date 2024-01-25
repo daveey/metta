@@ -35,7 +35,8 @@
             "request": "launch",
             "module": "envs.griddly.enjoy",
             "args": [
-                "--algo=APPO",
+                "--experiment=fix.nowall",
+
                 "--device=cpu",
                 "--serial=True",
                 "--train_dir=./train_dir/",
@@ -46,15 +47,22 @@
                 "--max_num_frames=1000",
                 "--eval_env_frameskip=1",
                 "--env=GDY-Forage",
-                "--experiment=decoder",
-                "--forage.num_agents=2",
+                "--forage.num_agents=10",
 
-                "--forage.width_min=5",
-                "--forage.width_max=6",
-                "--forage.height_min=5",
-                "--forage.height_max=6",
+                "--forage.width_min=20",
+                "--forage.width_max=21",
+                "--forage.height_min=20",
+                "--forage.height_max=21",
                 "--forage.energy_per_agent=2",
                 "--forage.wall_density=0",
+            ],
+        },
+        {
+            "name": "Run Tests",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "tests.test_griddly_training",
+            "args": [
             ],
         }
     ]

@@ -23,10 +23,13 @@ Environment:
     Count: 7
     AvatarObject: agent
   Termination:
-    End:
+    Win:
       - eq:
           - energy:count
           - 0
+    Lose:
+      - eq: [_steps, 5]
+
   Levels:
     - >
       W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W
