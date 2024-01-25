@@ -1,3 +1,4 @@
+import unittest
 from ast import arg
 import tempfile
 from envs.griddly.train import make_env_func, register_custom_components, parse_custom_args
@@ -26,12 +27,16 @@ def train_and_eval(args):
         ]
         eval_config = parse_custom_args(argv=eval_args, evaluation=True)
         status = enjoy(eval_config)
-        assert status[1] >= 0.99
+        return status[1]
 
-if __name__ == "__main__":
-    register_custom_components()
+class TestGridlyTraining(unittest.TestCase):
 
-    train_and_eval([
+    @classmethod
+    def setUpClass(cls):
+        register_custom_components()
+
+    def test_2x2(self):
+        args = [
             "--train_for_env_steps=80000",
             "--forage.num_agents=2",
             "--forage.width_min=4",
@@ -41,9 +46,11 @@ if __name__ == "__main__":
             "--forage.energy_per_agent=1",
             "--forage.wall_density=0",
             "--forage.max_env_steps=2",
-    ])
+        ]
+        self.assertGreater(train_and_eval(args), 0.99)
 
-    train_and_eval([
+    def test_8x8(self):
+        args = [
             "--train_for_env_steps=80000",
             "--forage.num_agents=2",
             "--forage.width_min=9",
@@ -53,16 +60,22 @@ if __name__ == "__main__":
             "--forage.energy_per_agent=1",
             "--forage.wall_density=0",
             "--forage.max_env_steps=16",
-    ])
+        ]
+        self.assertGreater(train_and_eval(args), 0.99)
 
-    train_and_eval([
-            "--train_for_env_steps=400000",
+    def test_8x8_w05(self):
+        args = [
+            "--train_for_env_steps=80000",
             "--forage.num_agents=2",
-            "--forage.width_min=15",
-            "--forage.width_max=16",
-            "--forage.height_min=15",
-            "--forage.height_max=16",
+            "--forage.width_min=9",
+            "--forage.width_max=10",
+            "--forage.height_min=9",
+            "--forage.height_max=10",
             "--forage.energy_per_agent=1",
-            "--forage.wall_density=0",
-            "--forage.max_env_steps=30",
-    ])
+            "--forage.wall_density=0.05",
+            "--forage.max_env_steps=16",
+        ]
+        self.assertGreater(train_and_eval(args), 0.99)
+
+if __name__ == "__main__":
+    unittest.main()

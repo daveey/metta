@@ -11,5 +11,14 @@
       },
       "yaml.schemas": {
         "envs/griddly/gdy-schema.json": "envs/griddly/forage/*.yaml"
-      }
+    },
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./tests",
+        "-p",
+        "test_*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true
 }
