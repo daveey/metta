@@ -1,3 +1,9 @@
 #!/bin/bash
 
-vastai copy "$(vastai show instances  | tail -n1 | awk '{print $1}'):/workspace/metta/train_dir/$1" ./train_dir/
+label=$1
+experiment=$2
+get_info=$(vastai show instances --raw)
+id=$(echo $get_info | jq -r ".[] | select(.label==\"$label\") | .id")
+cmd="vastai copy $id:/workspace/metta/train_dir/$experiment ./train_dir/"
+echo $cmd
+$cmd
