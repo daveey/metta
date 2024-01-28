@@ -37,7 +37,7 @@ class TestGridlyTraining(unittest.TestCase):
 
     def test_2x2(self):
         args = [
-            "--train_for_env_steps=80000",
+            "--train_for_env_steps=300000",
             "--forage.num_agents=2",
             "--forage.width_min=4",
             "--forage.width_max=5",
@@ -46,6 +46,22 @@ class TestGridlyTraining(unittest.TestCase):
             "--forage.energy_per_agent=1",
             "--forage.wall_density=0",
             "--forage.max_env_steps=2",
+            "--forage.prediction_error_reward=0"
+        ]
+        self.assertGreater(train_and_eval(args), 0.99)
+
+    def test_2x2_predict(self):
+        args = [
+            "--train_for_env_steps=300000",
+            "--forage.num_agents=2",
+            "--forage.width_min=4",
+            "--forage.width_max=5",
+            "--forage.height_min=4",
+            "--forage.height_max=5",
+            "--forage.energy_per_agent=1",
+            "--forage.wall_density=0",
+            "--forage.max_env_steps=2",
+            "--forage.prediction_error_reward=-0.001"
         ]
         self.assertGreater(train_and_eval(args), 0.99)
 

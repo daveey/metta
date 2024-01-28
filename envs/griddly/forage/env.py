@@ -5,6 +5,8 @@ import numpy as np
 import yaml
 import argparse
 
+from envs.predictive_reward_env_wrapper import PredictiveRewardEnvWrapper
+
 GYM_ENV_NAME = "GDY-Forage"
 
 class ForageEnvFactory:
@@ -18,13 +20,17 @@ class ForageEnvFactory:
             self.game_config["Environment"]["Levels"][0] = self.make_level_string()
 
     def make(self):
-        return GymWrapper(
-            yaml_string=yaml.dump(self.game_config),
-            player_observer_type="VectorAgent",
-            global_observer_type="GlobalSpriteObserver",
-            level=0,
-            max_steps=self.cfg["forage.max_env_steps"],
+        return PredictiveRewardEnvWrapper(
+            GymWrapper(
+                yaml_string=yaml.dump(self.game_config),
+                player_observer_type="VectorAgent",
+                global_observer_type="GlobalSpriteObserver",
+                level=0,
+                max_steps=self.cfg["forage.max_env_steps"],
+            ),
+            prediction_error_reward=self.cfg["forage.prediction_error_reward"],
         )
+
 
     def make_level_string(self):
         return "\n".join(["  ".join(row) for row in self._make_level()])
@@ -83,3 +89,4 @@ def add_env_args(parser: argparse.ArgumentParser) -> None:
     p.add_argument("--forage.wall_density", default=0.1, type=float)
 
     p.add_argument("--forage.max_env_steps", default=1000, type=int)
+    p.add_argument("--forage.prediction_error_reward", default=0.00, type=float)

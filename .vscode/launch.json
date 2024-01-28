@@ -63,6 +63,8 @@
             "request": "launch",
             "module": "tests.test_griddly_training",
             "args": [
+                "-k",
+                "test_2x2_predict",
             ],
         }
     ]
