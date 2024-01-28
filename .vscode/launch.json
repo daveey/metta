@@ -13,7 +13,7 @@
                 "--algo=APPO",
                 "--device=cpu",
                 "--env=GDY-Forage",
-                "--experiment=g.pred.2",
+                "--experiment=g.pred.35",
                 "--save_every_sec=5",
                 "--experiment_summaries_interval=10",
                 "--lr_schedule=kl_adaptive_epoch",
