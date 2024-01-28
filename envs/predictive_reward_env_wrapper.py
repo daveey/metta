@@ -37,8 +37,9 @@ class PredictiveRewardEnvWrapper(gym.Wrapper, gym.utils.RecordConstructorArgs):
         obs, rewards, terminated, truncated, infos = self.env.step(list(actions))
         for i in range(len(obs)):
             flat_ob = gym.spaces.flatten(self.observation_space[i], obs[i])
-            prediction_error = np.sum((next_obs_prediction[i] - flat_ob) ** 2) / len(obs[i])
-            rewards[i] = rewards[i] + self.prediction_error_reward * prediction_error
+            prediction_error = np.sum(np.abs(next_obs_prediction[i] - flat_ob))
+            pred_error_norm = prediction_error / len(flat_ob) / 255.0
+            rewards[i] = rewards[i] + self.prediction_error_reward * pred_error_norm
             infos.setdefault(i, {})["prediction_error"] = prediction_error
 
         return obs, rewards, terminated, truncated, infos
