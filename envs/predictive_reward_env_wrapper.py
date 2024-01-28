@@ -39,7 +39,11 @@ class PredictiveRewardEnvWrapper(gym.Wrapper, gym.utils.RecordConstructorArgs):
             flat_ob = gym.spaces.flatten(self.observation_space[i], obs[i])
             prediction_error = np.sum(np.abs(next_obs_prediction[i] - flat_ob))
             pred_error_norm = prediction_error / len(flat_ob) / 255.0
+            assert pred_error_norm <= 1.0, f"Prediction error {pred_error_norm} is greater than 1.0"
+            assert pred_error_norm >= 0, f"Prediction error {pred_error_norm} is less than 0.0"
+
             rewards[i] = rewards[i] + self.prediction_error_reward * pred_error_norm
-            infos.setdefault(i, {})["prediction_error"] = prediction_error
+            assert rewards[i] >= -1.0, f"Reward {rewards[i]} is less than -1.0"
+            infos.setdefault(i, {})["prediction_error"] = pred_error_norm
 
         return obs, rewards, terminated, truncated, infos

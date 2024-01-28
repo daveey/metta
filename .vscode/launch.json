@@ -13,7 +13,7 @@
                 "--algo=APPO",
                 "--device=cpu",
                 "--env=GDY-Forage",
-                "--experiment=g.pred",
+                "--experiment=g.pred.2",
                 "--save_every_sec=5",
                 "--experiment_summaries_interval=10",
                 "--lr_schedule=kl_adaptive_epoch",
@@ -24,6 +24,8 @@
                 "--num_workers=4",
                 "--batch_size=1792",
                 "--forage.num_agents=7",
+                "--forage.prediction_error_reward=0.01",
+                "--forage.energy_per_agent=1",
 
                 // "--with_pbt=True",
                 // "--num_policies=4",
