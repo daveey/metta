@@ -27,7 +27,7 @@ def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optiona
 
 def register_custom_components():
     global_model_factory().register_encoder_factory(GriddlyEncoder)
-    global_model_factory().register_decoder_factory(GriddlyDecoder)
+    # global_model_factory().register_decoder_factory(GriddlyDecoder)
     register_env(forage_env.GYM_ENV_NAME, make_env_func)
 
 def parse_custom_args(argv=None, evaluation=False):

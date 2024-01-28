@@ -3,7 +3,8 @@
 label=$1
 machine=$(
     vastai search offers num_gpus=1 \
-    gpu_name=RTX_4090 rented=False "dph<0.4" -o dph- \
+    "cpu_cores_effective>15" \
+    gpu_name=RTX_4090 rented=False "dph<0.45" -o dph- \
     | tail -n1 \
     | awk '{print $1}')
 

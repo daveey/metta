@@ -13,7 +13,7 @@
                 "--algo=APPO",
                 "--device=cpu",
                 "--env=GDY-Forage",
-                "--experiment=g.decoder",
+                "--experiment=g.pred",
                 "--save_every_sec=5",
                 "--experiment_summaries_interval=10",
                 "--lr_schedule=kl_adaptive_epoch",
@@ -35,7 +35,7 @@
             "request": "launch",
             "module": "envs.griddly.enjoy",
             "args": [
-                "--experiment=fix.nowall",
+                "--experiment=norm_pred.01",
 
                 "--device=cpu",
                 "--serial=True",
@@ -47,14 +47,15 @@
                 "--max_num_frames=1000",
                 "--eval_env_frameskip=1",
                 "--env=GDY-Forage",
-                "--forage.num_agents=10",
+                "--forage.num_agents=30",
 
                 "--forage.width_min=20",
-                "--forage.width_max=21",
+                "--forage.width_max=201",
                 "--forage.height_min=20",
-                "--forage.height_max=21",
-                "--forage.energy_per_agent=2",
-                "--forage.wall_density=0",
+                "--forage.height_max=201",
+                "--forage.energy_per_agent=1",
+                "--forage.wall_density=0.15",
+                "--forage.prediction_error_reward=0",
             ],
         },
         {
