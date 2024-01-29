@@ -63,7 +63,17 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
 
         terminated = [terminated] * self.num_agents
         truncated = [truncated] * self.num_agents
+
+        tos = None
+        if "true_objectives" in infos:
+            tos = infos["true_objectives"]
+            del infos["true_objectives"]
+
         infos = [infos] * self.num_agents
+        if tos is not None:
+            for i in range(self.num_agents):
+                infos[i]["true_objectives"] = tos[i]
+
         return obs, rewards, terminated, truncated, infos
 
     def render(self, *args, **kwargs):

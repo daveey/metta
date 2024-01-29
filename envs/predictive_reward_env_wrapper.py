@@ -49,6 +49,7 @@ class PredictiveRewardEnvWrapper(gym.Wrapper, gym.utils.RecordConstructorArgs):
         (actions, next_obs_prediction) = zip(*actions)
         obs, rewards, terminated, truncated, infos = self.env.step(list(actions))
         step_pred_error = 0
+        infos["true_objectives"] = deepcopy(rewards)
         for i in range(len(obs)):
             clipped_pred = np.clip(next_obs_prediction[i], 0, 255)
             flat_ob = gym.spaces.flatten(self.observation_space[i], obs[i])
