@@ -35,10 +35,5 @@ class TestPredictiveForageEnv(unittest.TestCase):
 
         self.assertGreater(total_rewards, 0.0)
 
-
-import os
-
-os.environ['KMP_DUPLICATE_LIB_OK']='True'
-
 if __name__ == '__main__':
     unittest.main()
