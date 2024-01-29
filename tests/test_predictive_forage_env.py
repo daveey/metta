@@ -9,11 +9,9 @@ class TestPredictiveForageEnv(unittest.TestCase):
         cfg = {
             "forage_num_agents": 3,
             "forage_max_env_steps": 100,
-            "forage_width_min": 9,
-            "forage_width_max": 10,
-            "forage_height_min": 9,
-            "forage_height_max": 10,
-            "forage_wall_density": 0,
+            "forage_width": 9,
+            "forage_height": 9,
+            "forage_wall_density": 0.0,
             "forage_energy_per_agent": 1,
             "forage_prediction_error_reward": 10,
         }
@@ -36,6 +34,11 @@ class TestPredictiveForageEnv(unittest.TestCase):
             total_rewards += sum(rewards)
 
         self.assertGreater(total_rewards, 0.0)
+
+
+import os
+
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 if __name__ == '__main__':
     unittest.main()

@@ -12,6 +12,7 @@ python -m envs.griddly.train \
     --forage_height_min=10 \
     --forage_height_max=100 \
     --forage_energy_per_agent=1 \
-    --forage_wall_density=0.1 \
+    --forage_wall_density_min=0.1 \
+    --forage_wall_density_max=0.1 \
     --forage_prediction_error_reward=-0.01 \
     "$@"

@@ -39,12 +39,10 @@ class TestGridlyTraining(unittest.TestCase):
         args = [
             "--train_for_env_steps=300000",
             "--forage_num_agents=2",
-            "--forage_width_min=4",
-            "--forage_width_max=5",
-            "--forage_height_min=4",
-            "--forage_height_max=5",
+            "--forage_width=4",
+            "--forage_height=4",
             "--forage_energy_per_agent=1",
-            "--forage_wall_density=0",
+            "--forage_wall_density=0.0",
             "--forage_max_env_steps=2",
             "--forage_prediction_error_reward=0"
         ]
@@ -54,12 +52,10 @@ class TestGridlyTraining(unittest.TestCase):
         args = [
             "--train_for_env_steps=300000",
             "--forage_num_agents=2",
-            "--forage_width_min=4",
-            "--forage_width_max=5",
-            "--forage_height_min=4",
-            "--forage_height_max=5",
+            "--forage_width=4",
+            "--forage_height=4",
             "--forage_energy_per_agent=1",
-            "--forage_wall_density=0",
+            "--forage_wall_density=0.0",
             "--forage_max_env_steps=2",
             "--forage_prediction_error_reward=-0.001"
         ]
@@ -69,12 +65,10 @@ class TestGridlyTraining(unittest.TestCase):
         args = [
             "--train_for_env_steps=80000",
             "--forage_num_agents=2",
-            "--forage_width_min=9",
-            "--forage_width_max=10",
-            "--forage_height_min=9",
-            "--forage_height_max=10",
+            "--forage_width=9",
+            "--forage_height=9",
             "--forage_energy_per_agent=1",
-            "--forage_wall_density=0",
+            "--forage_wall_density=0.0",
             "--forage_max_env_steps=16",
         ]
         self.assertGreater(train_and_eval(args), 0.99)
@@ -83,10 +77,8 @@ class TestGridlyTraining(unittest.TestCase):
         args = [
             "--train_for_env_steps=80000",
             "--forage_num_agents=2",
-            "--forage_width_min=9",
-            "--forage_width_max=10",
-            "--forage_height_min=9",
-            "--forage_height_max=10",
+            "--forage_width=9",
+            "--forage_height=9",
             "--forage_energy_per_agent=1",
             "--forage_wall_density=0.05",
             "--forage_max_env_steps=16",
