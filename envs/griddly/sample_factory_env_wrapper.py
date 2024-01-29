@@ -63,7 +63,7 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
 
         terminated = [terminated] * self.num_agents
         truncated = [truncated] * self.num_agents
-        infos = [{}] * self.num_agents
+        infos = [infos] * self.num_agents
         return obs, rewards, terminated, truncated, infos
 
     def render(self, *args, **kwargs):
