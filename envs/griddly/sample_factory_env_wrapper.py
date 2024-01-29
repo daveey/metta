@@ -72,7 +72,7 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
         infos = [infos] * self.num_agents
         if tos is not None:
             for i in range(self.num_agents):
-                infos[i]["true_objectives"] = tos[i]
+                infos[i]["true_objective"] = tos[i]
 
         return obs, rewards, terminated, truncated, infos
 
