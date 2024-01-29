@@ -18,3 +18,4 @@ class PossiblyNumericRange2Number(argparse.Action):
             raise argparse.ArgumentTypeError(f"Input length (after splitting with character {VALUES_RANGE_DELIMITER} must be 1 or 2. Got {len(vals)}")
         
         setattr(namespace, self.dest, vals)
+
