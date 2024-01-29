@@ -84,7 +84,8 @@ class ForageEnvFactory:
                     break
         
         # make obstacles
-        print("Width, height, density: ", width, height, wall_density)
+        wall_density = self.level_wall_density_sampler()
+        
         for i in range(int(width*height*wall_density)):
             x = np.random.randint(1, width-1)
             y = np.random.randint(1, height-1)
