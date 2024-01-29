@@ -13,7 +13,7 @@ class ForageEnvFactory:
     def __init__(self, cfg=None):
         self.cfg = cfg
         self.game_config = yaml.safe_load(open("./envs/griddly/forage/forage.yaml"))
-        self.num_agents = cfg["forage.num_agents"]
+        self.num_agents = self.cfg.forage_num_agents
 
         if self.game_config["Environment"]["Player"]["Count"] != self.num_agents:
             self.game_config["Environment"]["Player"]["Count"] = self.num_agents
@@ -26,9 +26,9 @@ class ForageEnvFactory:
                 player_observer_type="VectorAgent",
                 global_observer_type="GlobalSpriteObserver",
                 level=0,
-                max_steps=self.cfg["forage.max_env_steps"],
+                max_steps=self.cfg.forage_max_env_steps,
             ),
-            prediction_error_reward=self.cfg["forage.prediction_error_reward"],
+            prediction_error_reward=self.cfg.forage_prediction_error_reward,
         )
 
 
@@ -36,9 +36,9 @@ class ForageEnvFactory:
         return "\n".join(["  ".join(row) for row in self._make_level()])
 
     def _make_level(self):
-        width = np.random.randint(self.cfg["forage.width_min"], self.cfg["forage.width_max"])
-        height = np.random.randint(self.cfg["forage.height_min"], self.cfg["forage.height_max"])
-        energy = self.num_agents * self.cfg["forage.energy_per_agent"]
+        width = np.random.randint(self.cfg.forage_width_min, self.cfg.forage_width_max)
+        height = np.random.randint(self.cfg.forage_height_min, self.cfg.forage_height_max)
+        energy = self.num_agents * self.cfg.forage_energy_per_agent
 
         # make the bounding box
         level = [["."] * width for _ in range(height)]
@@ -67,7 +67,7 @@ class ForageEnvFactory:
                     break
 
         # make obstacles
-        for i in range(int(width*height*self.cfg["forage.wall_density"])):
+        for i in range(int(width*height*self.cfg.forage_wall_density)):
             x = np.random.randint(1, width-1)
             y = np.random.randint(1, height-1)
             if level[y][x] == ".":
@@ -77,16 +77,18 @@ class ForageEnvFactory:
 def add_env_args(parser: argparse.ArgumentParser) -> None:
     p = parser
 
-    p.add_argument("--forage.num_agents", default=8, type=int, help="number of agents in the environment")
+    p.add_argument("--forage_num_agents", default=8, type=int, help="number of agents in the environment")
 
-    p.add_argument("--forage.width_max", default=20, type=int, help="max level width")
-    p.add_argument("--forage.width_min", default=10, type=int, help="min level width")
+    p.add_argument("--forage_width_max", default=20, type=int, help="max level width")
+    p.add_argument("--forage_width_min", default=10, type=int, help="min level width")
 
-    p.add_argument("--forage.height_min", default=10, type=int, help="min level height")
-    p.add_argument("--forage.height_max", default=20, type=int, help="max level height")
+    p.add_argument("--forage_height_min", default=10, type=int, help="min level height")
+    p.add_argument("--forage_height_max", default=20, type=int, help="max level height")
 
-    p.add_argument("--forage.energy_per_agent", default=10, type=int)
-    p.add_argument("--forage.wall_density", default=0.1, type=float)
+    p.add_argument("--forage_energy_per_agent", default=10, type=int)
+    p.add_argument("--forage_wall_density", default=0.1, type=float)
 
-    p.add_argument("--forage.max_env_steps", default=1000, type=int)
-    p.add_argument("--forage.prediction_error_reward", default=0.00, type=float)
+    p.add_argument("--forage_max_env_steps", default=1000, type=int)
+    p.add_argument("--forage_prediction_error_reward", default=0.00, type=float)
+
+

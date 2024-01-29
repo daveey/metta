@@ -7,15 +7,15 @@ from envs.predictive_reward_env_wrapper import PredictiveRewardEnvWrapper
 class TestPredictiveForageEnv(unittest.TestCase):
     def setUp(self):
         cfg = {
-            "forage.num_agents": 3,
-            "forage.max_env_steps": 100,
-            "forage.width_min": 9,
-            "forage.width_max": 10,
-            "forage.height_min": 9,
-            "forage.height_max": 10,
-            "forage.wall_density": 0,
-            "forage.energy_per_agent": 1,
-            "forage.prediction_error_reward": 10,
+            "forage_num_agents": 3,
+            "forage_max_env_steps": 100,
+            "forage_width_min": 9,
+            "forage_width_max": 10,
+            "forage_height_min": 9,
+            "forage_height_max": 10,
+            "forage_wall_density": 0,
+            "forage_energy_per_agent": 1,
+            "forage_prediction_error_reward": 10,
         }
         self.factory = ForageEnvFactory(cfg)
         self.env = self.factory.make()

@@ -6,13 +6,12 @@ python -m envs.griddly.train \
     --with_wandb=True \
     --num_workers=25 \
     --decorrelate_experience_max_seconds=100 \
-    --lr_schedule=kl_adaptive_epoch \
-    --forage.num_agents=10 \
-    --forage.width_min=10 \
-    --forage.width_max=100 \
-    --forage.height_min=10 \
-    --forage.height_max=100 \
-    --forage.energy_per_agent=2 \
-    --forage.wall_density=0.1 \
+    --forage_num_agents=10 \
+    --forage_width_min=10 \
+    --forage_width_max=100 \
+    --forage_height_min=10 \
+    --forage_height_max=100 \
+    --forage_energy_per_agent=1 \
+    --forage_wall_density=0.1 \
+    --forage_prediction_error_reward=-0.01 \
     "$@"
-
