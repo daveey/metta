@@ -20,17 +20,17 @@ class ForageEnvFactory:
             self.game_config["Environment"]["Levels"][0] = self.make_level_string()
 
     def make(self):
-        return PredictiveRewardEnvWrapper(
-            GymWrapper(
+        env = GymWrapper(
                 yaml_string=yaml.dump(self.game_config),
                 player_observer_type="VectorAgent",
                 global_observer_type="GlobalSpriteObserver",
                 level=0,
                 max_steps=self.cfg.forage_max_env_steps,
-            ),
-            prediction_error_reward=self.cfg.forage_prediction_error_reward,
-        )
+            )
 
+        return PredictiveRewardEnvWrapper(
+            env,
+            prediction_error_reward=self.cfg.forage_prediction_error_reward)
 
     def make_level_string(self):
         return "\n".join(["  ".join(row) for row in self._make_level()])

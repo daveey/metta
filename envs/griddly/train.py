@@ -15,10 +15,9 @@ from sample_factory.cfg.arguments import parse_full_cfg, parse_sf_args
 from sample_factory.envs.env_utils import register_env
 from sample_factory.train import run_rl
 from sample_factory.envs.env_utils import register_env
-from sample_factory.algo.utils.context import global_model_factory
 from envs.griddly.sample_factory_env_wrapper import GriddlyEnvWrapper
+from agent import agent
 
-from agent.agent import GriddlyDecoder, GriddlyEncoder
 import envs.griddly.forage.env as forage_env
 
 def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optional[str] = None):
@@ -26,8 +25,7 @@ def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optiona
     return GriddlyEnvWrapper(f.make(), render_mode=render_mode, make_level=f.make_level_string)
 
 def register_custom_components():
-    global_model_factory().register_encoder_factory(GriddlyEncoder)
-    global_model_factory().register_decoder_factory(GriddlyDecoder)
+    agent.register_custom_components()
     register_env(forage_env.GYM_ENV_NAME, make_env_func)
 
 def parse_custom_args(argv=None, evaluation=False):
