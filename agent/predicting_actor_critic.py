@@ -1,21 +1,13 @@
 
 
 from __future__ import annotations
-from os import error
-from gym import make
-import gym
 
 from sample_factory.algo.utils.tensor_dict import TensorDict
 
 import numpy as np
 from torch import nn
 
-from sample_factory.algo.utils.torch_utils import calc_num_elements
-from sample_factory.model.encoder import Encoder
-from sample_factory.model.decoder import MlpDecoder
-from sample_factory.model.core import ModelCore, ModelCoreRNN
 from sample_factory.model.actor_critic import ActorCriticSharedWeights
-from sample_factory.model.model_utils import nonlinearity
 from sample_factory.utils.typing import Config
 import torch
 from sample_factory.algo.utils.context import global_model_factory
