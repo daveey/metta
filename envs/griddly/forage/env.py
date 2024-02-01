@@ -12,28 +12,15 @@ import envs.args_parsing as args_parsing
 
 GYM_ENV_NAME = "GDY-Forage"
 
-def get_value_possibly_from_range(vals: typing.List, range_selection_fn: typing.Callable):
-    """
-        Args: 
-            vals: a list of 1 or 2 values
-            range_selection_fn: a function that selects a value based on a (low, high) range boundaries
-    """
-    if len(vals) == 1:
-        return lambda: vals[0]
-    elif len(vals) == 2:
-        return lambda: range_selection_fn(vals[0], vals[1])
-    else:
-        raise ValueError(f"Length of values list should be at most 2. Got: {len(vals)}")
-
 class ForageEnvFactory:
     def __init__(self, cfg=None):
         self.cfg = cfg
         self.game_config = yaml.safe_load(open("./envs/griddly/forage/forage.yaml"))
         self.num_agents = self.cfg.forage_num_agents
         
-        self.level_width_sampler = get_value_possibly_from_range(self.cfg.forage_width, np.random.randint)
-        self.level_height_sampler = get_value_possibly_from_range(self.cfg.forage_height, np.random.randint)
-        self.level_wall_density_sampler = get_value_possibly_from_range(self.cfg.forage_wall_density, np.random.uniform)
+        self.level_width_sampler = args_parsing.get_value_possibly_from_range(self.cfg.forage_width, np.random.randint)
+        self.level_height_sampler = args_parsing.get_value_possibly_from_range(self.cfg.forage_height, np.random.randint)
+        self.level_wall_density_sampler = args_parsing.get_value_possibly_from_range(self.cfg.forage_wall_density, np.random.uniform)
 
         if self.game_config["Environment"]["Player"]["Count"] != self.num_agents:
             self.game_config["Environment"]["Player"]["Count"] = self.num_agents
@@ -99,13 +86,13 @@ def add_env_args(parser: argparse.ArgumentParser) -> None:
     p.add_argument("--forage_num_agents", default=8, type=int, help="number of agents in the environment")
 
     p.add_argument("--forage_width",
-                   default=15,
+                   default=[15],
                    help='Level width. Can be either a integer value OR a low:high range (e.g., "10:20" to sample from [10, 20) - high excluded)',
                    action=args_parsing.PossiblyNumericRange2Number,
                    str2numeric_cast_fn=int)
 
     p.add_argument("--forage_height",
-                   default=15,
+                   default=[15],
                    help='Level height. Can be either a single integer OR a low:high range (e.g., "10:20" to sample from [10, 20) - high excluded)',
                    action=args_parsing.PossiblyNumericRange2Number,
                    str2numeric_cast_fn=int)
@@ -113,7 +100,7 @@ def add_env_args(parser: argparse.ArgumentParser) -> None:
     p.add_argument("--forage_energy_per_agent", default=10, type=int)
 
     p.add_argument("--forage_wall_density",
-                   default=0.05,
+                   default=[0.05],
                    help='Level wall density. Can be either a single float OR a low:high range (e.g., "0.2:0.5") from which a value is uniformly drawn',
                    action=args_parsing.PossiblyNumericRange2Number,
                    str2numeric_cast_fn=float)
