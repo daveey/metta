@@ -18,9 +18,9 @@ class ForageEnvFactory:
         self.game_config = yaml.safe_load(open("./envs/griddly/forage/forage.yaml"))
         self.num_agents = self.cfg.forage_num_agents
         
-        self.level_width_sampler = args_parsing.get_value_possibly_from_range(self.cfg.forage_width, np.random.randint)
-        self.level_height_sampler = args_parsing.get_value_possibly_from_range(self.cfg.forage_height, np.random.randint)
-        self.level_wall_density_sampler = args_parsing.get_value_possibly_from_range(self.cfg.forage_wall_density, np.random.uniform)
+        self.sample_level_width = args_parsing.get_value_possibly_from_range(self.cfg.forage_width, np.random.randint)
+        self.sample_level_height = args_parsing.get_value_possibly_from_range(self.cfg.forage_height, np.random.randint)
+        self.sample_level_wall_density = args_parsing.get_value_possibly_from_range(self.cfg.forage_wall_density, np.random.uniform)
 
         if self.game_config["Environment"]["Player"]["Count"] != self.num_agents:
             self.game_config["Environment"]["Player"]["Count"] = self.num_agents
@@ -40,8 +40,8 @@ class ForageEnvFactory:
         return "\n".join(["  ".join(row) for row in self._make_level()])
 
     def _make_level(self):
-        width = self.level_width_sampler()
-        height = self.level_height_sampler()
+        width = self.sample_level_width()
+        height = self.sample_level_height()
         energy = self.num_agents * self.cfg.forage_energy_per_agent
 
         # make the bounding box
@@ -71,7 +71,7 @@ class ForageEnvFactory:
                     break
         
         # make obstacles
-        wall_density = self.level_wall_density_sampler()
+        wall_density = self.sample_level_wall_density()
         
         for i in range(int(width*height*wall_density)):
             x = np.random.randint(1, width-1)
