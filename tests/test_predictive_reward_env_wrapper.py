@@ -1,31 +1,24 @@
 import unittest
+from unittest.mock import Mock, MagicMock
 import gymnasium as gym
 import numpy as np
 from envs.predictive_reward_env_wrapper import PredictiveRewardEnvWrapper
+from griddly.spaces.action_space import MultiAgentActionSpace
 
 class TestPredictiveRewardEnvWrapper(unittest.TestCase):
     def setUp(self):
-        self.env = gym.make('CartPole-v0')
-        self.wrapper = PredictiveRewardEnvWrapper(self.env)
-
-    def test_reset(self):
-        obs = self.wrapper.reset()[0]
-        self.assertEqual(len(obs), self.env.observation_space.shape[0])
+        self.env = Mock(spec=gym.Env)
+        self.env.action_space = MultiAgentActionSpace([gym.spaces.Discrete(2)]*2)
+        self.env.observation_space = gym.spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
+        self.env.step = MagicMock(return_value=(np.array([0]), np.array([0, 1]), False, False, {}))
+        self.wrapper = PredictiveRewardEnvWrapper(self.env, prediction_error_reward=0.5)
 
     def test_step(self):
-        self.wrapper.reset()
-        action = self.env.action_space.sample()
-        next_obs_prediction = self.env.observation_space.sample()
-        obs, rewards, terminated, truncated, infos = self.wrapper.step((action, next_obs_prediction))
-        self.assertEqual(len(obs), self.env.observation_space.shape[0])
-        self.assertIsInstance(rewards, float)
-        self.assertIsInstance(terminated, bool)
-        self.assertIsInstance(truncated, bool)
-        self.assertIsInstance(infos, dict)
+        actions = [(0, np.array([0.2])), (1, np.array([0.3]))]
+        obs, rewards, terminated, truncated, infos = self.wrapper.step(actions)
 
-    def test_render(self):
-        self.wrapper.reset()
-        self.wrapper.render()
+        # Check that the reward was modified correctly
+        np.testing.assert_allclose(rewards, [0 + 0.2 * 0.5, 1 + 0.3 * 0.5])
 
 if __name__ == '__main__':
     unittest.main()

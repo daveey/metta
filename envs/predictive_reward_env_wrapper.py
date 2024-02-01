@@ -34,6 +34,7 @@ class PredictiveRewardEnvWrapper(gym.Wrapper, gym.utils.RecordConstructorArgs):
             for agent_action_space in action_space
         ])
         self.num_episode_steps = 0
+        self.episode_prediction_error = 0
 
     def reset(self, **kwargs):
         self.episode_prediction_error = 0
@@ -48,11 +49,14 @@ class PredictiveRewardEnvWrapper(gym.Wrapper, gym.utils.RecordConstructorArgs):
 
         step_pred_error = 0
         infos["true_objectives"] = deepcopy(rewards)
+        rewards = np.array(rewards, dtype=np.float32)
+        prediction_error = np.array(prediction_error).flatten()
+        rewards += prediction_error * self.prediction_error_reward
 
-        for i in range(len(obs)):
-            pe = prediction_error[i].item()
-            rewards[i] += pe * self.prediction_error_reward
-            step_pred_error += pe
+        # for i in range(len(obs)):
+            # pe = prediction_error[i].item()
+            # rewards[i] += pe * self.prediction_error_reward
+            # step_pred_error += pe
 
         self.num_episode_steps += 1
         self.episode_prediction_error += step_pred_error / len(obs)

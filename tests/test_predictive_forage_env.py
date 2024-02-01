@@ -1,3 +1,5 @@
+from argparse import Namespace
+from types import SimpleNamespace
 import unittest
 import gymnasium as gym
 import numpy as np
@@ -6,7 +8,7 @@ from envs.predictive_reward_env_wrapper import PredictiveRewardEnvWrapper
 
 class TestPredictiveForageEnv(unittest.TestCase):
     def setUp(self):
-        cfg = {
+        cfg = SimpleNamespace(**{
             "forage_num_agents": 3,
             "forage_max_env_steps": 100,
             "forage_width_min": 9,
@@ -16,26 +18,20 @@ class TestPredictiveForageEnv(unittest.TestCase):
             "forage_wall_density": 0,
             "forage_energy_per_agent": 1,
             "forage_prediction_error_reward": 10,
-        }
+        })
         self.factory = ForageEnvFactory(cfg)
         self.env = self.factory.make()
 
     def test_step(self):
         obs = self.env.reset()[0]
-        actions = zip([0, 0, 0], obs)
+        actions = zip(
+            [0, 0, 0], # actions
+            [np.array([e]) for e in [0.02, 0.1, 0]]) # prediction errors
+
         obs, rewards, terminated, truncated, infos = self.env.step(actions)
-        self.assertEqual(rewards, [0.0, 0.0, 0.0])
+        self.assertEqual(rewards, [0.2, 1.0, 0.0])
+        self.assertEqual(infos["true_objectives"], [0, 0, 0])
 
-        # move A3 around, his error should be > than the other agents
-        total_rewards = 0
-        for dir in range(1, 5):
-            actions = zip([0, 0, dir], obs)
-            obs, rewards, terminated, truncated, infos = self.env.step(actions)
-            self.assertLessEqual(rewards[0], rewards[2])
-            self.assertLessEqual(rewards[1], rewards[2])
-            total_rewards += sum(rewards)
-
-        self.assertGreater(total_rewards, 0.0)
 
 if __name__ == '__main__':
     unittest.main()

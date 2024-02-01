@@ -17,7 +17,7 @@ from sample_factory.model.model_utils import nonlinearity
 from sample_factory.utils.typing import Config
 import torch
 from sample_factory.algo.utils.context import global_model_factory
-
+from agent.predicting_actor_critic import make_actor_critic_func
 
 def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
     """
@@ -65,31 +65,6 @@ class GriddlyEncoder(Encoder):
 class GriddlyDecoder(MlpDecoder):
     pass
 
-class PredictingActorCritic(ActorCriticSharedWeights):
-    def __init__(self, model_factory, obs_space, action_space, cfg: Config):
-        super().__init__(model_factory, obs_space, action_space, cfg)
-        self.obs_size = np.prod(obs_space["obs"].shape)
-        self.obs_predictor = nn.Linear(
-            self.encoder.get_out_size(), self.obs_size)
-
-    def forward(self, normalized_obs_dict, rnn_states, values_only=False) -> TensorDict:
-        result = super().forward(normalized_obs_dict, rnn_states, values_only)
-
-        # compute the prediction error of observations
-        # by reconstructing the observations from the rnn states
-        # and pass it through as the last action
-        if not values_only:
-            batch_size = rnn_states.shape[0]
-            obs = normalized_obs_dict['obs'].view(batch_size, -1)
-            obs_pred = self.obs_predictor(rnn_states)
-            error = torch.mean((obs - obs_pred) ** 2, dim=1)
-            result["actions"][:,1] = error
-
-        return result
-
-def make_actor_critic_func(cfg, obs_space, action_space):
-    return PredictingActorCritic(
-        global_model_factory(), obs_space, action_space, cfg)
 
 def register_custom_components():
     global_model_factory().register_encoder_factory(GriddlyEncoder)
