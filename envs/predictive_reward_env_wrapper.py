@@ -47,11 +47,11 @@ class PredictiveRewardEnvWrapper(gym.Wrapper, gym.utils.RecordConstructorArgs):
 
         obs, rewards, terminated, truncated, infos = self.env.step(list(actions))
 
-        step_pred_error = 0
         infos["true_objectives"] = deepcopy(rewards)
         rewards = np.array(rewards, dtype=np.float32)
         prediction_error = np.array(prediction_error).flatten()
         rewards += prediction_error * self.prediction_error_reward
+        step_pred_error = np.mean(prediction_error)
 
         # for i in range(len(obs)):
             # pe = prediction_error[i].item()
