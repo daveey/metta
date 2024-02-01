@@ -19,6 +19,7 @@ class TestPredictiveRewardEnvWrapper(unittest.TestCase):
 
         # Check that the reward was modified correctly
         np.testing.assert_allclose(rewards, [0 + 0.2 * 0.5, 1 + 0.3 * 0.5])
+        self.assertListEqual(infos["true_objectives"].tolist(), [0, 1])
 
 if __name__ == '__main__':
     unittest.main()

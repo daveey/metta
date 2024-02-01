@@ -17,8 +17,12 @@ class PredictingActorCritic(ActorCriticSharedWeights):
     def __init__(self, model_factory, obs_space, action_space, cfg: Config):
         super().__init__(model_factory, obs_space, action_space, cfg)
         self.obs_size = np.prod(obs_space["obs"].shape)
-        self.obs_predictor = nn.Linear(
-            self.encoder.get_out_size(), self.obs_size)
+        self.obs_predictor = nn.Sequential(
+            nn.Linear(self.encoder.get_out_size(), 512),
+            nn.ReLU(),
+            nn.Linear(512, self.obs_size),
+            nn.Sigmoid()  # Sigmoid to constrain output between 0 and 1
+        )
 
     def forward(self, normalized_obs_dict, rnn_states, values_only=False) -> TensorDict:
         result = super().forward(normalized_obs_dict, rnn_states, values_only)
