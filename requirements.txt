@@ -1,3 +1,2 @@
 awscli
 pytest
-sample-factory

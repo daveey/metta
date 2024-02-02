@@ -1,11 +1,8 @@
-from calendar import c
-from typing import Optional
 from griddly.gym import GymWrapper
 import numpy as np
 import yaml
 import argparse
 
-from envs.predictive_reward_env_wrapper import PredictiveRewardEnvWrapper
 
 GYM_ENV_NAME = "GDY-Forage"
 
@@ -27,10 +24,7 @@ class ForageEnvFactory:
                 level=0,
                 max_steps=self.cfg.forage_max_env_steps,
             )
-
-        return PredictiveRewardEnvWrapper(
-            env,
-            prediction_error_reward=self.cfg.forage_prediction_error_reward)
+        return env
 
     def make_level_string(self):
         return "\n".join(["  ".join(row) for row in self._make_level()])
@@ -89,6 +83,5 @@ def add_env_args(parser: argparse.ArgumentParser) -> None:
     p.add_argument("--forage_wall_density", default=0.1, type=float)
 
     p.add_argument("--forage_max_env_steps", default=1000, type=int)
-    p.add_argument("--forage_prediction_error_reward", default=0.00, type=float)
 
 

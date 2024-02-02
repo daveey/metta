@@ -21,23 +21,17 @@ class PredictingActorCritic(ActorCriticSharedWeights):
             nn.Linear(self.encoder.get_out_size(), 512),
             nn.ReLU(),
             nn.Linear(512, self.obs_size),
-            nn.Sigmoid()  # Sigmoid to constrain output between 0 and 1
+            nn.ReLU(),
         )
 
-    def forward(self, normalized_obs_dict, rnn_states, values_only=False) -> TensorDict:
-        result = super().forward(normalized_obs_dict, rnn_states, values_only)
-
+    def aux_loss(self, normalized_obs_dict: TensorDict, rnn_states: torch.Tensor, result: TensorDict):
         # compute the prediction error of observations
         # by reconstructing the observations from the rnn states
         # and pass it through as the last action
-        if not values_only:
-            batch_size = rnn_states.shape[0]
-            obs = normalized_obs_dict['obs'].view(batch_size, -1)
-            obs_pred = self.obs_predictor(rnn_states)
-            error = torch.mean((obs - obs_pred) ** 2, dim=1)
-            result["actions"][:,1] = error
-
-        return result
+        batch_size = rnn_states.shape[0]
+        obs = normalized_obs_dict['obs'].view(batch_size, -1)
+        obs_pred = self.obs_predictor(rnn_states).round()
+        return torch.mean((obs - obs_pred) ** 2)
 
 def make_actor_critic_func(cfg, obs_space, action_space):
     return PredictingActorCritic(

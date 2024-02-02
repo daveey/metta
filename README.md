@@ -35,9 +35,16 @@ cd python && pip install -e .
 
 4. install vulkan sdk from https://vulkan.lunarg.com/sdk/home (1.3.224.1)
 
-### Troubleshooting 
+5. install sample-factory (from source)
+
+```
+git clone https://github.com/daveey/sample-factory.git
+cd sample-factory && pip install -e .
+```
+
+### Troubleshooting
 #### conan installation
-In case of an an "Invalid setting" error when running `pip install`, e.g., : 
+In case of an an "Invalid setting" error when running `pip install`, e.g., :
 ```
 "ERROR: Invalid setting '15' is not a valid 'settings.compiler.version' value.
 Possible values are ['5.0', ..., '14.0']
@@ -51,12 +58,6 @@ Follow these steps (tested on MacOS):
 
 
 
-
-# Download trained models from s3
-
-```
-aws s3 sync s3://metta-ai/vast/workspace/metta/train_dir ./train_dir
-```
 
 # Run evaluation
 ```

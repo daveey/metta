@@ -1,7 +1,7 @@
 FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
 
 # Install dependencies
-RUN apt-get update && apt-get install -y ninja-build git
+RUN apt-get update && apt-get install -y ninja-build git sudo wget vim
 
 WORKDIR /workspace
 
@@ -15,12 +15,8 @@ RUN cmake . -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=c
 RUN cmake --build build --config Release
 RUN cd python && pip install -e .
 
-# Install sample-factory
-RUN pip install sample-factory
-
 # Install vulkan
 RUN apt-get install -y vulkan-tools libvulkan-dev vulkan-validationlayers-dev spirv-tools
-RUN apt-get install -y sudo wget vim
 
 WORKDIR /workspace/
 RUN wget https://sdk.lunarg.com/sdk/download/1.3.224.1/linux/vulkansdk-linux-x86_64-1.3.224.1.tar.gz
@@ -37,6 +33,10 @@ RUN apt upgrade -y libopenblas-dev
 RUN pip uninstall -y numpy
 RUN pip install numpy
 
-RUN pip install aws-cli
-RUN git clone https://github.com/daveey/metta.git
+RUN git clone https://github.com/daveey/sample-factory.git
+WORKDIR /workspace/sample-factory
+RUN pip install -e .
 
+RUN git clone https://github.com/daveey/metta.git
+WORKDIR /workspace/metta
+RUN pip install -r requirements.txt

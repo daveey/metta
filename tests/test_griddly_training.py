@@ -45,8 +45,7 @@ class TestGridlyTraining(unittest.TestCase):
             "--forage_height_max=5",
             "--forage_energy_per_agent=1",
             "--forage_wall_density=0",
-            "--forage_max_env_steps=2",
-            "--forage_prediction_error_reward=0"
+            "--forage_max_env_steps=2"
         ]
         self.assertGreater(train_and_eval(args), 0.99)
 
@@ -60,8 +59,7 @@ class TestGridlyTraining(unittest.TestCase):
             "--forage_height_max=5",
             "--forage_energy_per_agent=1",
             "--forage_wall_density=0",
-            "--forage_max_env_steps=2",
-            "--forage_prediction_error_reward=-0.001"
+            "--forage_max_env_steps=2"
         ]
         self.assertGreater(train_and_eval(args), 0.99)
 

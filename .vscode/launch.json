@@ -20,18 +20,25 @@
                 "--lr_schedule=kl_adaptive_epoch",
                 // "--decorrelate_experience_max_seconds=100",
                 // "--serial=True",
+
                 // "--async_rl=False",
+                // "--batch_size=1792",
+
                 "--with_wandb=True",
-                "--num_workers=4",
-                "--batch_size=1792",
+                "--num_workers=8",
                 "--forage_num_agents=7",
-                "--forage_prediction_error_reward=-0.01",
                 "--forage_energy_per_agent=1",
+                "--forage_width_min=80",
+                "--forage_width_max=81",
+                "--forage_height_min=80",
+                "--forage_height_max=81",
 
                 "--normalize_input=False",
+                // "--aux_loss_coef=0.1",
                 // "--train_for_env_steps=1000"
                 // "--with_pbt=True",
                 // "--num_policies=4",
+
             ],
         },
         {
@@ -63,7 +70,6 @@
                 "--forage_height_max=81",
                 "--forage_energy_per_agent=10",
                 "--forage_wall_density=0.15",
-                "--forage_prediction_error_reward=0",
             ],
         },
         {
