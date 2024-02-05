@@ -14,7 +14,6 @@ from typing import Optional
 from sample_factory.cfg.arguments import parse_full_cfg, parse_sf_args
 from sample_factory.envs.env_utils import register_env
 from sample_factory.train import run_rl
-from sample_factory.envs.env_utils import register_env
 from envs.griddly.sample_factory_env_wrapper import GriddlyEnvWrapper
 from agent import agent
 

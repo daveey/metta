@@ -13,6 +13,9 @@
 	"settings": {
 		"yaml.schemas": {
 			"envs/griddly/gdy-schema.json": "envs/griddly/forage/*.yaml"
-		}
-	}
+		},
+
+	},
+
+
 }

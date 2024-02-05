@@ -6,9 +6,9 @@ from griddly.gym import GymWrapper
 import gymnasium as gym
 from gymnasium.core import Env, ObsType, WrapperObsType
 
-GYM_ENV_NAME = "GDY-Forage"
+GYM_ENV_NAME = "GDY-Mettaverse"
 
-class ForageEnvWrapper(gym.Wrapper):
+class MettaverseEnvWrapper(gym.Wrapper):
     def __init__(self, env: Env):
         super().__init__(env)
 
@@ -19,7 +19,7 @@ class ForageEnvWrapper(gym.Wrapper):
         return self.env.step(actions)
 
 
-class ForageEnvFactory:
+class MettaverseEnvFactory:
     """
     Factory class for creating instances of the Forage environment.
     """
