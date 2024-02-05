@@ -63,11 +63,8 @@
                 "--eval_env_frameskip=1",
                 "--env=GDY-Forage",
                 "--forage_num_agents=2",
-
-                "--forage_width_min=80",
-                "--forage_width_max=81",
-                "--forage_height_min=80",
-                "--forage_height_max=81",
+                "--forage_width=80",
+                "--forage_height=80",
                 "--forage_energy_per_agent=10",
                 "--forage_wall_density=0.15",
             ],
