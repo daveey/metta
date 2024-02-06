@@ -19,19 +19,16 @@
                 "--experiment_summaries_interval=10",
                 "--lr_schedule=kl_adaptive_epoch",
                 // "--decorrelate_experience_max_seconds=100",
-                // "--serial=True",
-
+                "--serial=True",
                 // "--async_rl=False",
                 // "--batch_size=1792",
 
-                "--with_wandb=True",
+                // "--with_wandb=True",
                 "--num_workers=8",
                 "--forage_num_agents=7",
                 "--forage_energy_per_agent=1",
-                "--forage_width_min=80",
-                "--forage_width_max=81",
-                "--forage_height_min=80",
-                "--forage_height_max=81",
+                "--forage_width=40",
+                "--forage_height=40",
 
                 "--normalize_input=False",
                 // "--aux_loss_coef=0.1",

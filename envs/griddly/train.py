@@ -17,7 +17,7 @@ from sample_factory.train import run_rl
 from envs.griddly.sample_factory_env_wrapper import GriddlyEnvWrapper
 from agent import agent
 
-import envs.griddly.forage.env as forage_env
+import envs.griddly.forage.forage_env as forage_env
 
 def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optional[str] = None):
     f = forage_env.ForageEnvFactory(cfg)

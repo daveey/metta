@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-import envs.args_parsing as args_parsing
+import util.args_parsing as args_parsing
 import argparse
 
 def parse_args():
@@ -14,7 +14,7 @@ class TestCustomArgparseAction(unittest.TestCase):
     def test_possibly_numeric_range_single_value(self):
         args = parse_args()
         self.assertEqual(args.int_range, [5])
-    
+
     @patch('sys.argv', ['test_script.py', '--int_range', '5:15'])
     def test_possibly_numeric_range_two_values(self):
         args = parse_args()
