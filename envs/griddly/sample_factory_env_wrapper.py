@@ -15,33 +15,43 @@ from griddly.util.render_tools import RenderToVideo
 
 from sample_factory.envs.env_utils import RewardShapingInterface, TrainingInfoInterface
 
+
 class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
 
-    def __init__(self,
-                 griddly_env: gym.Env,
-                 render_mode: Optional[str] = None,
-                 make_level: Optional[Callable] = None
-                 ):
+    def __init__(
+        self,
+        griddly_env: gym.Env,
+        render_mode: Optional[str] = None,
+        make_level: Optional[Callable] = None,
+    ):
         TrainingInfoInterface.__init__(self)
 
         # self.name = full_env_name
         # self.cfg = cfg
 
         self.gym_env = griddly_env
-        self.gym_env_global = RenderWrapper(self.gym_env, "global", render_mode=render_mode)
+        self.gym_env_global = RenderWrapper(
+            self.gym_env, "global", render_mode=render_mode
+        )
         self.num_agents = self.gym_env.player_count
         self.make_level = make_level
 
         self.curr_episode_steps = 0
-        self.observation_space = self.gym_env.observation_space[0]
-        action_space = self.gym_env.action_space[0]
+        if self.num_agents == 1:
+            self.observation_space = self.gym_env.observation_space
+            action_space = self.gym_env.action_space
+            self.is_multiagent = False
+        else:
+            self.observation_space = self.gym_env.observation_space[0]
+            action_space = self.gym_env.action_space[0]
+            self.is_multiagent = True
+
         if isinstance(action_space, gym.spaces.MultiDiscrete):
             action_space = gym.spaces.Tuple(
                 [gym.spaces.Discrete(num_actions) for num_actions in action_space.nvec]
             )
 
         self.action_space = action_space
-        self.is_multiagent = True
         self.episode_rewards = [[] for _ in range(self.num_agents)]
 
     def reset(self, **kwargs):
@@ -54,25 +64,32 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
             return self.gym_env.reset()
 
     def step(self, actions):
-        obs, rewards, terminated, truncated, infos = self.gym_env.step(list(actions))
+        if self.is_multiagent:
+            actions = list(actions)
+
+        obs, rewards, terminated, truncated, infos = self.gym_env.step(actions)
         self.curr_episode_steps += 1
 
         # auto-reset the environment
         if terminated or truncated:
             obs = self.reset()[0]
 
-        terminated = [terminated] * self.num_agents
-        truncated = [truncated] * self.num_agents
-
         tos = None
         if "true_objectives" in infos:
             tos = infos["true_objectives"]
             del infos["true_objectives"]
 
+        # For better readability, make `infos` a list. In case of a single player, get the first element before returning
         infos = [infos] * self.num_agents
         if tos is not None:
             for i in range(self.num_agents):
                 infos[i]["true_objective"] = tos[i]
+
+        if self.is_multiagent:
+            terminated = [terminated] * self.num_agents
+            truncated = [truncated] * self.num_agents
+        else:
+            infos = infos[0]
 
         return obs, rewards, terminated, truncated, infos
 
