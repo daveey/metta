@@ -57,7 +57,10 @@ class OrbWorldEnvWrapper(gym.Wrapper):
         game_config["Environment"]["Player"]["Count"] = cfg.env_num_agents
         game_config["Environment"]["Levels"] = [level_generator.make_level_string()]
         init_energy = level_generator.sample_initial_energy()
-        jmespath.search('Environment.Variables[?Name==`agent_initial_energy`][]', game_config)[0]["InitialValue"] = init_energy
+        _update_global_variable(game_config, "agent_initial_energy", init_energy)
+        _update_object_variable(game_config, "agent", "energy", init_energy)
+        _update_global_variable(game_config, "reward_step", 0)
+        _update_global_variable(game_config, "reward_energy", 0)
 
 
         env = OrbWorldEnvWrapper(GymWrapper(
@@ -70,3 +73,9 @@ class OrbWorldEnvWrapper(gym.Wrapper):
         env.game.enable_history(True)
         return env
 
+def _update_global_variable(game_config, var_name, value):
+    jmespath.search('Environment.Variables[?Name==`{}`][]'.format(var_name), game_config)[0]["InitialValue"] = value
+
+def _update_object_variable(game_config, object_name, var_name, value):
+    jmespath.search('Objects[?Name==`{}`][].Variables[?Name==`{}`][]'.format(
+        object_name, var_name), game_config)[0]["InitialValue"] = value

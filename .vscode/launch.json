@@ -48,9 +48,9 @@
             "module": "envs.griddly.enjoy",
             "args": [
                 // "--experiment=pred.10.0",
-                "--experiment=g.mac",
+                // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
-                // "--experiment=fc.na.10",
+                "--experiment=m1.respwan.2",
 
                 "--device=cpu",
                 "--serial=True",
@@ -62,7 +62,7 @@
                 "--max_num_frames=1000",
                 "--eval_env_frameskip=1",
                 "--env=GDY-OrbWorld",
-                "--env_num_agents=11",
+                "--env_num_agents=20",
                 "--orb_world_width=40",
                 "--orb_world_height=40",
                 "--orb_world_initial_energy=50",

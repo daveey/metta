@@ -7,13 +7,13 @@ Environment:
     - Name: num_active_agents
       InitialValue: 0
 
-    - Name: orbs_1_energy
+    - Name: orbs_energy
       InitialValue: 10
       PerPlayer: true
-    - Name: orbs_2_energy
+    - Name: reward_energy
       InitialValue: 10
       PerPlayer: true
-    - Name: step_reward
+    - Name: reward_step
       InitialValue: 10
       PerPlayer: true
     - Name: agent_initial_energy
@@ -30,6 +30,9 @@ Environment:
       InitialValue: 0
     - Name: stats_max_energy
       InitialValue: 0
+    - Name: stats_respawns
+      InitialValue: 0
+      PerPlayer: true
 
   Observers:
     VectorAgent:
@@ -177,9 +180,7 @@ Objects:
     Variables:
       - Name: energy
         InitialValue: agent_initial_energy
-      - Name: inv_orbs_1
-        InitialValue: 0
-      - Name: inv_orbs_2
+      - Name: inv_orbs
         InitialValue: 0
 
     Observers:
@@ -266,7 +267,7 @@ Actions:
               - gt: [energy, 0]
               - eq: [dst.orb_ready, 1]
           Commands:
-            - add: [ inv_orbs_1, 1 ]
+            - add: [ inv_orbs, 1 ]
             - incr: stats_orbs_collected
         Dst:
           Object: orb_factory
@@ -299,30 +300,18 @@ Actions:
             - and:
               - gt: [ energy, 0 ]
               - eq: [ meta.action_id, 1 ]
-              - gt: [ inv_orbs_1, 0 ]
+              - gt: [ inv_orbs, 0 ]
           Commands:
-            - decr: inv_orbs_1
-            - add: [ energy, orbs_1_energy ]
+            - decr: inv_orbs
+            - add: [ energy, orbs_energy ]
             - incr: stats_orbs_used
+            - reward: reward_energy
             - if:
                 Conditions:
                   and:
                     - gt: [ energy, stats_max_energy ]
                 OnTrue:
                     - set: [ stats_max_energy, energy ]
-        Dst:
-          Object: agent
-      - Src:
-          Object: agent
-          Preconditions:
-            - and:
-              - gt: [ energy, 0 ]
-              - eq: [ meta.action_id, 2 ]
-              - gt: [ inv_orbs_2, 0 ]
-          Commands:
-            - decr: inv_orbs_2
-            - add: [ energy, orbs_2_energy ]
-            - incr: stats_orbs_used
         Dst:
           Object: agent
 
@@ -377,10 +366,11 @@ Actions:
                     - gt: [ energy, 1 ]
                 OnTrue:
                   - decr: energy
-                  - reward: step_reward
                 OnFalse:
-                  - decr: step_reward
+                  - decr: reward_step
+                  - decr: reward_energy
                   - set: [ energy, agent_initial_energy]
+                  - incr: stats_respawns
 
   - Name: make_orb
     InputMapping:
