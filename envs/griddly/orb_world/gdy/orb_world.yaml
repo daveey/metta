@@ -28,6 +28,8 @@ Environment:
       PerPlayer: true
     - Name: stats_orbs_produced
       InitialValue: 0
+    - Name: stats_max_energy
+      InitialValue: 0
 
   Observers:
     VectorAgent:
@@ -302,6 +304,12 @@ Actions:
             - decr: inv_orbs_1
             - add: [ energy, orbs_1_energy ]
             - incr: stats_orbs_used
+            - if:
+                Conditions:
+                  and:
+                    - gt: [ energy, stats_max_energy ]
+                OnTrue:
+                    - set: [ stats_max_energy, energy ]
         Dst:
           Object: agent
       - Src:
@@ -363,7 +371,6 @@ Actions:
                     - eq: [ energy, 1 ]
                 OnTrue:
                   - decr: energy
-                  - decr: num_active_agents
             - if:
                 Conditions:
                   and:
