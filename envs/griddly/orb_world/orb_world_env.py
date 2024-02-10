@@ -60,7 +60,7 @@ class OrbWorldEnvWrapper(gym.Wrapper):
         _update_global_variable(game_config, "agent_initial_energy", init_energy)
         _update_object_variable(game_config, "agent", "energy", init_energy)
         _update_global_variable(game_config, "reward_step", 0)
-        _update_global_variable(game_config, "reward_energy", 0)
+        _update_global_variable(game_config, "reward_energy", 10)
 
 
         env = OrbWorldEnvWrapper(GymWrapper(
