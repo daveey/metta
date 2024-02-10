@@ -13,7 +13,13 @@ from envs.griddly.orb_world import orb_world_env, orb_world_level_generator
 def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optional[str] = None):
     lg = orb_world_level_generator.OrbWorldLevelGenerator(cfg)
     env = orb_world_env.OrbWorldEnvWrapper.make_env(cfg, level_generator=lg)
-    return GriddlyEnvWrapper(env, render_mode=render_mode, make_level=lg.make_level_string)
+    return GriddlyEnvWrapper(
+        env,
+        render_mode=render_mode,
+        make_level=lg.make_level_string,
+        env_id=env_config.env_id,
+        save_replay_prob=cfg.env_save_replay_prob,
+    )
 
 def register_custom_components():
     agent.register_custom_components()
@@ -25,6 +31,7 @@ def parse_custom_args(argv=None, evaluation=False):
     parser.add_argument("--env_num_agents", default=8, type=int,
                         help="number of agents in the environment")
     parser.add_argument("--env_max_steps", default=1000, type=int)
+    parser.add_argument("--env_save_replay_prob", default=0.0, type=float)
 
     orb_world_level_generator.add_env_args(parser)
     cfg = parse_full_cfg(parser, argv)

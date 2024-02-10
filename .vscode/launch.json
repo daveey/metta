@@ -23,7 +23,7 @@
                 // "--async_rl=False",
                 // "--batch_size=1792",
 
-                "--with_wandb=True",
+                // "--with_wandb=True",
                 "--num_workers=8",
                 "--env_num_agents=11",
 
@@ -50,15 +50,15 @@
                 // "--experiment=pred.10.0",
                 // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
-                "--experiment=m1.respwan.2",
+                "--experiment=m1.energy",
 
                 "--device=cpu",
                 "--serial=True",
                 "--train_dir=./train_dir/",
-                // "--no_render",
+                "--no_render",
                 // "--save_video",
                 // "--video_name=griddly",
-                "--fps=10",
+                "--fps=0",
                 "--max_num_frames=1000",
                 "--eval_env_frameskip=1",
                 "--env=GDY-OrbWorld",
@@ -69,9 +69,22 @@
                 "--orb_world_factories_per_agent=2",
                 "--orb_world_wall_density=0.05",
                 "--load_checkpoint_kind=best",
+
+                "--env_save_replay_prob=1"
             ],
         },
         {
+            "name": "Render Replay",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "util.render_replay_to_video",
+            "args": [
+                "--replay_path=/tmp/sample_factory_replays/0_0.replay.yaml",
+                "--video_path=/tmp/sample_factory_replays/0_0.mp4",
+                "--fps=30",
+            ],
+        },
+                {
             "name": "Run Tests",
             "type": "debugpy",
             "request": "launch",

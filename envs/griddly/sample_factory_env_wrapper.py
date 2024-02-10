@@ -12,6 +12,7 @@ from griddly.wrappers.render_wrapper import RenderWrapper
 from griddly.gym import GymWrapper
 from griddly import gd
 from griddly.util.render_tools import RenderToVideo, RenderToFile
+from envs.replay import Replay
 
 from sample_factory.envs.env_utils import RewardShapingInterface, TrainingInfoInterface
 
@@ -23,11 +24,10 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
         griddly_env: gym.Env,
         render_mode: Optional[str] = None,
         make_level: Optional[Callable] = None,
+        env_id: int = 0,
+        save_replay_prob: float = 0,
     ):
         TrainingInfoInterface.__init__(self)
-
-        # self.name = full_env_name
-        # self.cfg = cfg
 
         self.gym_env = griddly_env
         self.gym_env_global = RenderWrapper(
@@ -53,17 +53,23 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
 
         self.action_space = action_space
         self.episode_rewards = [[] for _ in range(self.num_agents)]
-        self.dump_state = False
+        self.current_episode = 0
+        self.current_replay = None
+        self.env_id = env_id
+        self.save_replay_prob = save_replay_prob
 
-    def _dump_global_obs(self, label: str):
-        if self.dump_state:
-            r = RenderToFile()
-            r.render(self.gym_env_global.render(),
-                     f"/tmp/sample_factory_state/{self.curr_episode_steps}.{label}.png")
 
     def reset(self, **kwargs):
+        if self.current_replay is not None:
+            self.current_replay.close()
+            self.current_replay = None
+        if self.save_replay_prob > 0 and np.random.rand() < self.save_replay_prob:
+            self.current_replay = Replay(f"replays/{self.env_id}_{self.current_episode}.pt")
+
+        self.current_episode += 1
         self.curr_episode_steps = 0
         self.episode_rewards = [[] for _ in range(self.num_agents)]
+
         if self.make_level is not None:
             level_string = self.make_level()
             return self.gym_env.reset(options={"level_string": level_string})
@@ -74,9 +80,11 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
         if self.is_multiagent:
             actions = list(actions)
 
-        self._dump_global_obs("pre_step")
         obs, rewards, terminated, truncated, infos_dict = self.gym_env.step(actions)
-        self._dump_global_obs("post_step")
+        if self.current_replay is not None:
+            self.current_replay.record_step(actions, obs, rewards, infos_dict,
+                                            self.gym_env_global.render())
+
         self.curr_episode_steps += 1
 
         # auto-reset the environment
