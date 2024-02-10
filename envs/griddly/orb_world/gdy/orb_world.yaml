@@ -13,6 +13,12 @@ Environment:
     - Name: orbs_2_energy
       InitialValue: 10
       PerPlayer: true
+    - Name: step_reward
+      InitialValue: 10
+      PerPlayer: true
+    - Name: agent_initial_energy
+      InitialValue: 10
+      PerPlayer: true
 
     - Name: stats_orbs_collected
       InitialValue: 0
@@ -168,7 +174,7 @@ Objects:
     MapCharacter: A
     Variables:
       - Name: energy
-        InitialValue: 20
+        InitialValue: agent_initial_energy
       - Name: inv_orbs_1
         InitialValue: 0
       - Name: inv_orbs_2
@@ -364,7 +370,10 @@ Actions:
                     - gt: [ energy, 1 ]
                 OnTrue:
                   - decr: energy
-                  - reward: 1
+                  - reward: step_reward
+                OnFalse:
+                  - decr: step_reward
+                  - set: [ energy, agent_initial_energy]
 
   - Name: make_orb
     InputMapping:

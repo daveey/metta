@@ -56,7 +56,9 @@ class OrbWorldEnvWrapper(gym.Wrapper):
 
         game_config["Environment"]["Player"]["Count"] = cfg.env_num_agents
         game_config["Environment"]["Levels"] = [level_generator.make_level_string()]
-        jmespath.search('Objects[?Name==`agent`][].Variables[?Name==`energy`][]', game_config)[0] = level_generator.sample_initial_energy()
+        init_energy = level_generator.sample_initial_energy()
+        jmespath.search('Environment.Variables[?Name==`agent_initial_energy`][]', game_config)[0]["InitialValue"] = init_energy
+
 
         env = OrbWorldEnvWrapper(GymWrapper(
                 yaml_string=yaml.dump(game_config),
