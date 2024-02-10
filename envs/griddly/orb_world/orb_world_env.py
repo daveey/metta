@@ -40,7 +40,7 @@ class OrbWorldEnvWrapper(gym.Wrapper):
                     if len(stats[stat_name]) > 1:
                         stat_val = stats[stat_name][agent + 1]
                     infos["episode_extra_stats"][agent][stat_name] = stat_val
-
+        rewards = np.array(rewards) / 10.0
         return obs, rewards, terminated, truncated, infos
 
     @staticmethod

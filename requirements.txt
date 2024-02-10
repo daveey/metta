@@ -1,3 +1,4 @@
 awscli
 jmespath
+matplotlib
 pytest
