@@ -12,7 +12,7 @@
 	],
 	"settings": {
 		"yaml.schemas": {
-			"envs/griddly/gdy-schema.json": "envs/griddly/forage/*.yaml"
+			"envs/griddly/gdy-schema.json": "envs/griddly/orb_world/*.yaml"
 		},
 
 	},

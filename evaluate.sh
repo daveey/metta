@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 python -m envs.griddly.enjoy \
-    --env=GDY-Forage \
+    --env=GDY-OrbWorld \
     --device=cpu \
     --train_dir=./train_dir/ \
     --fps=10 \

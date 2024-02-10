@@ -11,7 +11,7 @@ from griddly import GymWrapperFactory
 from griddly.wrappers.render_wrapper import RenderWrapper
 from griddly.gym import GymWrapper
 from griddly import gd
-from griddly.util.render_tools import RenderToVideo
+from griddly.util.render_tools import RenderToVideo, RenderToFile
 
 from sample_factory.envs.env_utils import RewardShapingInterface, TrainingInfoInterface
 
@@ -53,6 +53,13 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
 
         self.action_space = action_space
         self.episode_rewards = [[] for _ in range(self.num_agents)]
+        self.dump_state = False
+
+    def _dump_global_obs(self, label: str):
+        if self.dump_state:
+            r = RenderToFile()
+            r.render(self.gym_env_global.render(),
+                     f"/tmp/sample_factory_state/{self.curr_episode_steps}.{label}.png")
 
     def reset(self, **kwargs):
         self.curr_episode_steps = 0
@@ -67,23 +74,21 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
         if self.is_multiagent:
             actions = list(actions)
 
-        obs, rewards, terminated, truncated, infos = self.gym_env.step(actions)
+        self._dump_global_obs("pre_step")
+        obs, rewards, terminated, truncated, infos_dict = self.gym_env.step(actions)
+        self._dump_global_obs("post_step")
         self.curr_episode_steps += 1
 
         # auto-reset the environment
         if terminated or truncated:
             obs = self.reset()[0]
 
-        tos = None
-        if "true_objectives" in infos:
-            tos = infos["true_objectives"]
-            del infos["true_objectives"]
-
-        # For better readability, make `infos` a list. In case of a single player, get the first element before returning
-        infos = [infos] * self.num_agents
-        if tos is not None:
-            for i in range(self.num_agents):
-                infos[i]["true_objective"] = tos[i]
+        # For better readability, make `infos` a list.
+        # In case of a single player, get the first element before returning
+        infos = [infos_dict.copy()] * self.num_agents
+        if "episode_extra_stats" in infos_dict:
+            for i, info in enumerate(infos):
+                info["episode_extra_stats"] = infos_dict["episode_extra_stats"][i]
 
         if self.is_multiagent:
             terminated = [terminated] * self.num_agents

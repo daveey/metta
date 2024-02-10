@@ -1,0 +1,384 @@
+Version: '0.1'
+Environment:
+  Name: OrbWorld2
+  Description: Metta - Foraging
+  Variables:
+    # number of agents with energy, used for termination checks
+    - Name: num_active_agents
+      InitialValue: 0
+
+    - Name: orbs_1_energy
+      InitialValue: 10
+      PerPlayer: true
+    - Name: orbs_2_energy
+      InitialValue: 10
+      PerPlayer: true
+
+    - Name: stats_orbs_collected
+      InitialValue: 0
+      PerPlayer: true
+    - Name: stats_orbs_used
+      InitialValue: 0
+      PerPlayer: true
+    - Name: stats_orbs_produced
+      InitialValue: 0
+
+  Observers:
+    VectorAgent:
+      Type: VECTOR
+      Width: 9
+      Height: 9
+      TrackAvatar: true
+      IncludeVariables: true
+      IncludePlayerId: true
+    GlobalSpriteObserver:
+      TileSize: 16
+      HighlightPlayers: true
+      Type: SPRITE_2D
+      Shader:
+        ObserverAvatarMode: DARKEN
+    GlobalBlockObserver:
+      TileSize: 16
+      Type: BLOCK_2D
+      Shader:
+        ObserverAvatarMode: GRAYSCALE
+  Player:
+    Count: 7
+    AvatarObject: agent
+  Termination:
+    End:
+      - eq:
+          - num_active_agents
+          - 0
+  Levels:
+    - >
+      W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W
+      W
+
+      W   A1   .   .   .   .   .   .   .   A2  .   .   .   .   .   .   .   A3
+      W
+
+      W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   .   .   o   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   .   .   .   .   .   .   .   .   .   .   o   .   .   .   .   .   .
+      W
+
+      W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   A4   .   o   .   .   .   .   .   o   .   .   .   .   .   o   .   A5
+      W
+
+      W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   .   .   .   .   .   o   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   .   .   .   .   .   .   .   .   o   .   .   o   .   .   .   .   .
+      W
+
+      W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+      W
+
+      W   A6   .   .   .   .   .   .   .   .   A7   .   .   .   .   .   .   .
+      W
+
+      W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W
+      W
+
+Objects:
+  - Name: wall
+    MapCharacter: W
+    Observers:
+      GlobalSpriteObserver:
+        - TilingMode: WALL_16
+          Image:
+            - oryx/oryx_fantasy/wall2-0.png
+            - oryx/oryx_fantasy/wall2-1.png
+            - oryx/oryx_fantasy/wall2-2.png
+            - oryx/oryx_fantasy/wall2-3.png
+            - oryx/oryx_fantasy/wall2-4.png
+            - oryx/oryx_fantasy/wall2-5.png
+            - oryx/oryx_fantasy/wall2-6.png
+            - oryx/oryx_fantasy/wall2-7.png
+            - oryx/oryx_fantasy/wall2-8.png
+            - oryx/oryx_fantasy/wall2-9.png
+            - oryx/oryx_fantasy/wall2-10.png
+            - oryx/oryx_fantasy/wall2-11.png
+            - oryx/oryx_fantasy/wall2-12.png
+            - oryx/oryx_fantasy/wall2-13.png
+            - oryx/oryx_fantasy/wall2-14.png
+            - oryx/oryx_fantasy/wall2-15.png
+      GlobalBlockObserver:
+        - Shape: square
+          Color:
+            - 0.7
+            - 0.7
+            - 0.7
+          Scale: 1
+  - Name: orb_factory
+    MapCharacter: o
+    Variables:
+      - Name: orb_ready
+        InitialValue: 0
+      - Name: orb_type
+        InitialValue: 1
+      - Name: make_orb_delay
+        InitialValue: 20
+    InitialActions:
+      - Action: make_orb
+        Delay: 1
+        ActionId: 1
+    Observers:
+      GlobalSpriteObserver:
+        - Image: oryx/oryx_fantasy/ore-1.png
+        - Image: oryx/oryx_fantasy/ore-2.png
+        - Image: oryx/oryx_fantasy/ore-3.png
+        - Image: oryx/oryx_fantasy/ore-4.png
+        - Image: oryx/oryx_fantasy/ore-5.png
+        - Image: oryx/oryx_fantasy/ore-6.png
+      GlobalBlockObserver:
+        - Shape: circle
+          Color:
+            - 0
+            - 1
+            - 0
+          Scale: 0.5
+  - Name: agent
+    MapCharacter: A
+    Variables:
+      - Name: energy
+        InitialValue: 20
+      - Name: inv_orbs_1
+        InitialValue: 0
+      - Name: inv_orbs_2
+        InitialValue: 0
+
+    Observers:
+      GlobalSpriteObserver:
+        - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_l1.png
+        - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_l1.png
+        - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_r1.png
+        - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_u1.png
+        - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_d1.png
+      GlobalBlockObserver:
+        - Shape: triangle
+          Color:
+            - 0
+            - 0
+            - 1
+          Scale: 0.8
+    InitialActions:
+      - Action: update_agent_stats
+        Delay: 1
+        ActionId: 1
+      - Action: init_agent
+        ActionId: 1
+Actions:
+  - Name: move
+    InputMapping:
+      Inputs:
+        1:
+          OrientationVector: [ -1, 0 ]
+          VectorToDest: [ -1, 0 ]
+          Description: "Move Left"
+          MetaData:
+            image_idx: 1
+        2:
+          OrientationVector: [ 0, -1 ]
+          VectorToDest: [ 0, -1 ]
+          Description: "Move Up"
+          MetaData:
+            image_idx: 2
+        3:
+          OrientationVector: [ 1, 0 ]
+          VectorToDest: [ 1, 0 ]
+          Description: "Move Right"
+          MetaData:
+            image_idx: 3
+        4:
+          OrientationVector: [ 0, 1 ]
+          VectorToDest: [ 0, 1 ]
+          Description: "Move Down"
+          MetaData:
+            image_idx: 4
+    Behaviours:
+      - Src:
+          Object: agent
+          Preconditions:
+            - gt: [energy, 0]
+          Commands:
+            - mov: _dest
+            - rot: _dir
+            - set_tile: meta.image_idx
+        Dst:
+          Object: [ _empty ]
+      - Src:
+          Object: agent
+          Preconditions:
+            - gt: [energy, 0]
+          Commands:
+            - rot: _dir
+            - set_tile: meta.image_idx
+        Dst:
+          Object: [ wall, orb_factory, agent ]
+  - Name: do
+    InputMapping:
+      Relative: true
+      Inputs:
+        1:
+          VectorToDest: [ 0, -1 ]
+          Description: "Interact with an object"
+    Behaviours:
+      # Player collects an orb
+      - Src:
+          Object: agent
+          Preconditions:
+            - and:
+              - gt: [energy, 0]
+              - eq: [dst.orb_ready, 1]
+          Commands:
+            - add: [ inv_orbs_1, 1 ]
+            - incr: stats_orbs_collected
+        Dst:
+          Object: orb_factory
+          Commands:
+            - set_tile: 0
+            - set: [orb_ready, 0]
+            - exec:
+                Action: make_orb
+                Delay: make_orb_delay
+                ActionId: 1
+  - Name: use
+    InputMapping:
+      Relative: true
+      Inputs:
+        1:
+          VectorToDest: [ 0, 0 ]
+          Description: "Use Orb 1"
+          MetaData:
+            action_id: 1
+        2:
+          VectorToDest: [ 0, 0 ]
+          Description: "Use Orb 2"
+          MetaData:
+            action_id: 2
+    Behaviours:
+      # Use an Orb
+      - Src:
+          Object: agent
+          Preconditions:
+            - and:
+              - gt: [ energy, 0 ]
+              - eq: [ meta.action_id, 1 ]
+              - gt: [ inv_orbs_1, 0 ]
+          Commands:
+            - decr: inv_orbs_1
+            - add: [ energy, orbs_1_energy ]
+            - incr: stats_orbs_used
+        Dst:
+          Object: agent
+      - Src:
+          Object: agent
+          Preconditions:
+            - and:
+              - gt: [ energy, 0 ]
+              - eq: [ meta.action_id, 2 ]
+              - gt: [ inv_orbs_2, 0 ]
+          Commands:
+            - decr: inv_orbs_2
+            - add: [ energy, orbs_2_energy ]
+            - incr: stats_orbs_used
+        Dst:
+          Object: agent
+
+  - Name: init_agent
+    InputMapping:
+      Internal: true
+      Inputs:
+        1:
+          VectorToDest: [ 0, 0 ]
+    Behaviours:
+      - Src:
+          Object: agent
+        Dst:
+          Object: agent
+          Commands:
+            - incr: num_active_agents
+
+  - Name: update_agent_stats
+    InputMapping:
+      Internal: true
+      Inputs:
+        1:
+          VectorToDest: [ 0, 0 ]
+    Behaviours:
+
+      # Just repeat this action every time step
+      - Src:
+          Object: agent
+        Dst:
+          Object: agent
+          Commands:
+            - exec:
+                Action: update_agent_stats
+                ActionId: 1
+                Delay: 1
+
+      # Handle energy
+      - Src:
+          Object: agent
+        Dst:
+          Object: agent
+          Commands:
+            - if:
+                Conditions:
+                  and:
+                    - eq: [ energy, 1 ]
+                OnTrue:
+                  - decr: energy
+                  - decr: num_active_agents
+            - if:
+                Conditions:
+                  and:
+                    - gt: [ energy, 1 ]
+                OnTrue:
+                  - decr: energy
+                  - reward: 1
+
+  - Name: make_orb
+    InputMapping:
+      Inputs:
+        1:
+          OrientationVector: [ 0, 0 ]
+          VectorToDest: [ 0, 0 ]
+      Internal: true
+    Behaviours:
+      - Src:
+          Object: orb_factory
+          Commands:
+            - set_tile: orb_type
+            - set: [ orb_ready, 1 ]
+            - incr: stats_orbs_produced
+        Dst:
+          Object: orb_factory

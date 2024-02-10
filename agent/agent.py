@@ -61,5 +61,5 @@ class GriddlyDecoder(MlpDecoder):
 def register_custom_components():
     global_model_factory().register_encoder_factory(GriddlyEncoder)
     global_model_factory().register_decoder_factory(GriddlyDecoder)
-    global_model_factory().register_actor_critic_factory(make_actor_critic_func)
+    # global_model_factory().register_actor_critic_factory(make_actor_critic_func)
 

@@ -1,12 +1,3 @@
-"""
-An example that shows how to use SampleFactory with a Gym env.
-
-Example command line for CartPole-v1:
-python -m sf_examples.train_gym_env --algo=APPO --use_rnn=False --num_envs_per_worker=20 --policy_workers_per_policy=2 --recurrence=1 --with_vtrace=False --batch_size=512 --reward_scale=0.1 --save_every_sec=10 --experiment_summaries_interval=10 --experiment=example_gym_cartpole-v1 --env=CartPole-v1
-python -m sf_examples.enjoy_gym_env --algo=APPO --experiment=example_gym_cartpole-v1 --env=CartPole-v1
-
-"""
-
 import sys
 
 from typing import Optional
@@ -17,19 +8,25 @@ from sample_factory.train import run_rl
 from envs.griddly.sample_factory_env_wrapper import GriddlyEnvWrapper
 from agent import agent
 
-import envs.griddly.forage.forage_env as forage_env
+from envs.griddly.orb_world import orb_world_env, orb_world_level_generator
 
 def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optional[str] = None):
-    f = forage_env.ForageEnvFactory(cfg)
-    return GriddlyEnvWrapper(f.make(), render_mode=render_mode, make_level=f.make_level_string)
+    lg = orb_world_level_generator.OrbWorldLevelGenerator(cfg)
+    env = orb_world_env.OrbWorldEnvWrapper.make_env(cfg, level_generator=lg)
+    return GriddlyEnvWrapper(env, render_mode=render_mode, make_level=lg.make_level_string)
 
 def register_custom_components():
     agent.register_custom_components()
-    register_env(forage_env.GYM_ENV_NAME, make_env_func)
+    register_env(orb_world_env.GYM_ENV_NAME, make_env_func)
 
 def parse_custom_args(argv=None, evaluation=False):
     parser, cfg = parse_sf_args(argv=argv, evaluation=evaluation)
-    forage_env.add_env_args(parser)
+
+    parser.add_argument("--env_num_agents", default=8, type=int,
+                        help="number of agents in the environment")
+    parser.add_argument("--env_max_steps", default=1000, type=int)
+
+    orb_world_level_generator.add_env_args(parser)
     cfg = parse_full_cfg(parser, argv)
     return cfg
 
