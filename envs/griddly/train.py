@@ -17,7 +17,7 @@ def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optiona
         env,
         render_mode=render_mode,
         make_level=lg.make_level_string,
-        env_id=env_config.env_id,
+        env_id=env_config.env_id if env_config else 0,
         save_replay_prob=cfg.env_save_replay_prob,
     )
 
