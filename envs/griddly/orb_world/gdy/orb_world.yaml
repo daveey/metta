@@ -16,6 +16,8 @@ Environment:
     - Name: reward_step
       InitialValue: 10
       PerPlayer: true
+    - Name: reward_death
+      InitialValue: -10
     - Name: agent_initial_energy
       InitialValue: 10
       PerPlayer: true
@@ -370,8 +372,7 @@ Actions:
                 OnTrue:
                   - decr: energy
                 OnFalse:
-                  - decr: reward_step
-                  - decr: reward_energy
+                  - reward: reward_death
                   - set: [ energy, agent_initial_energy]
                   - incr: stats_respawns
 

@@ -54,6 +54,7 @@ class OrbWorldLevelGenerator():
 
         # make the agents
         for i in range(self.num_agents):
+            # level[4][2*i] = f"A{i+1}"
             while True:
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
@@ -63,6 +64,7 @@ class OrbWorldLevelGenerator():
 
         # make the energy
         for i in range(factories):
+            # level[40][2*i] = f"o"
             for _ in range(10):
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)

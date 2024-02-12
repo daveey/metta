@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "envs.griddly.train",
             "args": [
-                "--experiment=mac.pred",
+                "--experiment=mac.pred.2",
 
 
                 "--algo=APPO",
@@ -52,7 +52,7 @@
                 // "--experiment=pred.10.0",
                 // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
-                "--experiment=m1.energy.ro",
+                "--experiment=m1.500",
 
                 "--device=cpu",
                 "--serial=True",
