@@ -37,11 +37,11 @@ Environment:
   Observers:
     VectorAgent:
       Type: VECTOR
-      Width: 9
-      Height: 9
+      Width: 15
+      Height: 15
       TrackAvatar: true
       IncludeVariables: true
-      IncludePlayerId: true
+      # IncludePlayerId: true
     GlobalSpriteObserver:
       TileSize: 16
       HighlightPlayers: true
@@ -178,6 +178,8 @@ Objects:
   - Name: agent
     MapCharacter: A
     Variables:
+      - Name: id
+        InitialValue: 0
       - Name: energy
         InitialValue: agent_initial_energy
       - Name: inv_orbs
@@ -327,6 +329,7 @@ Actions:
         Dst:
           Object: agent
           Commands:
+            - set: [id, num_active_agents]
             - incr: num_active_agents
 
   - Name: update_agent_stats

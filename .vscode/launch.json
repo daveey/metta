@@ -14,18 +14,18 @@
                 "--device=cpu",
                 // "--restart_behavior=restart",
                 "--env=GDY-OrbWorld",
-                "--experiment=g.mac",
+                "--experiment=mac.ent",
                 "--save_every_sec=60",
                 "--experiment_summaries_interval=10",
                 "--lr_schedule=kl_adaptive_epoch",
-                // "--decorrelate_experience_max_seconds=100",
-                // "--serial=True",
+                "--decorrelate_experience_max_seconds=100",
+                "--serial=True",
                 // "--async_rl=False",
                 // "--batch_size=1792",
 
-                // "--with_wandb=True",
+                "--with_wandb=True",
                 "--num_workers=8",
-                "--env_num_agents=11",
+                "--env_num_agents=20",
 
                 "--orb_world_factories_per_agent=1:10",
                 "--orb_world_initial_energy=50",
@@ -50,7 +50,7 @@
                 // "--experiment=pred.10.0",
                 // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
-                "--experiment=m1.energy",
+                "--experiment=mac.energy",
 
                 "--device=cpu",
                 "--serial=True",
@@ -70,7 +70,7 @@
                 "--orb_world_wall_density=0.05",
                 "--load_checkpoint_kind=best",
 
-                "--env_save_replay_prob=1"
+                // "--env_save_replay_prob=1"
             ],
         },
         {

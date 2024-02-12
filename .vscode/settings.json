@@ -25,6 +25,7 @@
     "pylint.args": [
 			"--rcfile",
 			"./.pylintrc"
-		],
+    ],
+    "cmake.configureOnOpen": false,
 
 }

@@ -1,4 +1,5 @@
 import argparse
+import enum
 import stat
 
 import gymnasium as gym
@@ -19,11 +20,21 @@ class OrbWorldEnvWrapper(gym.Wrapper):
         super().__init__(env)
         self.level_generator = level_generator
 
+        obj_order = self.env.game.get_object_names()
+        var_order = self.env.game.get_object_variable_names()
+        self.obs_order = list(range(len(obj_order) + len(var_order)))
+        num_objects = len(obj_order)
+
+        for expected, obj in enumerate(sorted(obj_order)):
+            self.obs_order[expected] = obj_order.index(obj)
+        for expected, var in enumerate(sorted(var_order)):
+            self.obs_order[num_objects + expected] = num_objects + var_order.index(var)
+
     def reset(self, **kwargs):
         kwargs = kwargs or {}
         kwargs["options"] = {"level_string": self.level_generator.make_level_string()}
         obs, infos = self.env.reset(**kwargs)
-        return obs, infos
+        return self._reorder_obs(obs), infos
 
     def step(self, actions):
         obs, rewards, terminated, truncated, infos = self.env.step(actions)
@@ -41,7 +52,10 @@ class OrbWorldEnvWrapper(gym.Wrapper):
                         stat_val = stats[stat_name][agent + 1]
                     infos["episode_extra_stats"][agent][stat_name] = stat_val
         rewards = np.array(rewards) / 10.0
-        return obs, rewards, terminated, truncated, infos
+        return self._reorder_obs(obs), rewards, terminated, truncated, infos
+
+    def _reorder_obs(self, obs):
+        return [ob[self.obs_order] for ob in obs]
 
     @staticmethod
     def make_env(cfg, level_generator):
@@ -62,7 +76,6 @@ class OrbWorldEnvWrapper(gym.Wrapper):
         _update_global_variable(game_config, "reward_step", 0)
         _update_global_variable(game_config, "reward_energy", 10)
 
-
         env = OrbWorldEnvWrapper(GymWrapper(
                 yaml_string=yaml.dump(game_config),
                 player_observer_type="VectorAgent",
@@ -70,7 +83,6 @@ class OrbWorldEnvWrapper(gym.Wrapper):
                 level=0,
                 max_steps=cfg.env_max_steps,
             ), level_generator)
-        env.game.enable_history(True)
         return env
 
 def _update_global_variable(game_config, var_name, value):
