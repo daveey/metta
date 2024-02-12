@@ -10,16 +10,18 @@
             "request": "launch",
             "module": "envs.griddly.train",
             "args": [
+                "--experiment=mac.pred",
+
+
                 "--algo=APPO",
                 "--device=cpu",
                 // "--restart_behavior=restart",
                 "--env=GDY-OrbWorld",
-                "--experiment=mac.ent",
                 "--save_every_sec=60",
                 "--experiment_summaries_interval=10",
                 "--lr_schedule=kl_adaptive_epoch",
                 "--decorrelate_experience_max_seconds=100",
-                "--serial=True",
+                // "--serial=True",
                 // "--async_rl=False",
                 // "--batch_size=1792",
 
@@ -34,7 +36,7 @@
                 "--load_checkpoint_kind=best",
 
                 // "--normalize_input=False",
-                // "--aux_loss_coef=0.1",
+                "--aux_loss_coef=0.1",
                 // "--train_for_env_steps=1000"
                 // "--with_pbt=True",
                 // "--num_policies=4",
@@ -50,27 +52,25 @@
                 // "--experiment=pred.10.0",
                 // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
-                "--experiment=mac.energy",
+                "--experiment=m1.energy.ro",
 
                 "--device=cpu",
                 "--serial=True",
                 "--train_dir=./train_dir/",
-                "--no_render",
+                // "--no_render",
                 // "--save_video",
                 // "--video_name=griddly",
-                "--fps=0",
+                "--fps=10",
                 "--max_num_frames=1000",
                 "--eval_env_frameskip=1",
                 "--env=GDY-OrbWorld",
                 "--env_num_agents=20",
-                "--orb_world_width=40",
-                "--orb_world_height=40",
+                "--orb_world_width=70",
+                "--orb_world_height=70",
                 "--orb_world_initial_energy=50",
-                "--orb_world_factories_per_agent=2",
-                "--orb_world_wall_density=0.05",
+                "--orb_world_factories_per_agent=1",
+                "--orb_world_wall_density=0.01",
                 "--load_checkpoint_kind=best",
-
-                // "--env_save_replay_prob=1"
             ],
         },
         {
