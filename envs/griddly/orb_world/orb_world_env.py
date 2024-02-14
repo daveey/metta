@@ -42,7 +42,7 @@ class OrbWorldEnvWrapper(gym.Wrapper):
         obs, rewards, terminated, truncated, infos = self.env.step(actions)
         if terminated or truncated:
             stat_names = list(filter(
-                lambda x: x.startswith("stats_"),
+                lambda x: x.startswith("stats:"),
                 self.env.game.get_global_variable_names()))
             stats = self.env.game.get_global_variable(stat_names)
             for agent in range(self.env.player_count):
