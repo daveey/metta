@@ -22,6 +22,8 @@ class OrbWorldEnvWrapper(gym.Wrapper):
 
         obj_order = self.env.game.get_object_names()
         var_order = self.env.game.get_object_variable_names()
+        # assert var_order == sorted(var_order)
+
         self.obs_order = list(range(len(obj_order) + len(var_order)))
         num_objects = len(obj_order)
 
@@ -71,10 +73,7 @@ class OrbWorldEnvWrapper(gym.Wrapper):
         game_config["Environment"]["Player"]["Count"] = cfg.env_num_agents
         game_config["Environment"]["Levels"] = [level_generator.make_level_string()]
         init_energy = level_generator.sample_initial_energy()
-        _update_global_variable(game_config, "agent_initial_energy", init_energy)
-        _update_object_variable(game_config, "agent", "energy", init_energy)
-        _update_global_variable(game_config, "reward_step", 0)
-        _update_global_variable(game_config, "reward_energy", 10)
+        _update_global_variable(game_config, "conf:agent:initial_energy", init_energy)
 
         env = OrbWorldEnvWrapper(GymWrapper(
                 yaml_string=yaml.dump(game_config),

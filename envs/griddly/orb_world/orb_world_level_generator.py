@@ -115,7 +115,7 @@ def add_env_args(parser: argparse.ArgumentParser) -> None:
                    str2numeric_cast_fn=float)
 
     p.add_argument("--orb_world_initial_energy",
-                   default=[30],
+                   default=[100],
                    help='Factories per agent.',
                    action=args_parsing.PossiblyNumericRange2Number,
                    str2numeric_cast_fn=int)

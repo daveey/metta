@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "envs.griddly.train",
             "args": [
-                "--experiment=mac.pred.2",
+                "--experiment=mac.pres",
 
 
                 "--algo=APPO",
