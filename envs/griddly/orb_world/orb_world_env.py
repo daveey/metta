@@ -58,7 +58,7 @@ class OrbWorldEnvWrapper(gym.Wrapper):
         return [ob[self.obs_order] for ob in obs]
 
     @staticmethod
-    def make_env(cfg, level_generator):
+    def make_env(cfg, level_generator, render_mode="rgb_array"):
         """
         Creates a new instance of the OrbWorld environment.
 
@@ -82,6 +82,7 @@ class OrbWorldEnvWrapper(gym.Wrapper):
                 global_observer_type="GlobalSpriteObserver",
                 level=0,
                 max_steps=cfg.env_max_steps,
+                render_mode=render_mode,
             ), level_generator)
         return env
 

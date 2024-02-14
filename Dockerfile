@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y ninja-build git sudo wget vim
 WORKDIR /workspace
 
 # Install Griddly
-RUN git clone https://github.com/Bam4d/Griddly.git griddly
+RUN git clone https://github.com/daveey/Griddly.git griddly
 RUN pip install conan==1.59.0
 
 WORKDIR /workspace/griddly

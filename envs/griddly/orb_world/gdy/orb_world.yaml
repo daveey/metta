@@ -7,34 +7,44 @@ Environment:
     - Name: num_active_agents
       InitialValue: 0
 
-    - Name: orbs_energy
-      InitialValue: 10
-      PerPlayer: true
-    - Name: reward_energy
-      InitialValue: 10
-      PerPlayer: true
-    - Name: reward_step
-      InitialValue: 10
-      PerPlayer: true
-    - Name: reward_death
-      InitialValue: -10
-    - Name: agent_initial_energy
-      InitialValue: 10
-      PerPlayer: true
+    - Name: conf:orb:energy
+      InitialValue: 50
+    - Name: conf:orb_factory:cooldown
+      InitialValue: 50
 
-    - Name: stats_orbs_collected
+    - Name: conf:agent:initial_energy
+      InitialValue: 100
+
+    - Name: conf:cost:move
+      InitialValue: 1
+    - Name: conf:cost:get
+      InitialValue: 1
+    - Name: conf:cost:use
+      InitialValue: 1
+    - Name: conf:cost:prestige
+      InitialValue: 50
+    - Name: conf:cost:prestige:margin
+      InitialValue: 10
+
+    - Name: stats:orbs:collected
       InitialValue: 0
       PerPlayer: true
-    - Name: stats_orbs_used
+    - Name: stats:orbs:used
       InitialValue: 0
       PerPlayer: true
-    - Name: stats_orbs_produced
+    - Name: stats:orbs:spawned
       InitialValue: 0
-    - Name: stats_max_energy
-      InitialValue: 0
-    - Name: stats_respawns
+
+    - Name: stats:agent:energy
       InitialValue: 0
       PerPlayer: true
+    - Name: stats:agent:energy:max
+      InitialValue: 0
+    - Name: stats:agent:prestige
+      InitialValue: 0
+      PerPlayer: true
+    - Name: stats:agent:prestige:max
+      InitialValue: 0
 
   Observers:
     VectorAgent:
@@ -58,11 +68,7 @@ Environment:
   Player:
     Count: 7
     AvatarObject: agent
-  Termination:
-    End:
-      - eq:
-          - num_active_agents
-          - 0
+
   Levels:
     - >
       W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W
@@ -122,6 +128,7 @@ Environment:
 Objects:
   - Name: wall
     MapCharacter: W
+    Z: 1
     Observers:
       GlobalSpriteObserver:
         - TilingMode: WALL_16
@@ -142,71 +149,55 @@ Objects:
             - oryx/oryx_fantasy/wall2-13.png
             - oryx/oryx_fantasy/wall2-14.png
             - oryx/oryx_fantasy/wall2-15.png
-      GlobalBlockObserver:
-        - Shape: square
-          Color:
-            - 0.7
-            - 0.7
-            - 0.7
-          Scale: 1
+
   - Name: orb_factory
+    Z: 1
     MapCharacter: o
     Variables:
-      - Name: orb_ready
+      - Name: orb_factory:ready
         InitialValue: 0
-      - Name: orb_type
+      - Name: orb_factory:mode
         InitialValue: 1
-      - Name: make_orb_delay
-        InitialValue: 20
-    InitialActions:
-      - Action: make_orb
-        Delay: 1
-        ActionId: 1
     Observers:
       GlobalSpriteObserver:
+        - Image: oryx/oryx_fantasy/ore-0.png
         - Image: oryx/oryx_fantasy/ore-1.png
         - Image: oryx/oryx_fantasy/ore-2.png
         - Image: oryx/oryx_fantasy/ore-3.png
         - Image: oryx/oryx_fantasy/ore-4.png
         - Image: oryx/oryx_fantasy/ore-5.png
         - Image: oryx/oryx_fantasy/ore-6.png
-      GlobalBlockObserver:
-        - Shape: circle
-          Color:
-            - 0
-            - 1
-            - 0
-          Scale: 0.5
+    InitialActions:
+      - Action: orb_factory:spawn
+        ActionId: 1
+
   - Name: agent
     MapCharacter: A
+    Z: 10
     Variables:
-      - Name: agent_id
+      - Name: agent:id
         InitialValue: 0
-      - Name: energy
-        InitialValue: agent_initial_energy
-      - Name: inv_orbs
+      - Name: agent:energy
+        InitialValue: 0
+      - Name: agent:prestige
+        InitialValue: 0
+      - Name: agent:inv:orbs
         InitialValue: 0
 
     Observers:
       GlobalSpriteObserver:
         - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_l1.png
-        - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_l1.png
-        - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_r1.png
         - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_u1.png
+        - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_r1.png
         - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_d1.png
-      GlobalBlockObserver:
-        - Shape: triangle
-          Color:
-            - 0
-            - 0
-            - 1
-          Scale: 0.8
     InitialActions:
-      - Action: update_agent_stats
+      - Action: agent:tick
         Delay: 1
         ActionId: 1
-      - Action: init_agent
+      - Action: agent:init
         ActionId: 1
+
+
 Actions:
   - Name: move
     InputMapping:
@@ -216,110 +207,127 @@ Actions:
           VectorToDest: [ -1, 0 ]
           Description: "Move Left"
           MetaData:
-            image_idx: 1
+            image_idx: 0
         2:
           OrientationVector: [ 0, -1 ]
           VectorToDest: [ 0, -1 ]
           Description: "Move Up"
           MetaData:
-            image_idx: 2
+            image_idx: 1
         3:
           OrientationVector: [ 1, 0 ]
           VectorToDest: [ 1, 0 ]
           Description: "Move Right"
           MetaData:
-            image_idx: 3
+            image_idx: 2
         4:
           OrientationVector: [ 0, 1 ]
           VectorToDest: [ 0, 1 ]
           Description: "Move Down"
           MetaData:
-            image_idx: 4
+            image_idx: 3
     Behaviours:
       - Src:
           Object: agent
           Preconditions:
-            - gt: [energy, 0]
+            - gte: [agent:energy, conf:cost:move]
           Commands:
+            - sub: [ agent:energy, conf:cost:move ]
             - mov: _dest
             - rot: _dir
             - set_tile: meta.image_idx
         Dst:
           Object: [ _empty ]
+
       - Src:
           Object: agent
-          Preconditions:
-            - gt: [energy, 0]
           Commands:
             - rot: _dir
             - set_tile: meta.image_idx
         Dst:
-          Object: [ wall, orb_factory, agent ]
-  - Name: do
+          Object: [ wall,  agent, orb_factory ]
+
+  - Name: get
     InputMapping:
       Relative: true
       Inputs:
         1:
           VectorToDest: [ 0, -1 ]
-          Description: "Interact with an object"
+          Description: "pickup the current object"
     Behaviours:
       # Player collects an orb
       - Src:
           Object: agent
           Preconditions:
             - and:
-              - gt: [energy, 0]
-              - eq: [dst.orb_ready, 1]
+              - gte: [  agent:energy, conf:cost:get ]
+              - eq: [ dst.orb_factory:ready, 1 ]
           Commands:
-            - add: [ inv_orbs, 1 ]
-            - incr: stats_orbs_collected
+            - sub: [ agent:energy, conf:cost:get ]
+            - add: [ agent:inv:orbs, 1 ]
+            - incr: stats:orbs:collected
         Dst:
           Object: orb_factory
           Commands:
             - set_tile: 0
-            - set: [orb_ready, 0]
+            - set: [ orb_factory:ready, 0 ]
             - exec:
-                Action: make_orb
-                Delay: make_orb_delay
+                Action: orb_factory:spawn
                 ActionId: 1
+                Delay: conf:orb_factory:cooldown
+
   - Name: use
     InputMapping:
       Relative: true
       Inputs:
         1:
           VectorToDest: [ 0, 0 ]
-          Description: "Use Orb 1"
+          Description: "Consume"
           MetaData:
             action_id: 1
-        2:
-          VectorToDest: [ 0, 0 ]
-          Description: "Use Orb 2"
-          MetaData:
-            action_id: 2
+
     Behaviours:
-      # Use an Orb
       - Src:
           Object: agent
           Preconditions:
             - and:
-              - gt: [ energy, 0 ]
+              - gte: [agent:energy, conf:cost:use]
               - eq: [ meta.action_id, 1 ]
-              - gt: [ inv_orbs, 0 ]
+              - gt: [ agent:inv:orbs, 0 ]
           Commands:
-            - decr: inv_orbs
-            - add: [ energy, orbs_energy ]
-            - incr: stats_orbs_used
-            - reward: reward_energy
-            - if:
-                Conditions:
-                  and:
-                    - gt: [ energy, stats_max_energy ]
-                OnTrue:
-                    - set: [ stats_max_energy, energy ]
+            - sub: [ agent:energy, conf:cost:use ]
+            - decr: agent:inv:orbs
+            - add: [ agent:energy, conf:orb:energy ]
+            - incr: stats:orbs:used
         Dst:
           Object: agent
 
-  - Name: init_agent
+  - Name: prestige
+    InputMapping:
+      Relative: true
+      Inputs:
+        1:
+          VectorToDest: [ 0, 0 ]
+          Description: "Increase Prestige"
+          MetaData:
+            action_id: 1
+
+    Behaviours:
+      - Src:
+          Object: agent
+          Preconditions:
+            - and:
+              - gte: [ agent:energy, conf:cost:prestige ]
+              - eq: [ meta.action_id, 1 ]
+          Commands:
+            - incr: agent:prestige
+            - sub: [ agent:energy, conf:cost:prestige ]
+            - add: [ conf:cost:prestige, conf:cost:prestige:margin ]
+            - reward: 1
+        Dst:
+          Object: agent
+
+  - Name: agent:init
     InputMapping:
       Internal: true
       Inputs:
@@ -331,10 +339,11 @@ Actions:
         Dst:
           Object: agent
           Commands:
-            - set: [agent_id, num_active_agents]
+            - set: [ agent:id, _playerId ]
+            - set: [ agent:energy, conf:agent:initial_energy ]
             - incr: num_active_agents
 
-  - Name: update_agent_stats
+  - Name: agent:tick
     InputMapping:
       Internal: true
       Inputs:
@@ -349,46 +358,44 @@ Actions:
           Object: agent
           Commands:
             - exec:
-                Action: update_agent_stats
+                Action: agent:tick
                 ActionId: 1
                 Delay: 1
 
-      # Handle energy
+      # Handle Time Passing
       - Src:
           Object: agent
         Dst:
           Object: agent
           Commands:
+            - incr: agent:energy
+            - set: [ stats:agent:energy, agent:energy ]
+            - set: [ stats:agent:prestige, agent:prestige ]
             - if:
                 Conditions:
-                  and:
-                    - eq: [ energy, 1 ]
+                    gt: [ agent:energy, stats:agent:energy:max]
                 OnTrue:
-                  - decr: energy
+                  - set: [ stats:agent:energy:max, agent:energy]
             - if:
                 Conditions:
-                  and:
-                    - gt: [ energy, 1 ]
+                    gt: [ agent:prestige, stats:agent:prestige:max ]
                 OnTrue:
-                  - decr: energy
-                OnFalse:
-                  - reward: reward_death
-                  - set: [ energy, agent_initial_energy]
-                  - incr: stats_respawns
+                  - set: [ stats:agent:prestige:max,  agent:prestige ]
 
-  - Name: make_orb
+  - Name: orb_factory:spawn
     InputMapping:
+      Internal: true
       Inputs:
         1:
-          OrientationVector: [ 0, 0 ]
           VectorToDest: [ 0, 0 ]
-      Internal: true
     Behaviours:
+
+      # Just repeat this action every time step
       - Src:
           Object: orb_factory
-          Commands:
-            - set_tile: orb_type
-            - set: [ orb_ready, 1 ]
-            - incr: stats_orbs_produced
         Dst:
           Object: orb_factory
+          Commands:
+            - set: [orb_factory:ready, 1]
+            - incr: [ stats:orbs:spawned ]
+            - set_tile: 1

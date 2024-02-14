@@ -1,20 +1,14 @@
-from ast import arg
-from collections import defaultdict
 from typing import Callable, Optional
 
 import gymnasium as gym
-from typing import Any, Dict, Optional
+from typing import Optional
 
 import numpy as np
 
-from griddly import GymWrapperFactory
 from griddly.wrappers.render_wrapper import RenderWrapper
-from griddly.gym import GymWrapper
-from griddly import gd
-from griddly.util.render_tools import RenderToVideo, RenderToFile
 from envs.replay import Replay
 
-from sample_factory.envs.env_utils import RewardShapingInterface, TrainingInfoInterface
+from sample_factory.envs.env_utils import TrainingInfoInterface
 
 
 class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):

@@ -26,7 +26,7 @@ pip install conan==1.59.0
 
 conan install deps/conanfile.txt --profile default --profile deps/build.profile -s build_type=Release --build missing -if build
 
-cmake . -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+cmake . -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_CXX_FLAGS=-w
 
 cmake --build build --config Release
 
