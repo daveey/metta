@@ -52,7 +52,7 @@
                 // "--experiment=pred.10.0",
                 // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
-                "--experiment=m1.death",
+                "--experiment=m2.prestige",
 
                 "--device=cpu",
                 "--serial=True",
@@ -68,7 +68,7 @@
                 "--orb_world_width=70",
                 "--orb_world_height=70",
                 "--orb_world_initial_energy=50",
-                "--orb_world_factories_per_agent=1",
+                "--orb_world_factories_per_agent=5",
                 "--orb_world_wall_density=0.05",
                 "--load_checkpoint_kind=best",
             ],
