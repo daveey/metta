@@ -17,6 +17,7 @@ class PowerGridLevelGenerator():
         """
         self.cfg = cfg
         self.num_agents = self.cfg.env_num_agents
+        self.max_steps = self.cfg.env_max_steps
 
         self.sample_level_width = args_parsing.get_value_possibly_from_range(self.cfg.power_grid_width, np.random.randint)
         self.sample_level_height = args_parsing.get_value_possibly_from_range(self.cfg.power_grid_height, np.random.randint)

@@ -6,8 +6,6 @@ from typing import Optional
 import numpy as np
 
 from griddly.wrappers.render_wrapper import RenderWrapper
-from envs.replay import Replay
-
 from sample_factory.envs.env_utils import TrainingInfoInterface
 
 
@@ -18,8 +16,7 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
         griddly_env: gym.Env,
         render_mode: Optional[str] = None,
         make_level: Optional[Callable] = None,
-        env_id: int = 0,
-        save_replay_prob: float = 0,
+        env_id: int = 0
     ):
         TrainingInfoInterface.__init__(self)
 
@@ -48,18 +45,10 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
         self.action_space = action_space
         self.episode_rewards = [[] for _ in range(self.num_agents)]
         self.current_episode = 0
-        self.current_replay = None
         self.env_id = env_id
-        self.save_replay_prob = save_replay_prob
 
 
     def reset(self, **kwargs):
-        if self.current_replay is not None:
-            self.current_replay.close()
-            self.current_replay = None
-        if self.save_replay_prob > 0 and np.random.rand() < self.save_replay_prob:
-            self.current_replay = Replay(f"replays/{self.env_id}_{self.current_episode}.pt")
-
         self.current_episode += 1
         self.curr_episode_steps = 0
         self.episode_rewards = [[] for _ in range(self.num_agents)]
@@ -75,10 +64,6 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
             actions = list(actions)
 
         obs, rewards, terminated, truncated, infos_dict = self.gym_env.step(actions)
-        if self.current_replay is not None:
-            self.current_replay.record_step(actions, obs, rewards, infos_dict,
-                                            self.gym_env_global.render())
-
         self.curr_episode_steps += 1
 
         # auto-reset the environment

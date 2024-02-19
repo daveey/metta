@@ -1,6 +1,7 @@
 import argparse
 import enum
 import stat
+from typing import List
 
 import gymnasium as gym
 import jmespath
@@ -15,29 +16,24 @@ import cv2
 import matplotlib.pyplot as plt
 GYM_ENV_NAME = "GDY-PowerGrid"
 
-class PowerGridEnvWrapper(gym.Wrapper):
-    def __init__(self, env: Env, level_generator: PowerGridLevelGenerator):
-        super().__init__(env)
+class PowerGridEnv(gym.Env):
+    def __init__(self, level_generator: PowerGridLevelGenerator, render_mode="rgb_array"):
+        super().__init__()
         self.level_generator = level_generator
-
+        self.render_mode = render_mode
+        self.env = self._make_env()
         obj_order = self.env.game.get_object_names()
         var_order = self.env.game.get_object_variable_names()
         assert obj_order == sorted(obj_order)
         assert var_order == sorted(var_order)
 
-        # self.obs_order = list(range(len(obj_order) + len(var_order)))
-        # num_objects = len(obj_order)
-
-        # for expected, obj in enumerate(sorted(obj_order)):
-        #     self.obs_order[expected] = obj_order.index(obj)
-        # for expected, var in enumerate(sorted(var_order)):
-        #     self.obs_order[num_objects + expected] = num_objects + var_order.index(var)
+    def render(self):
+        return super().render()
 
     def reset(self, **kwargs):
-        kwargs = kwargs or {}
-        kwargs["options"] = {"level_string": self.level_generator.make_level_string()}
+        self.env = self._make_env()
         obs, infos = self.env.reset(**kwargs)
-        return self._reorder_obs(obs), infos
+        return obs, infos
 
     def step(self, actions):
         obs, rewards, terminated, truncated, infos = self.env.step(actions)
@@ -55,36 +51,30 @@ class PowerGridEnvWrapper(gym.Wrapper):
                         stat_val = stats[stat_name][agent + 1]
                     infos["episode_extra_stats"][agent][stat_name] = stat_val
         rewards = np.array(rewards) / 10.0
-        return self._reorder_obs(obs), rewards, terminated, truncated, infos
+        return obs, rewards, terminated, truncated, infos
 
-    def _reorder_obs(self, obs):
-        return obs
-        # return [ob[self.obs_order] for ob in obs]
-
-    @staticmethod
-    def make_env(cfg, level_generator, render_mode="rgb_array"):
-        """
-        Creates a new instance of the PowerGrid environment.
-
-        Returns:
-            An instance of the PowerGrid environment.
-        """
+    def _make_env(self):
         with open("./envs/griddly/power_grid/gdy/power_grid.yaml", encoding="utf-8") as file:
             game_config = yaml.safe_load(file)
 
-        game_config["Environment"]["Player"]["Count"] = cfg.env_num_agents
-        game_config["Environment"]["Levels"] = [level_generator.make_level_string()]
-        init_energy = level_generator.sample_initial_energy()
+        game_config["Environment"]["Player"]["Count"] = self.level_generator.num_agents
+        game_config["Environment"]["Levels"] = [self.level_generator.make_level_string()]
+        init_energy = self.level_generator.sample_initial_energy()
         _update_global_variable(game_config, "conf:agent:initial_energy", init_energy)
 
-        env = PowerGridEnvWrapper(GymWrapper(
-                yaml_string=yaml.dump(game_config),
-                player_observer_type="VectorAgent",
-                global_observer_type="GlobalSpriteObserver",
-                level=0,
-                max_steps=cfg.env_max_steps,
-                render_mode=render_mode,
-            ), level_generator)
+        env = GymWrapper(
+            yaml_string=yaml.dump(game_config),
+            player_observer_type="VectorAgent",
+            global_observer_type="GlobalSpriteObserver",
+            level=0,
+            max_steps=self.level_generator.max_steps,
+            render_mode=self.render_mode,
+        )
+        self.observation_space = env.observation_space
+        self.action_space = env.action_space
+        self.global_observation_space = env.global_observation_space
+        self.player_count = env.player_count
+
         return env
 
 def _update_global_variable(game_config, var_name, value):
