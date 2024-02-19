@@ -149,7 +149,7 @@
         TrackAvatar: true
         RotateWithAvatar: true
         IncludeVariables: true
-        IncludeRotation: true
+        # IncludeRotation: true
       GlobalSpriteObserver:
         TileSize: 16
         HighlightPlayers: true
