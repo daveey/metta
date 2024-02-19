@@ -137,9 +137,6 @@
         PerPlayer: true
 
       # variables for controlling rendering
-      - Name: render:agent:dir
-        InitialValue: 0
-        PerPlayer: true
       - Name: render:agent:tile
         InitialValue: 0
         PerPlayer: true
@@ -150,19 +147,16 @@
         Width: 11
         Height: 11
         TrackAvatar: true
+        RotateWithAvatar: true
         IncludeVariables: true
-        # IncludePlayerId: true
+        IncludeRotation: true
       GlobalSpriteObserver:
         TileSize: 16
         HighlightPlayers: true
         Type: SPRITE_2D
+        RotateAvatarImage: true
         Shader:
           ObserverAvatarMode: DARKEN
-      GlobalBlockObserver:
-        TileSize: 16
-        Type: BLOCK_2D
-        Shader:
-          ObserverAvatarMode: GRAYSCALE
     Player:
       Count: 7
       AvatarObject: agent
@@ -289,14 +283,14 @@
       Observers:
         GlobalSpriteObserver:
           # Shield off
-          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_d1.png
-          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_l1.png
-          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_r1.png
+          # - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_d1.png
+          # - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_l1.png
+          # - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_r1.png
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_u1.png
           # Shield on
-          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_beast_d1.png
-          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_beast_l1.png
-          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_beast_r1.png
+          # - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_beast_d1.png
+          # - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_beast_l1.png
+          # - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_beast_r1.png
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_beast_u1.png
           # Frozen
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_bug_u1.png
@@ -315,23 +309,15 @@
             1:
               Description: Face down
               OrientationVector: [0, 1]
-              MetaData:
-                render_dir: 0
             2:
               Description: Face left
               OrientationVector: [-1, 0]
-              MetaData:
-                render_dir: 1
             3:
               Description: Face right
               OrientationVector: [1, 0]
-              MetaData:
-                render_dir: 2
             4:
               Description: Face Up
               OrientationVector: [0, -1]
-              MetaData:
-                render_dir: 3
 
       Behaviours:
         - Src:
@@ -341,7 +327,6 @@
               - eq: [ agent:frozen, 0 ]
             Commands:
               - rot: _dir
-              - set: [ render:agent:dir, meta.render_dir ]
               - sub: [ agent:energy, conf:cost:rotate ]
               - incr: stats:action:rotate
               - add: [ stats:energy:used:rotate, conf:cost:rotate ]
@@ -595,8 +580,6 @@
               - incr: agent:energy
               - incr: [ stats:energy:gained ]
 
-              - set: [ render:agent:tile, render:agent:dir ]
-
               # handle shield upkeep
               - if:
                   Conditions:
@@ -605,7 +588,7 @@
                     - sub: [ agent:energy, conf:cost:shield:upkeep ]
                     - add: [ stats:energy:used:shield:upkeep, conf:cost:shield ]
                     - incr: stats:agent:shield:ticks
-                    - add: [ render:agent:tile, 4 ]
+                    - set: [ render:agent:tile, 1 ]
 
               # record number of steps spent frozen
               - if:
@@ -614,7 +597,7 @@
                   OnTrue:
                     - incr: stats:agent:frozen:ticks
                     - decr: agent:frozen
-                    - set: [ render:agent:tile, 8 ]
+                    - set: [ render:agent:tile, 2 ]
 
               # update agent sprite
               - set_tile: render:agent:tile
