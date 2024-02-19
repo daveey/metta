@@ -10,7 +10,7 @@
         "editor.autoIndent": "none",
       },
       "yaml.schemas": {
-        "envs/griddly/gdy-schema.json": "envs/griddly/orb_world/*.yaml"
+        "envs/griddly/gdy-schema.json": "envs/griddly/power_grid/*.yaml"
     },
     "python.testing.unittestArgs": [
         "-v",

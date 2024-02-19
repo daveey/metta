@@ -8,11 +8,11 @@ from sample_factory.train import run_rl
 from envs.griddly.sample_factory_env_wrapper import GriddlyEnvWrapper
 from agent import agent
 
-from envs.griddly.orb_world import orb_world_env, orb_world_level_generator
+from envs.griddly.power_grid import power_grid_env, power_grid_level_generator
 
 def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optional[str] = None):
-    lg = orb_world_level_generator.OrbWorldLevelGenerator(cfg)
-    env = orb_world_env.OrbWorldEnvWrapper.make_env(cfg, level_generator=lg)
+    lg = power_grid_level_generator.PowerGridLevelGenerator(cfg)
+    env = power_grid_env.PowerGridEnvWrapper.make_env(cfg, level_generator=lg)
     return GriddlyEnvWrapper(
         env,
         render_mode=render_mode,
@@ -23,7 +23,7 @@ def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optiona
 
 def register_custom_components():
     agent.register_custom_components()
-    register_env(orb_world_env.GYM_ENV_NAME, make_env_func)
+    register_env(power_grid_env.GYM_ENV_NAME, make_env_func)
 
 def parse_custom_args(argv=None, evaluation=False):
     parser, cfg = parse_sf_args(argv=argv, evaluation=evaluation)
@@ -33,7 +33,7 @@ def parse_custom_args(argv=None, evaluation=False):
     parser.add_argument("--env_max_steps", default=1000, type=int)
     parser.add_argument("--env_save_replay_prob", default=0.0, type=float)
 
-    orb_world_level_generator.add_env_args(parser)
+    power_grid_level_generator.add_env_args(parser)
     cfg = parse_full_cfg(parser, argv)
     return cfg
 

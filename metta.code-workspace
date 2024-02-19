@@ -12,7 +12,7 @@
 	],
 	"settings": {
 		"yaml.schemas": {
-			"envs/griddly/gdy-schema.json": "envs/griddly/orb_world/*.yaml"
+			"envs/griddly/gdy-schema.json": "envs/griddly/power_grid/*.yaml"
 		},
 		"files.associations": {
 			"unordered_map": "cpp",

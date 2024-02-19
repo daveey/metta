@@ -11,7 +11,7 @@ def train_and_eval(args):
     train_args = [
             "--algo=APPO",
             "--experiment=test_griddly_1",
-            "--env=GDY-OrbWorld",
+            "--env=GDY-PowerGrid",
             "--num_workers=5",
             "--device=cpu",
             # "--num_workers=1",
@@ -42,11 +42,11 @@ class TestGridlyTraining(unittest.TestCase):
         args = [
             "--train_for_env_steps=300000",
             "--env_num_agents=2",
-            "--orb_world_width=4",
-            "--orb_world_height=4",
-            "--orb_world_factories_per_agent=1",
-            "--orb_world_initial_energy=3",
-            "--orb_world_wall_density=0.0",
+            "--power_grid_width=4",
+            "--power_grid_height=4",
+            "--power_grid_chargers_per_agent=1",
+            "--power_grid_initial_energy=3",
+            "--power_grid_wall_density=0.0",
             "--env_max_steps=5"
         ]
         self.assertGreater(train_and_eval(args), 4.99)
@@ -55,10 +55,10 @@ class TestGridlyTraining(unittest.TestCase):
         args = [
             "--train_for_env_steps=300000",
             "--env_num_agents=2",
-            "--orb_world_width=4",
-            "--orb_world_height=4",
-            "--orb_world_energy_per_agent=1",
-            "--orb_world_wall_density=0.0",
+            "--power_grid_width=4",
+            "--power_grid_height=4",
+            "--power_grid_energy_per_agent=1",
+            "--power_grid_wall_density=0.0",
             "--env_max_steps=2"
         ]
         self.assertGreater(train_and_eval(args), 0.99)
@@ -67,11 +67,11 @@ class TestGridlyTraining(unittest.TestCase):
         args = [
             "--train_for_env_steps=300000",
             "--env_num_agents=2",
-            "--orb_world_width=9",
-            "--orb_world_height=9",
-            "--orb_world_factories_per_agent=1",
-            "--orb_world_initial_energy=16",
-            "--orb_world_wall_density=0.0",
+            "--power_grid_width=9",
+            "--power_grid_height=9",
+            "--power_grid_chargers_per_agent=1",
+            "--power_grid_initial_energy=16",
+            "--power_grid_wall_density=0.0",
             "--env_max_steps=20"
         ]
         self.assertGreater(train_and_eval(args), 0.99)
@@ -80,10 +80,10 @@ class TestGridlyTraining(unittest.TestCase):
         args = [
             "--train_for_env_steps=80000",
             "--env_num_agents=2",
-            "--orb_world_width=9",
-            "--orb_world_height=9",
-            "--orb_world_energy_per_agent=1",
-            "--orb_world_wall_density=0.05",
+            "--power_grid_width=9",
+            "--power_grid_height=9",
+            "--power_grid_energy_per_agent=1",
+            "--power_grid_wall_density=0.05",
             "--env_max_steps=16"
         ]
         self.assertGreater(train_and_eval(args), 0.99)

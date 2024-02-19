@@ -2,7 +2,7 @@
 
 python -m envs.griddly.enjoy \
     --seed=0 \
-    --env=GDY-OrbWorld \
+    --env=GDY-PowerGrid \
     --device=cpu \
     --train_dir=./train_dir/ \
     --fps=0 \

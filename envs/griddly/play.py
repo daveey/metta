@@ -14,15 +14,15 @@ from sample_factory.train import run_rl
 from envs.griddly.sample_factory_env_wrapper import GriddlyEnvWrapper
 from agent import agent
 import numpy as np
-from envs.griddly.orb_world import orb_world_env, orb_world_level_generator
+from envs.griddly.power_grid import power_grid_env, power_grid_level_generator
 from griddly.wrappers.render_wrapper import RenderWrapper
 
 
 def main():
     """Script entry point."""
     cfg = train.parse_custom_args(evaluation=True)
-    lg = orb_world_level_generator.OrbWorldLevelGenerator(cfg)
-    env = orb_world_env.OrbWorldEnvWrapper.make_env(cfg, level_generator=lg)
+    lg = power_grid_level_generator.PowerGridLevelGenerator(cfg)
+    env = power_grid_env.PowerGridEnvWrapper.make_env(cfg, level_generator=lg)
     env.enable_history(True)
     genv =  RenderWrapper(env, "global", render_mode="rgb_array")
     def callback(obs_t, obs_tp1, action, rew, terminated, truncated, info):

@@ -66,6 +66,6 @@ python -m envs.griddly.enjoy \
     --train_dir=./train_dir/ \
     --fps=10 --max_num_frames=1000 \
     --eval_env_frameskip=1 \
-    --env=GDY-OrbWorld \
+    --env=GDY-PowerGrid \
     --experiment=g.pbt.4090
 ```
