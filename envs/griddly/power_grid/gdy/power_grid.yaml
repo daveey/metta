@@ -9,8 +9,6 @@
         InitialValue: 50
       - Name: conf:energy:regen
         InitialValue: 1
-      - Name: conf:energy:regen:frozen
-        InitialValue: 0
 
       - Name: conf:agent:initial_energy
         InitialValue: 100
@@ -28,6 +26,8 @@
         InitialValue: 1
       # per-tick cost of shield
       - Name: conf:cost:shield:upkeep
+        InitialValue: 1
+      - Name: conf:cost:frozen
         InitialValue: 1
 
       # prestige cost
@@ -118,6 +118,9 @@
         InitialValue: 0
         PerPlayer: true
       - Name: stats:energy:used:shield:defence
+        InitialValue: 0
+        PerPlayer: true
+      - Name: stats:energy:used:frozen
         InitialValue: 0
         PerPlayer: true
 
@@ -581,8 +584,8 @@
           Dst:
             Object: agent
             Commands:
-              - incr: agent:energy
-              - incr: [ stats:energy:gained ]
+              - add: [ agent:energy, conf:energy:regen ]
+              - add: [ stats:energy:gained, conf:energy:regen ]
 
               # handle shield upkeep
               - if:
@@ -600,6 +603,8 @@
                       neq: [ agent:frozen, 0 ]
                   OnTrue:
                     - incr: stats:agent:frozen:ticks
+                    - sub: [ agent:energy, conf:cost:frozen ]
+                    - add: [ stats:energy:used:frozen, conf:cost:frozen ]
                     - decr: agent:frozen
                     - set: [ render:agent:tile, 2 ]
 
