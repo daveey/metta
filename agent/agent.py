@@ -62,7 +62,5 @@ def register_custom_components():
 
 
 def add_args(parser):
-    parser.add_argument("--agent_conv_layers", default=2, type=int, help="Number of encoder conv layers")
-    parser.add_argument("--agent_conv_size", default=64, type=int, help="Size of the FC layer")
-    parser.add_argument("--agent_fc_layers", default=2, type=int, help="Number of encoder fc layers")
+    parser.add_argument("--agent_fc_layers", default=4, type=int, help="Number of encoder fc layers")
     parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
