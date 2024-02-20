@@ -60,7 +60,8 @@ class PowerGridLevelGenerator():
             f"game_config_vars: {game_config_vars}, GAME_CONFIG: {self.GAME_CONFIG.keys()}"
         cfg_vars = set([k[4:] for k in self.cfg.__dict__.keys() if k.startswith("env_")])
         assert game_config_vars.issubset(cfg_vars), \
-            f"missing vars: {game_config_vars - cfg_vars}"
+            f"missing vars: {game_config_vars - cfg_vars}" + \
+            f"cfg_vars: {cfg_vars}"
 
     def make_env(self, render_mode="rgb_array"):
         def _update_global_variable(game_config, var_name, value):
