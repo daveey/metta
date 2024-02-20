@@ -25,6 +25,9 @@ class PowerGridEnv(gym.Env):
         var_order = self.env.game.get_object_variable_names()
         assert obj_order == sorted(obj_order)
         assert var_order == sorted(var_order)
+        self.global_variable_names = sorted([
+            v for v in self.env.game.get_global_variable_names()
+              if v.startswith("conf:")])
 
     def render(self):
         return super().render()
@@ -32,7 +35,9 @@ class PowerGridEnv(gym.Env):
     def reset(self, **kwargs):
         self.env = self.level_generator.make_env(self.render_mode)
         obs, infos = self.env.reset(**kwargs)
-        return obs, infos
+        self.global_variable_obs = np.array([
+            v[0] for v in self.env.game.get_global_variable(self.global_variable_names).values()])
+        return self._add_global_variables_obs(obs), infos
 
     def step(self, actions):
         obs, rewards, terminated, truncated, infos = self.env.step(actions)
@@ -50,11 +55,25 @@ class PowerGridEnv(gym.Env):
                         stat_val = stats[stat_name][agent + 1]
                     infos["episode_extra_stats"][agent][stat_name] = stat_val
         rewards = np.array(rewards) / 10.0
-        return obs, rewards, terminated, truncated, infos
+        return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
+
+    def _add_global_variables_obs(self, obs):
+        return [{
+            "obs": agent_obs,
+            "global_vars": self.global_variable_obs
+        } for agent_obs in obs]
 
     @property
     def observation_space(self):
-        return self.env.observation_space
+        # augment the observation space with the global variables
+        return [
+            gym.spaces.Dict({
+                "obs": o,
+                "global_vars": gym.spaces.Box(
+                    low=-np.inf, high=np.inf,
+                    shape=[len(self.global_variable_names)],
+                    dtype=np.float32)
+            }) for o in self.env.observation_space]
 
     @property
     def action_space(self):

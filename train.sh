@@ -9,6 +9,5 @@ python -m envs.griddly.train \
     --env_num_agents=20 \
     --env_width=20:100 \
     --env_height=20:100 \
-    --env_wall_density=0.1 \
     --env_chargers_per_agent=1:10 \
     "$@"

@@ -37,7 +37,7 @@ class PowerGridLevelGenerator():
         "width": [10, 20],
         "height": [10, 20],
         "wall_density": [0.1, 0.3],
-        "chargers_per_agent": [1, 2],
+        "chargers_per_agent": [1, 5],
         "wall_density": [0.0, 0.15],
     }
 

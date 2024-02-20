@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 from torch import nn
+import torch
 
 from sample_factory.algo.utils.torch_utils import calc_num_elements
 from sample_factory.model.encoder import Encoder
@@ -25,36 +26,25 @@ class GriddlyEncoder(Encoder):
     def __init__(self, cfg, obs_space):
         super().__init__(cfg)
 
-        obs_shape = obs_space["obs"].shape
+        num_features = np.prod(obs_space["obs"].shape) + obs_space["global_vars"].shape[0]
+        self.encoder_head = nn.Sequential(*[
+            nn.Flatten(),
+            layer_init(nn.Linear(num_features, cfg.agent_fc_size)),
+            nonlinearity(cfg)
+        ] + [
+            layer_init(nn.Linear(cfg.agent_fc_size, cfg.agent_fc_size), cfg.agent_fc_size),
+            nonlinearity(cfg)
+        ] * cfg.agent_fc_layers)
 
-        self._num_objects = obs_shape[0]
-        layers = []
-
-        for i in range(cfg.agent_conv_layers):
-            layers.append(layer_init(
-                nn.Conv2d(self._num_objects if i == 0 else
-                          cfg.agent_conv_size, cfg.agent_conv_size,
-                          3, padding=1)))
-            layers.append(nonlinearity(cfg))
-
-        if cfg.agent_conv_layers > 0:
-            linear_flatten = np.prod(obs_shape[1:]) * cfg.agent_conv_size
-        else:
-            linear_flatten = np.prod(obs_shape)
-
-        layers.append(nn.Flatten())
-        for i in range(cfg.agent_fc_layers):
-            layers.append(layer_init(nn.Linear(linear_flatten if i == 0 else
-                                               cfg.agent_fc_size, cfg.agent_fc_size)))
-            layers.append(nonlinearity(cfg))
-
-        self.encoder_head = nn.Sequential(*layers)
-        self.encoder_head_out_size = calc_num_elements(self.encoder_head, obs_shape)
+        self.encoder_head_out_size = cfg.agent_fc_size
 
     def forward(self, obs_dict):
         # we always work with dictionary observations. Primary observation is available with the key 'obs'
-        main_obs = obs_dict["obs"]
-        x = self.encoder_head(main_obs)
+        x = self.encoder_head(
+            torch.concat([
+                obs_dict["obs"].view(obs_dict["obs"].size(0), -1),
+                obs_dict["global_vars"]
+            ], dim=1))
         x = x.view(-1, self.encoder_head_out_size)
         return x
 
