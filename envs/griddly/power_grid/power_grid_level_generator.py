@@ -41,7 +41,7 @@ class PowerGridLevelGenerator():
         "wall_density": [0.0, 0.15],
     }
 
-    def __init__(self, cfg=None):
+    def __init__(self, cfg):
         """
         Args:
             cfg: Optional configuration object.
@@ -58,6 +58,9 @@ class PowerGridLevelGenerator():
             if v["Name"].startswith("conf:")])
         assert game_config_vars == set(self.GAME_CONFIG.keys()), \
             f"game_config_vars: {game_config_vars}, GAME_CONFIG: {self.GAME_CONFIG.keys()}"
+        cfg_vars = set([k[4:] for k in self.cfg.__dict__.keys() if k.startswith("env_")])
+        assert game_config_vars.issubset(cfg_vars), \
+            f"missing vars: {game_config_vars - cfg_vars}"
 
     def make_env(self, render_mode="rgb_array"):
         def _update_global_variable(game_config, var_name, value):
