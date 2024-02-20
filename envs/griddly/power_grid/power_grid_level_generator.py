@@ -70,8 +70,12 @@ class PowerGridLevelGenerator():
         game_config = deepcopy(self.game_config)
         game_config["Environment"]["Player"]["Count"] = self.num_agents
         game_config["Environment"]["Levels"] = [self.make_level_string()]
-        for var_name, value in self.GAME_CONFIG.items():
-            _update_global_variable(game_config, f"conf:{var_name}", int(sample_value(self.cfg.__dict__[f"env_{var_name}"])))
+        try:
+            for var_name, value in self.GAME_CONFIG.items():
+                _update_global_variable(game_config, f"conf:{var_name}", int(sample_value(self.cfg.__dict__[f"env_{var_name}"])))
+        except Exception as e:  # pylint: disable=broad-except
+            print(f"Error setting global variable {var_name}: {e}")
+            print("cfg:", self.cfg)
 
         env = GymWrapper(
             yaml_string=yaml.dump(game_config),
