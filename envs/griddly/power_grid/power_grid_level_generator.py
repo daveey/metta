@@ -58,10 +58,6 @@ class PowerGridLevelGenerator():
             if v["Name"].startswith("conf:")])
         assert game_config_vars == set(self.GAME_CONFIG.keys()), \
             f"game_config_vars: {game_config_vars}, GAME_CONFIG: {self.GAME_CONFIG.keys()}"
-        cfg_vars = set([k[4:] for k in self.cfg.__dict__.keys() if k.startswith("env_")])
-        assert game_config_vars.issubset(cfg_vars), \
-            f"missing vars: {game_config_vars - cfg_vars}" + \
-            f"cfg_vars: {cfg_vars}"
 
     def make_env(self, render_mode="rgb_array"):
         def _update_global_variable(game_config, var_name, value):
@@ -74,12 +70,11 @@ class PowerGridLevelGenerator():
         game_config = deepcopy(self.game_config)
         game_config["Environment"]["Player"]["Count"] = self.num_agents
         game_config["Environment"]["Levels"] = [self.make_level_string()]
-        try:
-            for var_name, value in self.GAME_CONFIG.items():
-                _update_global_variable(game_config, f"conf:{var_name}", int(sample_value(self.cfg.__dict__[f"env_{var_name}"])))
-        except Exception as e:  # pylint: disable=broad-except
-            print(f"Error setting global variable {var_name}: {e}")
-            print("cfg:", self.cfg)
+        for var_name, value in self.GAME_CONFIG.items():
+            _update_global_variable(
+                game_config,
+                f"conf:{var_name}",
+                int(sample_value(self.cfg.__dict__.get(f"env_{var_name}", value))))
 
         env = GymWrapper(
             yaml_string=yaml.dump(game_config),
