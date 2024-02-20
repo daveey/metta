@@ -15,7 +15,7 @@
 
                 "--algo=APPO",
                 "--device=cpu",
-                // "--restart_behavior=restart",
+                "--restart_behavior=restart",
                 "--env=GDY-PowerGrid",
                 "--save_every_sec=60",
                 "--experiment_summaries_interval=10",

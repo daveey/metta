@@ -32,6 +32,7 @@ def parse_custom_args(argv=None, evaluation=False):
     parser.add_argument("--env_max_steps", default=1000, type=int)
 
     power_grid_level_generator.add_env_args(parser)
+    agent.add_args(parser)
     cfg = parse_full_cfg(parser, argv)
     return cfg
 

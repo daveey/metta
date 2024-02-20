@@ -63,7 +63,6 @@ class PowerGridLevelGenerator():
         def _update_global_variable(game_config, var_name, value):
             jmespath.search('Environment.Variables[?Name==`{}`][]'.format(var_name), game_config)[0]["InitialValue"] = value
 
-
         # def _update_object_variable(game_config, object_name, var_name, value):
         #     jmespath.search('Objects[?Name==`{}`][].Variables[?Name==`{}`][]'.format(
         #         object_name, var_name), game_config)[0]["InitialValue"] = value
@@ -72,7 +71,7 @@ class PowerGridLevelGenerator():
         game_config["Environment"]["Player"]["Count"] = self.num_agents
         game_config["Environment"]["Levels"] = [self.make_level_string()]
         for var_name, value in self.GAME_CONFIG.items():
-            _update_global_variable(game_config, f"conf:{var_name}", int(sample_value(self.cfg[f"env_{var_name}"])))
+            _update_global_variable(game_config, f"conf:{var_name}", int(sample_value(self.cfg.__dict__[f"env_{var_name}"])))
 
         env = GymWrapper(
             yaml_string=yaml.dump(game_config),
