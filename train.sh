@@ -7,9 +7,8 @@ python -m envs.griddly.train \
     --num_workers=25 \
     --decorrelate_experience_max_seconds=100 \
     --env_num_agents=20 \
-    --power_grid_width=20:100 \
-    --power_grid_height=20:100 \
-    --power_grid_wall_density=0.1 \
-    --power_grid_chargers_per_agent=1:10 \
-    --power_grid_initial_energy=50 \
+    --env_width=20:100 \
+    --env_height=20:100 \
+    --env_wall_density=0.1 \
+    --env_chargers_per_agent=1:10 \
     "$@"

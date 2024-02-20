@@ -618,6 +618,13 @@
                   OnTrue:
                     - set: [ stats:agent:prestige:max,  agent:prestige ]
 
+              # maintain positive energy
+              - if:
+                  Conditions:
+                    lt: [ agent:energy, 0 ]
+                  OnTrue:
+                    - set: [ agent:energy, 0 ]
+
               # update debug variables
               - set: [ debug:agent:energy, agent:energy ]
               - set: [ debug:agent:prestige, agent:prestige ]
