@@ -39,8 +39,8 @@ class PowerGridLevelGenerator():
         "wall_density": [0.1, 0.3],
         "chargers_per_agent": [1, 5],
         "wall_density": [0.0, 0.15],
-        "rsm_num_families": 0,
-        "rsm_family_reward": 0,
+        "rsm_num_families": [0, 0],
+        "rsm_family_reward": [0, 0]
     }
 
     def __init__(self, cfg):
