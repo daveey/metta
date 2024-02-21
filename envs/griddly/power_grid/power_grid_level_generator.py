@@ -14,8 +14,8 @@ import jmespath
 class PowerGridLevelGenerator():
     GAME_CONFIG = {
         "battery:energy": [10, 100],
-        "charger:cooldown": [10, 100],
-        "energy:regen": [1, 2],
+        "agent:energy:regen": [1, 2],
+        "charger:energy:regen": [1, 4],
         "agent:initial_energy": [10, 200],
 
         "cost:move": [0, 2],
