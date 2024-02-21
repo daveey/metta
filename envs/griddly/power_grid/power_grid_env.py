@@ -1,6 +1,8 @@
 import argparse
 import enum
+import random
 import stat
+from tkinter.font import families
 from typing import List
 
 import gymnasium as gym
@@ -18,36 +20,63 @@ GYM_ENV_NAME = "GDY-PowerGrid"
 class PowerGridEnv(gym.Env):
     def __init__(self, level_generator: PowerGridLevelGenerator, render_mode="rgb_array"):
         super().__init__()
-        self.level_generator = level_generator
-        self.render_mode = render_mode
-        self.env = self.level_generator.make_env(self.render_mode)
-        obj_order = self.env.game.get_object_names()
-        var_order = self.env.game.get_object_variable_names()
+        self._level_generator = level_generator
+        self._render_mode = render_mode
+
+        self._make_env()
+
+        self.global_variable_names = sorted([
+            v for v in self._griddly_env.game.get_global_variable_names()
+              if v.startswith("conf:")])
+
+        self._validate_griddly()
+
+    def _validate_griddly(self):
+        obj_order = self._griddly_env.game.get_object_names()
+        var_order = self._griddly_env.game.get_object_variable_names()
         assert obj_order == sorted(obj_order)
         assert var_order == sorted(var_order)
-        self.global_variable_names = sorted([
-            v for v in self.env.game.get_global_variable_names()
-              if v.startswith("conf:")])
+
+    def _make_env(self):
+        self._griddly_env = self._level_generator.make_env(self._render_mode)
+        agents = np.array(range(self._griddly_env.player_count))
+        np.random.shuffle(agents)
+        num_families = 1 + int(self._level_generator.sample_cfg("rsm_num_families"))
+        family_reward = self._level_generator.sample_cfg("rsm_family_reward")
+        families = np.array_split(agents, num_families)
+
+        rsm = np.zeros((len(agents), len(agents)), dtype=np.float32)
+        # share the reward among the families
+        for family in families:
+            fr = family_reward / len(family)
+            for a in family:
+                rsm[a, family] = fr
+                rsm[a, a] = 1 - fr
+
+        # normalize
+        rsm = rsm / rsm.sum(axis=1, keepdims=True)
+        self._reward_shaping_matrix = rsm
+
 
     def render(self):
         return super().render()
 
     def reset(self, **kwargs):
-        self.env = self.level_generator.make_env(self.render_mode)
-        obs, infos = self.env.reset(**kwargs)
+        self._make_env()
+        obs, infos = self._griddly_env.reset(**kwargs)
         self.global_variable_obs = np.array([
-            v[0] for v in self.env.game.get_global_variable(self.global_variable_names).values()])
+            v[0] for v in self._griddly_env.game.get_global_variable(self.global_variable_names).values()])
         return self._add_global_variables_obs(obs), infos
 
     def step(self, actions):
-        obs, rewards, terminated, truncated, infos = self.env.step(actions)
+        obs, rewards, terminated, truncated, infos = self._griddly_env.step(actions)
         if terminated or truncated:
             stat_names = list(filter(
                 lambda x: x.startswith("stats:"),
-                self.env.game.get_global_variable_names()))
-            stats = self.env.game.get_global_variable(stat_names)
-            for agent in range(self.env.player_count):
-                infos["episode_extra_stats"] = [{}] * self.env.player_count
+                self._griddly_env.game.get_global_variable_names()))
+            stats = self._griddly_env.game.get_global_variable(stat_names)
+            for agent in range(self._griddly_env.player_count):
+                infos["episode_extra_stats"] = [{}] * self._griddly_env.player_count
                 for stat_name in stat_names:
                     # some are per-agent, some are just global {0: val}
                     stat_val = stats[stat_name][0]
@@ -55,6 +84,7 @@ class PowerGridEnv(gym.Env):
                         stat_val = stats[stat_name][agent + 1]
                     infos["episode_extra_stats"][agent][stat_name] = stat_val
         rewards = np.array(rewards) / 10.0
+        rewards = np.dot(self._reward_shaping_matrix, rewards)
         return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
 
     def _add_global_variables_obs(self, obs):
@@ -73,20 +103,20 @@ class PowerGridEnv(gym.Env):
                     low=-np.inf, high=np.inf,
                     shape=[len(self.global_variable_names)],
                     dtype=np.float32)
-            }) for o in self.env.observation_space]
+            }) for o in self._griddly_env.observation_space]
 
     @property
     def action_space(self):
-        return self.env.action_space
+        return self._griddly_env.action_space
 
     @property
     def global_observation_space(self):
-        return self.env.global_observation_space
+        return self._griddly_env.global_observation_space
 
     @property
     def player_count(self):
-        return self.env.player_count
+        return self._griddly_env.player_count
 
 
     def render_observer(self, *args, **kwargs):
-        return self.env.render_observer(*args, **kwargs)
+        return self._griddly_env.render_observer(*args, **kwargs)

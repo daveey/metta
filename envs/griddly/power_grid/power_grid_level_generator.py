@@ -39,6 +39,8 @@ class PowerGridLevelGenerator():
         "wall_density": [0.1, 0.3],
         "chargers_per_agent": [1, 5],
         "wall_density": [0.0, 0.15],
+        "rsm_num_families": 0,
+        "rsm_family_reward": 0,
     }
 
     def __init__(self, cfg):
@@ -74,7 +76,7 @@ class PowerGridLevelGenerator():
             _update_global_variable(
                 game_config,
                 f"conf:{var_name}",
-                int(sample_value(self.cfg.__dict__.get(f"env_{var_name}", value))))
+                int(self.sample_cfg(var_name)))
 
         env = GymWrapper(
             yaml_string=yaml.dump(game_config),
@@ -102,9 +104,9 @@ class PowerGridLevelGenerator():
         Returns:
             A 2D list representing the level configuration.
         """
-        width = int(sample_value(self.cfg.env_width))
-        height = int(sample_value(self.cfg.env_height))
-        num_chargers = int(self.num_agents * sample_value(self.cfg.env_chargers_per_agent))
+        width = int(self.sample_cfg("width"))
+        height = int(self.sample_cfg("height"))
+        num_chargers = int(self.num_agents * self.sample_cfg("chargers_per_agent"))
 
         # make the bounding box
         level = [["."] * width for _ in range(height)]
@@ -135,7 +137,7 @@ class PowerGridLevelGenerator():
                     break
 
         # make obstacles
-        wall_density = sample_value(self.cfg.env_wall_density)
+        wall_density = self.sample_cfg("wall_density")
 
         for i in range(int(width*height*wall_density)):
             x = np.random.randint(1, width-1)
@@ -144,12 +146,15 @@ class PowerGridLevelGenerator():
                 level[y][x] = "W"
         return level
 
-def sample_value(vals):
-    if len(vals) == 1:
-        return vals[0]
-    elif len(vals) == 2:
-        return np.random.uniform(vals[0], vals[1])
-    raise ValueError(f"Length of values list should be at most 2. Got: {len(vals)}")
+    def sample_cfg(self, key):
+        vals = self.cfg.__dict__.get(
+            "env_" + key,
+            self.GAME_CONFIG.get(key, self.LEVEL_CONFIG.get(key)))
+        if len(vals) == 1:
+            return vals[0]
+        elif len(vals) == 2:
+            return np.random.uniform(vals[0], vals[1])
+        raise ValueError(f"Length of values list should be at most 2. Got: {len(vals)}")
 
 def add_env_args(parser: argparse.ArgumentParser) -> None:
     p = parser
