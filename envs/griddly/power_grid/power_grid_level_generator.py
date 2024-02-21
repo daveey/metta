@@ -49,6 +49,9 @@ class PowerGridLevelGenerator():
             cfg: Optional configuration object.
         """
         self.cfg = cfg
+        if isinstance(self.cfg, argparse.Namespace):
+            self.cfg = vars(self.cfg)
+
         self.num_agents = self.cfg.env_num_agents
         self.max_steps = self.cfg.env_max_steps
         with open("./envs/griddly/power_grid/gdy/power_grid.yaml", encoding="utf-8") as file:
@@ -147,7 +150,7 @@ class PowerGridLevelGenerator():
         return level
 
     def sample_cfg(self, key):
-        vals = self.cfg.__dict__.get(
+        vals = self.cfg.get(
             "env_" + key,
             self.GAME_CONFIG.get(key, self.LEVEL_CONFIG.get(key)))
         if len(vals) == 1:
