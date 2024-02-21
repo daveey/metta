@@ -88,3 +88,5 @@ class PowerGridEnv(gym.Env):
         return self.env.player_count
 
 
+    def render_observer(self, *args, **kwargs):
+        return self.env.render_observer(*args, **kwargs)

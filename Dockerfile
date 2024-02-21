@@ -40,3 +40,13 @@ RUN pip install -e .
 RUN git clone https://github.com/daveey/metta.git
 WORKDIR /workspace/metta
 RUN pip install -r requirements.txt
+
+# Install screen
+RUN apt-get update && apt-get install -y screen
+
+# Configure screen
+RUN echo "defscrollback 10000" >> /root/.screenrc && \
+    echo "termcapinfo xterm* ti@:te@" >> /root/.screenrc
+
+# Automatically launch screen
+RUN echo 'if [ -z "$STY" ]; then exec screen -R; fi' >> /root/.bashrc

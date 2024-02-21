@@ -5,9 +5,9 @@
     Variables:
       - Name: conf:battery:energy
         InitialValue: 50
-      - Name: conf:charger:cooldown
-        InitialValue: 50
-      - Name: conf:energy:regen
+      - Name: conf:agent:energy:regen
+        InitialValue: 1
+      - Name: conf:charger:energy:regen
         InitialValue: 1
 
       - Name: conf:agent:initial_energy
@@ -123,6 +123,10 @@
       - Name: stats:energy:used:frozen
         InitialValue: 0
         PerPlayer: true
+
+      # Energy left on the charger
+      - Name: stats:energy:lost
+        InitialValue: 0
 
       # time spent frozen
       - Name: stats:agent:frozen:ticks
@@ -253,7 +257,7 @@
       Z: 1
       MapCharacter: o
       Variables:
-        - Name: charger:ready
+        - Name: charger:energy
           InitialValue: 0
         - Name: charger:mode
           InitialValue: 1
@@ -267,7 +271,10 @@
           - Image: oryx/oryx_fantasy/ore-5.png
           - Image: oryx/oryx_fantasy/ore-6.png
       InitialActions:
-        - Action: charger:spawn
+        - Action: charger:init
+          ActionId: 1
+        - Action: charger:tick
+          Delay: 1
           ActionId: 1
 
     - Name: agent
@@ -380,8 +387,7 @@
               - and:
                 - gte: [ agent:energy, conf:cost:pickup ]
                 - eq: [ agent:frozen, 0 ]
-
-                - eq: [ dst.charger:ready, 1 ]
+                - eq: [ dst.charger:energy, conf:battery:energy ]
             Commands:
               - sub: [ agent:energy, conf:cost:pickup ]
               - incr: stats:action:pickup
@@ -393,11 +399,7 @@
             Object: charger
             Commands:
               - set_tile: 0
-              - set: [ charger:ready, 0 ]
-              - exec:
-                  Action: charger:spawn
-                  ActionId: 1
-                  Delay: conf:charger:cooldown
+              - set: [ charger:energy, 0 ]
 
     - Name: use
       InputMapping:
@@ -566,26 +568,15 @@
           1:
             VectorToDest: [ 0, 0 ]
       Behaviours:
-
-        # Just repeat this action every time step
-        - Src:
-            Object: agent
-          Dst:
-            Object: agent
-            Commands:
-              - exec:
-                  Action: agent:tick
-                  ActionId: 1
-                  Delay: 1
-
         # Handle Time Passing
         - Src:
             Object: agent
           Dst:
             Object: agent
             Commands:
-              - add: [ agent:energy, conf:energy:regen ]
-              - add: [ stats:energy:gained, conf:energy:regen ]
+              - add: [ agent:energy, conf:agent:energy:regen ]
+              - add: [ stats:energy:gained, conf:agent:energy:regen ]
+              - set: [ render:agent:tile, 0 ]
 
               # handle shield upkeep
               - if:
@@ -631,21 +622,49 @@
               - set: [ debug:agent:frozen, agent:frozen ]
               - set: [ debug:agent:shield, agent:shield ]
 
+              - exec:
+                  Action: agent:tick
+                  ActionId: 1
+                  Delay: 1
 
-    - Name: charger:spawn
+
+    - Name: charger:init
       InputMapping:
         Internal: true
         Inputs:
           1:
             VectorToDest: [ 0, 0 ]
       Behaviours:
-
-        # Just repeat this action every time step
         - Src:
             Object: charger
           Dst:
             Object: charger
             Commands:
-              - set: [charger:ready, 1]
-              - incr: [ stats:battery:spawned ]
-              - set_tile: 1
+              - set: [ charger:energy, conf:battery:energy ]
+
+    - Name: charger:tick
+      InputMapping:
+        Internal: true
+        Inputs:
+          1:
+            VectorToDest: [ 0, 0 ]
+
+      Behaviours:
+        - Src:
+            Object: charger
+          Dst:
+            Object: charger
+            Commands:
+              - add: [ charger:energy, conf:charger:energy:regen ]
+              - if:
+                  Conditions:
+                    lt: [ charger:energy, conf:battery:energy ]
+                  OnFalse:
+                    # cap the energy at battery capacity
+                    - set: [ charger:energy, conf:battery:energy ]
+                    - add: [ stats:energy:lost, conf:charger:energy:regen ]
+                    - set_tile: 1
+              - exec:
+                  Action: charger:tick
+                  ActionId: 1
+                  Delay: 1
