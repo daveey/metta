@@ -13,31 +13,34 @@ import jmespath
 
 class PowerGridLevelGenerator():
     GAME_CONFIG = {
-        "battery:energy": [10, 100],
+        "altar:cooldown": [1, 5],
+
+        "charger:cooldown": [ 1, 5 ],
+        "charger:energy": [ 20, 100 ],
+
+        "generator:cooldown": [ 20, 100 ],
+
         "agent:energy:regen": [1, 2],
-        "charger:energy:regen": [1, 4],
         "agent:initial_energy": [10, 200],
 
-        "cost:move": [0, 2],
-        "cost:rotate": [0, 2],
-        "cost:pickup": [0, 2],
-        "cost:use": [0, 2],
+        "cost:move": [0, 0],
+        "cost:rotate": [0, 0],
         "cost:shield": [0, 2],
         "cost:shield:upkeep": [0, 2],
         "cost:frozen": [0, 2],
-        "cost:prestige": [30, 100],
-        "cost:prestige:margin": [5, 20],
         "cost:attack": [5, 40],
 
         "attack:damage": [5, 40],
-        "attack:freeze_duration": [5, 30],
+        "attack:freeze_duration": [5, 100],
     }
 
     LEVEL_CONFIG = {
         "width": [10, 20],
         "height": [10, 20],
         "wall_density": [0.1, 0.3],
-        "chargers_per_agent": [1, 5],
+        "num_altars": [1, 20],
+        "num_chargers": [5, 20],
+        "num_generators": [5, 50],
         "wall_density": [0.0, 0.15],
         "rsm_num_families": [0, 0],
         "rsm_family_reward": [0, 0]
@@ -62,7 +65,9 @@ class PowerGridLevelGenerator():
             v["Name"][5:] for v in self.game_config["Environment"]["Variables"]
             if v["Name"].startswith("conf:")])
         assert game_config_vars == set(self.GAME_CONFIG.keys()), \
-            f"game_config_vars: {game_config_vars}, GAME_CONFIG: {self.GAME_CONFIG.keys()}"
+            f" game_config_vars: {game_config_vars}, GAME_CONFIG: {self.GAME_CONFIG.keys()}" \
+            f" DIF : {game_config_vars - set(self.GAME_CONFIG.keys())}" \
+            f" DIF : {set(self.GAME_CONFIG.keys()) - game_config_vars}"
 
     def make_env(self, render_mode="rgb_array"):
         def _update_global_variable(game_config, var_name, value):
@@ -129,14 +134,32 @@ class PowerGridLevelGenerator():
                     level[y][x] = f"A{i+1}"
                     break
 
-        # make the energy
-        for i in range(num_chargers):
-            # level[40][2*i] = f"o"
+
+        # make the altars
+        for i in range(int(self.sample_cfg("num_altars"))):
             for _ in range(10):
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
                 if level[y][x] == ".":
-                    level[y][x] = "o"
+                    level[y][x] = "a"
+                    break
+
+        # make the chargers
+        for i in range(int(self.sample_cfg("num_chargers"))):
+            for _ in range(10):
+                x = np.random.randint(1, width-1)
+                y = np.random.randint(1, height-1)
+                if level[y][x] == ".":
+                    level[y][x] = "c"
+                    break
+
+        # make the generators
+        for i in range(int(self.sample_cfg("num_generators"))):
+            for _ in range(10):
+                x = np.random.randint(1, width-1)
+                y = np.random.randint(1, height-1)
+                if level[y][x] == ".":
+                    level[y][x] = "g"
                     break
 
         # make obstacles

@@ -99,21 +99,20 @@ class PowerGridEnv(gym.Env):
 
     def _compute_max_energy(self):
         # compute the max possible energy for the level
-        charger_regen, agent_regen, charger_init = map(
+        charger_energy, generator_cooldown, agent_regen = map(
             lambda x: float(x[0]),
             self._griddly_env.game.get_global_variable([
-                "conf:charger:energy:regen",
-                "conf:agent:energy:regen",
-                "conf:battery:energy"]
+                "conf:charger:energy",
+                "conf:generator:cooldown",
+                "conf:agent:energy:regen"]
             ).values())
 
         num_steps = self._level_generator.max_steps
-        num_chargers = len(list(
-            filter(lambda x: x["Name"] == "charger",
+        num_generators = len(list(
+            filter(lambda x: x["Name"] == "generator",
             self._griddly_env.game.get_state()["Objects"])))
-        max_level_energy = (
-            num_chargers * (charger_init + charger_regen * num_steps) +
-            self._griddly_env.player_count * agent_regen * num_steps)
+        max_batteries = num_generators * (1 + num_steps // generator_cooldown)
+        max_level_energy = max_batteries * charger_energy + self._griddly_env.player_count * agent_regen * num_steps
 
         return max_level_energy
 
