@@ -124,10 +124,6 @@
         InitialValue: 0
         PerPlayer: true
 
-      # Energy left on the charger
-      - Name: stats:energy:lost
-        InitialValue: 0
-
       # time spent frozen
       - Name: stats:agent:frozen:ticks
         InitialValue: 0
@@ -163,11 +159,12 @@
         # IncludeRotation: true
       GlobalSpriteObserver:
         TileSize: 16
-        HighlightPlayers: true
         Type: SPRITE_2D
         RotateAvatarImage: true
+        BackgroundTile: oryx/oryx_fantasy/floor1-1.png
         Shader:
-          ObserverAvatarMode: DARKEN
+            ObjectVariables: [ agent:energy, agent:energy ]
+            ObserverAvatarMode: DARKEN
     Player:
       Count: 7
       AvatarObject: agent
@@ -662,7 +659,6 @@
                   OnFalse:
                     # cap the energy at battery capacity
                     - set: [ charger:energy, conf:battery:energy ]
-                    - add: [ stats:energy:lost, conf:charger:energy:regen ]
                     - set_tile: 1
               - exec:
                   Action: charger:tick

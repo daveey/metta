@@ -7,6 +7,7 @@ from typing import List
 
 import gymnasium as gym
 import numpy as np
+from pygame import init
 import yaml
 from griddly.gym import GymWrapper
 from gymnasium.core import Env
@@ -30,6 +31,7 @@ class PowerGridEnv(gym.Env):
               if v.startswith("conf:")])
 
         self._validate_griddly()
+        self._max_level_energy = None
 
     def _validate_griddly(self):
         obj_order = self._griddly_env.game.get_object_names()
@@ -57,6 +59,8 @@ class PowerGridEnv(gym.Env):
         rsm = rsm / rsm.sum(axis=1, keepdims=True)
         self._reward_shaping_matrix = rsm
 
+        self._max_level_energy = self._compute_max_energy()
+
 
     def render(self):
         return super().render()
@@ -71,21 +75,47 @@ class PowerGridEnv(gym.Env):
     def step(self, actions):
         obs, rewards, terminated, truncated, infos = self._griddly_env.step(actions)
         if terminated or truncated:
-            stat_names = list(filter(
-                lambda x: x.startswith("stats:"),
-                self._griddly_env.game.get_global_variable_names()))
-            stats = self._griddly_env.game.get_global_variable(stat_names)
-            for agent in range(self._griddly_env.player_count):
-                infos["episode_extra_stats"] = [{}] * self._griddly_env.player_count
-                for stat_name in stat_names:
-                    # some are per-agent, some are just global {0: val}
-                    stat_val = stats[stat_name][0]
-                    if len(stats[stat_name]) > 1:
-                        stat_val = stats[stat_name][agent + 1]
-                    infos["episode_extra_stats"][agent][stat_name] = stat_val
+            self._add_episode_stats(infos)
         rewards = np.array(rewards) / 10.0
         rewards = np.dot(self._reward_shaping_matrix, rewards)
         return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
+
+    def _add_episode_stats(self, infos):
+        stat_names = list(filter(
+            lambda x: x.startswith("stats:"),
+            self._griddly_env.game.get_global_variable_names()))
+        stats = self._griddly_env.game.get_global_variable(stat_names)
+
+        for agent in range(self._griddly_env.player_count):
+            infos["episode_extra_stats"] = [{}] * self._griddly_env.player_count
+            for stat_name in stat_names:
+                # some are per-agent, some are just global {0: val}
+                stat_val = stats[stat_name][0]
+                if len(stats[stat_name]) > 1:
+                    stat_val = stats[stat_name][agent + 1]
+                infos["episode_extra_stats"][agent][stat_name] = stat_val
+            infos["episode_extra_stats"][agent]["level_max_energy"] = self._max_level_energy
+            infos["episode_extra_stats"][agent]["level_max_energy_per_agent"] = self._max_level_energy / self._griddly_env.player_count
+
+    def _compute_max_energy(self):
+        # compute the max possible energy for the level
+        charger_regen, agent_regen, charger_init = map(
+            lambda x: float(x[0]),
+            self._griddly_env.game.get_global_variable([
+                "conf:charger:energy:regen",
+                "conf:agent:energy:regen",
+                "conf:battery:energy"]
+            ).values())
+
+        num_steps = self._level_generator.max_steps
+        num_chargers = len(list(
+            filter(lambda x: x["Name"] == "charger",
+            self._griddly_env.game.get_state()["Objects"])))
+        max_level_energy = (
+            num_chargers * (charger_init + charger_regen * num_steps) +
+            self._griddly_env.player_count * agent_regen * num_steps)
+
+        return max_level_energy
 
     def _add_global_variables_obs(self, obs):
         return [{
