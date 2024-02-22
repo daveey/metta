@@ -41,26 +41,29 @@ class PowerGridEnv(gym.Env):
 
     def _make_env(self):
         self._griddly_env = self._level_generator.make_env(self._render_mode)
-        agents = np.array(range(self._griddly_env.player_count))
-        np.random.shuffle(agents)
-        num_families = 1 + int(self._level_generator.sample_cfg("rsm_num_families"))
-        family_reward = self._level_generator.sample_cfg("rsm_family_reward")
-        families = np.array_split(agents, num_families)
-
-        rsm = np.zeros((len(agents), len(agents)), dtype=np.float32)
-        # share the reward among the families
-        for family in families:
-            fr = family_reward / len(family)
-            for a in family:
-                rsm[a, family] = fr
-                rsm[a, a] = 1 - fr
-
-        # normalize
-        rsm = rsm / rsm.sum(axis=1, keepdims=True)
-        self._reward_shaping_matrix = rsm
-
+        self._setup_reward_sharing()
         self._max_level_energy = self._compute_max_energy()
 
+    def _setup_reward_sharing(self):
+        self._reward_sharing_matrix = None
+        num_families = int(self._level_generator.sample_cfg("rsm_num_families"))
+        if num_families > 0:
+            agents = np.array(range(self._griddly_env.player_count))
+            np.random.shuffle(agents)
+            family_reward = self._level_generator.sample_cfg("rsm_family_reward")
+            families = np.array_split(agents, num_families)
+
+            rsm = np.zeros((len(agents), len(agents)), dtype=np.float32)
+            # share the reward among the families
+            for family in families:
+                fr = family_reward / len(family)
+                for a in family:
+                    rsm[a, family] = fr
+                    rsm[a, a] = 1 - fr
+
+                # normalize
+                rsm = rsm / rsm.sum(axis=1, keepdims=True)
+                self._reward_sharing_matrix = rsm
 
     def render(self):
         return super().render()
@@ -77,7 +80,8 @@ class PowerGridEnv(gym.Env):
         if terminated or truncated:
             self._add_episode_stats(infos)
         rewards = np.array(rewards) / 10.0
-        rewards = np.dot(self._reward_shaping_matrix, rewards)
+        if self._reward_sharing_matrix is not None:
+            rewards = np.dot(self._reward_sharing_matrix, rewards)
         return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
 
     def _add_episode_stats(self, infos):
