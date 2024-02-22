@@ -61,9 +61,9 @@ class PowerGridEnv(gym.Env):
                     rsm[a, family] = fr
                     rsm[a, a] = 1 - fr
 
-                # normalize
-                rsm = rsm / rsm.sum(axis=1, keepdims=True)
-                self._reward_sharing_matrix = rsm
+            # normalize
+            rsm = rsm / rsm.sum(axis=1, keepdims=True)
+            self._reward_sharing_matrix = rsm
 
     def render(self):
         return super().render()

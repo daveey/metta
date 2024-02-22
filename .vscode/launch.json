@@ -31,6 +31,8 @@
 
                 "--env_width=20:70",
                 "--env_height=20:70",
+                "--env_rsm_num_families=0:5",
+                "--env_rsm_family_reward=0:0.2",
                 "--load_checkpoint_kind=best",
 
                 // "--normalize_input=False",
@@ -86,7 +88,7 @@
                 "--env_width=70",
                 "--env_height=70",
                 "--env_agent:initial_energy=50",
-                "--env_chargers=5,
+                "--env_chargers=5",
                 "--env_wall_density=0.05",
             ],
         },
