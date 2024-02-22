@@ -47,10 +47,10 @@ class PowerGridEnv(gym.Env):
     def _setup_reward_sharing(self):
         self._reward_sharing_matrix = None
         num_families = int(self._level_generator.sample_cfg("rsm_num_families"))
-        if num_families > 0:
+        family_reward = self._level_generator.sample_cfg("rsm_family_reward")
+        if num_families > 0 and family_reward > 0:
             agents = np.array(range(self._griddly_env.player_count))
             np.random.shuffle(agents)
-            family_reward = self._level_generator.sample_cfg("rsm_family_reward")
             families = np.array_split(agents, num_families)
 
             rsm = np.zeros((len(agents), len(agents)), dtype=np.float32)
