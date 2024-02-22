@@ -86,7 +86,7 @@
                 "--env_width=70",
                 "--env_height=70",
                 "--env_agent:initial_energy=50",
-                "--env_chargers_per_agent=.1",
+                "--env_chargers=5,
                 "--env_wall_density=0.05",
             ],
         },

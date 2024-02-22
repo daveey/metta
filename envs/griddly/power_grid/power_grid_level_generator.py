@@ -55,8 +55,8 @@ class PowerGridLevelGenerator():
         if isinstance(self.cfg, argparse.Namespace):
             self.cfg = vars(self.cfg)
 
-        self.num_agents = self.cfg.env_num_agents
-        self.max_steps = self.cfg.env_max_steps
+        self.num_agents = self.cfg["env_num_agents"]
+        self.max_steps = self.cfg["env_max_steps"]
         with open("./envs/griddly/power_grid/gdy/power_grid.yaml", encoding="utf-8") as file:
             self.game_config = yaml.safe_load(file)
 
@@ -114,7 +114,6 @@ class PowerGridLevelGenerator():
         """
         width = int(self.sample_cfg("width"))
         height = int(self.sample_cfg("height"))
-        num_chargers = int(self.num_agents * self.sample_cfg("chargers_per_agent"))
 
         # make the bounding box
         level = [["."] * width for _ in range(height)]
