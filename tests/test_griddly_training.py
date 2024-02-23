@@ -1,7 +1,7 @@
 import unittest
 from ast import arg
 import tempfile
-from envs.griddly.train import make_env_func, register_custom_components, parse_custom_args
+from train import make_env_func, register_custom_components, parse_custom_args
 from sample_factory.train import run_rl
 from sample_factory.cfg.arguments import default_cfg
 import sys

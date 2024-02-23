@@ -10,7 +10,12 @@ env:
 parameters:
   train_for_seconds:
     values:
-      - 10800
+      - 108
+    distribution: categorical
+
+  restart_behavior:
+    values:
+      - restart
     distribution: categorical
 
   with_wandb:
@@ -74,10 +79,6 @@ parameters:
     max: 1
     min: 0.25
     distribution: uniform
-  policy_init_gain:
-    max: 2
-    min: 1
-    distribution: int_uniform
   exploration_loss:
     values:
       - entropy
@@ -96,14 +97,6 @@ parameters:
     max: 3
     min: 1
     distribution: int_uniform
-  ppo_clip_value:
-    max: 2
-    min: 1
-    distribution: int_uniform
-  ppo_clip_ratio:
-    max: 0.2
-    min: 0.05
-    distribution: uniform
   max_policy_lag:
     max: 2000
     min: 500
@@ -116,49 +109,48 @@ parameters:
     max: 0.2
     min: 0
     distribution: uniform
-  max_grad_norm:
-    max: 8
-    min: 2
-    distribution: int_uniform
   learning_rate:
     max: 0.0001
     min: 0.000005
     distribution: uniform
   agent_fc_size:
-    max: 2048
-    min: 256
-    distribution: int_uniform
+    values:
+      - 256
+      - 512
+      - 1024
+      - 2048
+    distribution: categorical
   nonlinearity:
     values:
       - elu
       - relu
     distribution: categorical
-  gae_lambda:
-    max: 1.9
-    min: 0.475
-    distribution: uniform
   batch_size:
-    max: 2048
-    min: 512
-    distribution: int_uniform
+    values:
+      - 256
+      - 512
+      - 1024
+      - 2048
+    distribution: categorical
   rollout:
-    max: 256
-    min: 8
-    distribution: int_uniform
-  adam_beta2:
-    max: 1.998
-    min: 0.4995
-    distribution: uniform
-  adam_beta1:
-    max: 1.8
-    min: 0.45
-    distribution: uniform
+    values:
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
+      - 256
+      - 512
+    distribution: categorical
   rnn_type:
     values:
       - gru
       - lstm
     distribution: categorical
   rnn_size:
-    max: 2048
-    min: 256
-    distribution: int_uniform
+    values:
+      - 256
+      - 512
+      - 1024
+      - 2048
+    distribution: categorical
