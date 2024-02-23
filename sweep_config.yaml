@@ -1,0 +1,164 @@
+program: train.py
+method: bayes
+metric:
+  goal: maximize
+  name: policy_stats/avg_true_objective
+
+env:
+  PYTHONPATH: /workspace/metta
+
+parameters:
+  train_for_seconds:
+    values:
+      - 10800
+    distribution: categorical
+
+  with_wandb:
+    values:
+      - True
+    distribution: categorical
+
+  algo:
+    values:
+      - APPO
+    distribution: categorical
+
+  env:
+    values:
+      - GDY-PowerGrid
+    distribution: categorical
+
+  num_workers:
+    values:
+      - 25
+    distribution: categorical
+
+  decorrelate_experience_max_seconds:
+    max: 200
+    min: 1
+    distribution: int_uniform
+
+  env_num_agents:
+    values:
+      - 20
+    distribution: categorical
+
+  env_width:
+    values:
+      - 20:100
+    distribution: categorical
+
+  env_height:
+    values:
+      - 20:100
+    distribution: categorical
+
+  num_batches_to_accumulate:
+    max: 4
+    min: 1
+    distribution: int_uniform
+  exploration_loss_coeff:
+    max: 0.006
+    min: 0.0015
+    distribution: uniform
+  policy_initialization:
+    values:
+      - orthogonal
+      - xavier_uniform
+    distribution: categorical
+  num_batches_per_epoch:
+    max: 8
+    min: 1
+    distribution: int_uniform
+  value_loss_coeff:
+    max: 1
+    min: 0.25
+    distribution: uniform
+  policy_init_gain:
+    max: 2
+    min: 1
+    distribution: int_uniform
+  exploration_loss:
+    values:
+      - entropy
+      - symmetric_kl
+    distribution: categorical
+  value_bootstrap:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  agent_fc_layers:
+    max: 12
+    min: 1
+    distribution: int_uniform
+  rnn_num_layers:
+    max: 3
+    min: 1
+    distribution: int_uniform
+  ppo_clip_value:
+    max: 2
+    min: 1
+    distribution: int_uniform
+  ppo_clip_ratio:
+    max: 0.2
+    min: 0.05
+    distribution: uniform
+  max_policy_lag:
+    max: 2000
+    min: 500
+    distribution: int_uniform
+  initial_stddev:
+    max: 2
+    min: 1
+    distribution: int_uniform
+  aux_loss_coeff:
+    max: 0.2
+    min: 0
+    distribution: uniform
+  max_grad_norm:
+    max: 8
+    min: 2
+    distribution: int_uniform
+  learning_rate:
+    max: 0.0001
+    min: 0.000005
+    distribution: uniform
+  agent_fc_size:
+    max: 2048
+    min: 256
+    distribution: int_uniform
+  nonlinearity:
+    values:
+      - elu
+      - relu
+    distribution: categorical
+  gae_lambda:
+    max: 1.9
+    min: 0.475
+    distribution: uniform
+  batch_size:
+    max: 2048
+    min: 512
+    distribution: int_uniform
+  rollout:
+    max: 256
+    min: 8
+    distribution: int_uniform
+  adam_beta2:
+    max: 1.998
+    min: 0.4995
+    distribution: uniform
+  adam_beta1:
+    max: 1.8
+    min: 0.45
+    distribution: uniform
+  rnn_type:
+    values:
+      - gru
+      - lstm
+    distribution: categorical
+  rnn_size:
+    max: 2048
+    min: 256
+    distribution: int_uniform

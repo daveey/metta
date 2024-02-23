@@ -1,6 +1,6 @@
 #/bin/bash -e
 
-python -m envs.griddly.train \
+python -m train \
     --algo=APPO \
     --env=GDY-PowerGrid \
     --with_wandb=True \

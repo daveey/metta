@@ -13,9 +13,9 @@ import jmespath
 
 class PowerGridLevelGenerator():
     GAME_CONFIG = {
-        "altar:cooldown": [1, 5],
+        "altar:cooldown": [10, 20],
 
-        "charger:cooldown": [ 1, 5 ],
+        "charger:cooldown": [ 2, 5 ],
         "charger:energy": [ 20, 100 ],
 
         "generator:cooldown": [ 20, 100 ],

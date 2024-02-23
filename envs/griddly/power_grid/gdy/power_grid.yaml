@@ -128,7 +128,7 @@
         PerPlayer: true
 
       # variables for controlling rendering
-      - Name: render:agent:tile
+      - Name: render:agent:attacked
         InitialValue: 0
         PerPlayer: true
 
@@ -142,7 +142,7 @@
         IncludeVariables: true
         # IncludeRotation: true
       GlobalSpriteObserver:
-        TileSize: 16
+        TileSize: 64
         Type: SPRITE_2D
         RotateAvatarImage: true
         BackgroundTile: oryx/oryx_fantasy/floor1-1.png
@@ -307,8 +307,9 @@
           # Shield on
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_beast_u1.png
           # Frozen
-          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_bug_u1.png
-
+          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_void_d1.png
+          # Attacked
+          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_alien_elder_u1.png
       InitialActions:
         - Action: agent:tick
           Delay: 1
@@ -532,6 +533,7 @@
                     OnTrue:
                       - sub: [ agent:energy, conf:attack:damage ]
                       - add: [ stats:energy:used:shield:defence, conf:attack:damage ]
+                      - set: [ render:agent:attacked, 2 ]
                       - if:
                           Conditions:
                             lt: [ agent:energy, 0 ]
@@ -574,7 +576,7 @@
             Commands:
               - add: [ agent:energy, conf:agent:energy:regen ]
               - add: [ stats:energy:gained, conf:agent:energy:regen ]
-              - set: [ render:agent:tile, 0 ]
+              - set_tile: 0
 
               # handle shield upkeep
               - if:
@@ -584,7 +586,7 @@
                     - sub: [ agent:energy, conf:cost:shield:upkeep ]
                     - add: [ stats:energy:used:shield:upkeep, conf:cost:shield ]
                     - incr: stats:agent:shield:ticks
-                    - set: [ render:agent:tile, 1 ]
+                    - set_tile: 1
 
               # record number of steps spent frozen
               - if:
@@ -595,10 +597,15 @@
                     - sub: [ agent:energy, conf:cost:frozen ]
                     - add: [ stats:energy:used:frozen, conf:cost:frozen ]
                     - decr: agent:frozen
-                    - set: [ render:agent:tile, 2 ]
+                    - set_tile: 2
 
-              # update agent sprite
-              - set_tile: render:agent:tile
+              - if:
+                  Conditions:
+                      neq: [ render:agent:attacked, 0 ]
+                  OnTrue:
+                    - decr: render:agent:attacked
+                    - set_tile: 3
+
 
               # maintain positive energy
               - if:
