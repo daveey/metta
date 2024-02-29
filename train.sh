@@ -21,7 +21,7 @@ python -m train \
     --exploration_loss_coeff=0.002 \
     --policy_initialization=orthogonal \
     --initial_stddev=1 \
-    --learning_rate=1.95-05 \
+    --learning_rate=0.0000195 \
     --max_policy_lag=1713 \
     --nonlinearity=elu \
     --num_batches_per_epoch=7 \
