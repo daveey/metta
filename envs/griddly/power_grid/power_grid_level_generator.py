@@ -20,7 +20,7 @@ class PowerGridLevelGenerator():
 
         "generator:cooldown": [ 20, 100 ],
 
-        "agent:energy:regen": [0, 2],
+        "agent:energy:regen": [0, 0],
         "agent:energy:met:1": [1, 5],
         "agent:energy:met:2": [10, 30],
         "agent:initial_energy": [10, 200],
