@@ -21,7 +21,7 @@
                 "--experiment_summaries_interval=10",
                 "--lr_schedule=kl_adaptive_epoch",
                 "--decorrelate_experience_max_seconds=100",
-                "--serial=True",
+                // "--serial=True",
                 // "--async_rl=False",
                 // "--batch_size=1792",
 

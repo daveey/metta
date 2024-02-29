@@ -34,6 +34,7 @@ class PowerGridEnv(gym.Env):
         self._max_level_energy = None
         self._episode_rewards = None
         self._prestige_steps = None
+        self._episode_prestige_rewards = None
 
     def _validate_griddly(self):
         obj_order = self._griddly_env.game.get_object_names()
@@ -77,6 +78,7 @@ class PowerGridEnv(gym.Env):
         self._make_env()
         obs, infos = self._griddly_env.reset(**kwargs)
         self._step = 0
+        self._episode_prestige_rewards = np.array([0] * self._griddly_env.player_count, dtype=np.float32)
         self.global_variable_obs = np.array([
             v[0] for v in self._griddly_env.game.get_global_variable(self.global_variable_names).values()])
         return self._add_global_variables_obs(obs), infos
@@ -99,7 +101,9 @@ class PowerGridEnv(gym.Env):
         if self._step % self._prestige_steps == 0:
             total_rewards = np.sum(self._episode_rewards)
             if total_rewards > 0:
-                rewards += 100 * self._episode_rewards / total_rewards * self._prestige_steps / self._max_steps
+                prestige_rewards = self._episode_rewards / total_rewards * self._episode_prestige_rewards
+                self._episode_prestige_rewards += prestige_rewards
+                rewards += prestige_rewards
         return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
 
 
@@ -119,6 +123,7 @@ class PowerGridEnv(gym.Env):
                     if stat_name.startswith("stats:action"):
                         stat_val /= self._max_steps
                 infos["episode_extra_stats"][agent][stat_name] = stat_val
+            infos["episode_extra_stats"][agent]["prestige_reward"] = self._episode_prestige_rewards[agent]
             infos["episode_extra_stats"][agent]["level_max_energy"] = self._max_level_energy
             infos["episode_extra_stats"][agent]["level_max_energy_per_agent"] = self._max_level_energy / self._griddly_env.player_count
 
