@@ -136,7 +136,7 @@ class PowerGridLevelGenerator():
             while True:
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
-                if level[y][x] == "o":
+                if level[y][x] in floor_tiles:
                     level[y][x] = f"A{i+1}/o"
                     break
 
