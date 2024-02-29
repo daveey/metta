@@ -23,5 +23,4 @@ python -m train \
     --learning_rate=0.0000195 \
     --max_policy_lag=2000 \
     --nonlinearity=elu \
-    --num_batches_per_epoch=4 \
     "$@"
