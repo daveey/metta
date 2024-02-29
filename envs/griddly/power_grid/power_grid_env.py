@@ -86,8 +86,7 @@ class PowerGridEnv(gym.Env):
     def step(self, actions):
         obs, rewards, terminated, truncated, infos = self._griddly_env.step(actions)
         self._step += 1
-        if terminated or truncated:
-            self._add_episode_stats(infos)
+
         # if self._reward_sharing_matrix is not None:
         #     rewards = np.dot(self._reward_sharing_matrix, rewards)
         rewards = np.array(rewards, dtype=np.float32)
@@ -107,6 +106,10 @@ class PowerGridEnv(gym.Env):
                 prestige_rewards = self._episode_rewards / total_rewards * self._episode_prestige_rewards
                 self._episode_prestige_rewards += prestige_rewards
                 rewards += prestige_rewards
+
+        if terminated or truncated:
+            self._add_episode_stats(infos)
+
         return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
 
     def _add_episode_stats(self, infos):
@@ -115,8 +118,8 @@ class PowerGridEnv(gym.Env):
             self._griddly_env.game.get_global_variable_names()))
         stats = self._griddly_env.game.get_global_variable(stat_names)
 
+        infos["episode_extra_stats"] = [{}] * self._griddly_env.player_count
         for agent in range(self._griddly_env.player_count):
-            infos["episode_extra_stats"] = [{}] * self._griddly_env.player_count
             for stat_name in stat_names:
                 # some are per-agent, some are just global {0: val}
                 stat_val = stats[stat_name][0]
