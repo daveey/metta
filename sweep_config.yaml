@@ -8,9 +8,9 @@ env:
   PYTHONPATH: /workspace/metta
 
 parameters:
-  train_for_seconds:
+  train_for_env_steps:
     values:
-      - 108
+      - 1000000000
     distribution: categorical
 
   restart_behavior:
@@ -105,10 +105,6 @@ parameters:
     max: 2
     min: 1
     distribution: int_uniform
-  aux_loss_coeff:
-    max: 0.2
-    min: 0
-    distribution: uniform
   learning_rate:
     max: 0.0001
     min: 0.000005

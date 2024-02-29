@@ -32,6 +32,8 @@ class PowerGridEnv(gym.Env):
 
         self._validate_griddly()
         self._max_level_energy = None
+        self._episode_rewards = None
+        self._reward_rank_steps = None
 
     def _validate_griddly(self):
         obj_order = self._griddly_env.game.get_object_names()
@@ -43,6 +45,8 @@ class PowerGridEnv(gym.Env):
         self._griddly_env = self._level_generator.make_env(self._render_mode)
         self._setup_reward_sharing()
         self._max_level_energy = self._compute_max_energy()
+        self._episode_rewards = np.array([0] * self._griddly_env.player_count, dtype=np.float32)
+        self._reward_rank_steps = int(self._level_generator.sample_cfg("reward_rank_steps"))
 
     def _setup_reward_sharing(self):
         self._reward_sharing_matrix = None
@@ -71,17 +75,24 @@ class PowerGridEnv(gym.Env):
     def reset(self, **kwargs):
         self._make_env()
         obs, infos = self._griddly_env.reset(**kwargs)
+        self._step = 0
         self.global_variable_obs = np.array([
             v[0] for v in self._griddly_env.game.get_global_variable(self.global_variable_names).values()])
         return self._add_global_variables_obs(obs), infos
 
     def step(self, actions):
         obs, rewards, terminated, truncated, infos = self._griddly_env.step(actions)
+        self._step += 1
         if terminated or truncated:
             self._add_episode_stats(infos)
-        rewards = np.array(rewards) / 10.0
-        if self._reward_sharing_matrix is not None:
-            rewards = np.dot(self._reward_sharing_matrix, rewards)
+        # if self._reward_sharing_matrix is not None:
+        #     rewards = np.dot(self._reward_sharing_matrix, rewards)
+        self._episode_rewards += rewards
+        rewards = np.zeros_like(rewards)
+        if self._step % self._reward_rank_steps == 0:
+            total_rewards = np.sum(self._episode_rewards)
+            if total_rewards > 0:
+                rewards = self._episode_rewards / total_rewards * self._reward_rank_steps / self._level_generator.max_steps
         return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
 
     def _add_episode_stats(self, infos):

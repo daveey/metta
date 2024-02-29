@@ -14,13 +14,17 @@ import jmespath
 class PowerGridLevelGenerator():
     GAME_CONFIG = {
         "altar:cooldown": [10, 20],
+        "altar:cost": [10, 200],
 
         "charger:cooldown": [ 2, 5 ],
         "charger:energy": [ 20, 100 ],
 
+        "floor:half_life": [10, 200],
+
         "generator:cooldown": [ 20, 100 ],
 
-        "agent:energy:regen": [1, 2],
+        "agent:energy:regen": [0, 2],
+        "agent:energy:food": [1, 5],
         "agent:initial_energy": [10, 200],
 
         "cost:move": [0, 0],
@@ -43,7 +47,8 @@ class PowerGridLevelGenerator():
         "num_generators": [5, 50],
         "wall_density": [0.0, 0.15],
         "rsm_num_families": [0, 0],
-        "rsm_family_reward": [0, 0]
+        "rsm_family_reward": [0, 0],
+        "reward_rank_steps": [10, 500],
     }
 
     def __init__(self, cfg):
@@ -65,7 +70,6 @@ class PowerGridLevelGenerator():
             v["Name"][5:] for v in self.game_config["Environment"]["Variables"]
             if v["Name"].startswith("conf:")])
         assert game_config_vars == set(self.GAME_CONFIG.keys()), \
-            f" game_config_vars: {game_config_vars}, GAME_CONFIG: {self.GAME_CONFIG.keys()}" \
             f" DIF : {game_config_vars - set(self.GAME_CONFIG.keys())}" \
             f" DIF : {set(self.GAME_CONFIG.keys()) - game_config_vars}"
 
@@ -73,9 +77,9 @@ class PowerGridLevelGenerator():
         def _update_global_variable(game_config, var_name, value):
             jmespath.search('Environment.Variables[?Name==`{}`][]'.format(var_name), game_config)[0]["InitialValue"] = value
 
-        # def _update_object_variable(game_config, object_name, var_name, value):
-        #     jmespath.search('Objects[?Name==`{}`][].Variables[?Name==`{}`][]'.format(
-        #         object_name, var_name), game_config)[0]["InitialValue"] = value
+        def _update_object_variable(game_config, object_name, var_name, value):
+            jmespath.search('Objects[?Name==`{}`][].Variables[?Name==`{}`][]'.format(
+                object_name, var_name), game_config)[0]["InitialValue"] = value
 
         game_config = deepcopy(self.game_config)
         game_config["Environment"]["Player"]["Count"] = self.num_agents
@@ -116,7 +120,7 @@ class PowerGridLevelGenerator():
         height = int(self.sample_cfg("height"))
 
         # make the bounding box
-        level = [["."] * width for _ in range(height)]
+        level = [["o"] * width for _ in range(height)]
         level[0] = ["W"] * width
         level[-1] = ["W"] * width
         for i in range(height):
@@ -129,8 +133,8 @@ class PowerGridLevelGenerator():
             while True:
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
-                if level[y][x] == ".":
-                    level[y][x] = f"A{i+1}"
+                if level[y][x] == "o":
+                    level[y][x] = f"A{i+1}/o"
                     break
 
 
@@ -139,7 +143,7 @@ class PowerGridLevelGenerator():
             for _ in range(10):
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
-                if level[y][x] == ".":
+                if level[y][x] == "o":
                     level[y][x] = "a"
                     break
 
@@ -148,7 +152,7 @@ class PowerGridLevelGenerator():
             for _ in range(10):
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
-                if level[y][x] == ".":
+                if level[y][x] == "o":
                     level[y][x] = "c"
                     break
 
@@ -157,7 +161,7 @@ class PowerGridLevelGenerator():
             for _ in range(10):
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
-                if level[y][x] == ".":
+                if level[y][x] == "o":
                     level[y][x] = "g"
                     break
 
@@ -167,7 +171,7 @@ class PowerGridLevelGenerator():
         for i in range(int(width*height*wall_density)):
             x = np.random.randint(1, width-1)
             y = np.random.randint(1, height-1)
-            if level[y][x] == ".":
+            if level[y][x] == "o":
                 level[y][x] = "W"
         return level
 
