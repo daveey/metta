@@ -5,12 +5,15 @@ python -m train \
     --env=GDY-PowerGrid \
     --with_wandb=True \
     --num_workers=25 \
-    --decorrelate_experience_max_seconds=100 \
     --env_num_agents=20 \
     --env_width=20:100 \
     --env_height=20:100 \
     --agent_fc_layers=10 \
     --agent_fc_size=512 \
+    --rnn_num_layers=2 \
+    --rnn_size=256 \
+    --rnn_type=gru \
+    --rollout=256 \
     --batch_size=2048 \
     --decorrelate_experience_max_seconds=127  \
     --value_loss_coeff=0.9762413317396332 \
@@ -23,9 +26,4 @@ python -m train \
     --nonlinearity=elu \
     --num_batches_per_epoch=7 \
     --num_batches_to_accumulate=1 \
-    --num_workers=25 \
-    --rnn_num_layers=2 \
-    --rnn_size=256 \
-    --rnn_type=gru \
-    --rollout=256 \
     "$@"
