@@ -43,6 +43,7 @@ class PowerGridEnv(gym.Env):
 
     def _make_env(self):
         self._griddly_env = self._level_generator.make_env(self._render_mode)
+        self._max_steps = self._level_generator.max_steps
         self._setup_reward_sharing()
         self._max_level_energy = self._compute_max_energy()
         self._episode_rewards = np.array([0] * self._griddly_env.player_count, dtype=np.float32)
@@ -92,8 +93,9 @@ class PowerGridEnv(gym.Env):
         if self._step % self._reward_rank_steps == 0:
             total_rewards = np.sum(self._episode_rewards)
             if total_rewards > 0:
-                rewards = self._episode_rewards / total_rewards * self._reward_rank_steps / self._level_generator.max_steps
+                rewards = self._episode_rewards / total_rewards * self._reward_rank_steps / self._max_steps
         return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
+
 
     def _add_episode_stats(self, infos):
         stat_names = list(filter(
@@ -108,7 +110,9 @@ class PowerGridEnv(gym.Env):
                 stat_val = stats[stat_name][0]
                 if len(stats[stat_name]) > 1:
                     stat_val = stats[stat_name][agent + 1]
-                infos["episode_extra_stats"][agent][stat_name] = stat_val
+                if stat_name.startswith("stats:action"):
+                    stats_val /= self._max_steps
+                infos["episode_extra_stats"][agent][stat_name] = stat_val / self.NORMALIZATION.get(stat_name, 1)
             infos["episode_extra_stats"][agent]["level_max_energy"] = self._max_level_energy
             infos["episode_extra_stats"][agent]["level_max_energy_per_agent"] = self._max_level_energy / self._griddly_env.player_count
 
@@ -122,7 +126,7 @@ class PowerGridEnv(gym.Env):
                 "conf:agent:energy:regen"]
             ).values())
 
-        num_steps = self._level_generator.max_steps
+        num_steps = self._max_steps
         num_generators = len(list(
             filter(lambda x: x["Name"] == "generator",
             self._griddly_env.game.get_state()["Objects"])))
