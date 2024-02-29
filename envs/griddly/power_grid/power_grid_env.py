@@ -33,7 +33,7 @@ class PowerGridEnv(gym.Env):
         self._validate_griddly()
         self._max_level_energy = None
         self._episode_rewards = None
-        self._reward_rank_steps = None
+        self._prestige_steps = None
 
     def _validate_griddly(self):
         obj_order = self._griddly_env.game.get_object_names()
@@ -47,7 +47,7 @@ class PowerGridEnv(gym.Env):
         self._setup_reward_sharing()
         self._max_level_energy = self._compute_max_energy()
         self._episode_rewards = np.array([0] * self._griddly_env.player_count, dtype=np.float32)
-        self._reward_rank_steps = int(self._level_generator.sample_cfg("reward_rank_steps"))
+        self._prestige_steps = int(self._level_generator.sample_cfg("reward_rank_steps"))
 
     def _setup_reward_sharing(self):
         self._reward_sharing_matrix = None
@@ -88,12 +88,18 @@ class PowerGridEnv(gym.Env):
             self._add_episode_stats(infos)
         # if self._reward_sharing_matrix is not None:
         #     rewards = np.dot(self._reward_sharing_matrix, rewards)
+        rewards = np.array(rewards, dtype=np.float32)
         self._episode_rewards += rewards
-        rewards = np.zeros_like(rewards)
-        if self._step % self._reward_rank_steps == 0:
+        # keep the rewards > 0, being frozen wipes out accumulated rewards
+        np.clip(self._episode_rewards, None, 0, out=self._episode_rewards)
+        # scale the rewards from the environment, since they are meant to be
+        # mostly hints, not actual rewards
+        rewards /= 1000.0
+        # prestige rewards
+        if self._step % self._prestige_steps == 0:
             total_rewards = np.sum(self._episode_rewards)
             if total_rewards > 0:
-                rewards = self._episode_rewards / total_rewards * self._reward_rank_steps / self._max_steps
+                rewards += self._episode_rewards / total_rewards * self._prestige_steps / self._max_steps
         return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
 
 
@@ -118,10 +124,11 @@ class PowerGridEnv(gym.Env):
 
     def _compute_max_energy(self):
         # compute the max possible energy for the level
-        charger_energy, generator_cooldown, agent_regen = map(
+        m1, m2, generator_cooldown, agent_regen = map(
             lambda x: float(x[0]),
             self._griddly_env.game.get_global_variable([
-                "conf:charger:energy",
+                "conf:agent:energy:met:1",
+                "conf:agent:energy:met:2",
                 "conf:generator:cooldown",
                 "conf:agent:energy:regen"]
             ).values())
@@ -130,8 +137,9 @@ class PowerGridEnv(gym.Env):
         num_generators = len(list(
             filter(lambda x: x["Name"] == "generator",
             self._griddly_env.game.get_state()["Objects"])))
-        max_batteries = num_generators * (1 + num_steps // generator_cooldown)
-        max_level_energy = max_batteries * charger_energy + self._griddly_env.player_count * agent_regen * num_steps
+        max_resources = num_generators * (1 + num_steps // generator_cooldown)
+        max_met_energy = (m1 + m2) * max_resources / 3
+        max_level_energy = max_met_energy + self._griddly_env.player_count * agent_regen * num_steps
 
         return max_level_energy
 

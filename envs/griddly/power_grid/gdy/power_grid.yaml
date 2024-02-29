@@ -15,40 +15,42 @@
         InitialValue: 0
         PerPlayer: true
       # Charger
-      - Name: conf:charger:energy
-        InitialValue: 50
       - Name: conf:charger:cooldown
         InitialValue: 2
       - Name: stats:action:use:charger
         InitialValue: 0
         PerPlayer: true
-      - Name: stats:energy:gained:charger
+      - Name: stats:energy:gained:met
         InitialValue: 0
         PerPlayer: true
+      - Name: stats:energy:gained:met:1
+        InitialValue: 0
+        PerPlayer: true
+      - Name: stats:energy:gained:met:2
+        InitialValue: 0
+        PerPlayer: true
+
       # Generator
       - Name: conf:generator:cooldown
         InitialValue: 50
       - Name: stats:action:use:generator
         InitialValue: 0
         PerPlayer: true
+      - Name: stats:resource:collected
+        InitialValue: 0
+        PerPlayer: true
+
       # Floor
-      - Name: conf:floor:half_life
-        InitialValue: 10
 
       # Agent Upkeep
       - Name: conf:agent:energy:regen
         InitialValue: 0
-      - Name: conf:agent:energy:food
-        InitialValue: 1
       - Name: conf:agent:initial_energy
         InitialValue: 100
       - Name: stats:action:use
         InitialValue: 0
         PerPlayer: true
       - Name: stats:energy:gained
-        InitialValue: 0
-        PerPlayer: true
-      - Name: stats:energy:gained:food
         InitialValue: 0
         PerPlayer: true
 
@@ -110,16 +112,6 @@
         InitialValue: 0
         PerPlayer: true
 
-      # Battery Stats
-      - Name: stats:battery:collected
-        InitialValue: 0
-        PerPlayer: true
-      - Name: stats:battery:used
-        InitialValue: 0
-        PerPlayer: true
-      - Name: stats:battery:spawned
-        InitialValue: 0
-
       # Metabolism
       - Name: agent:met:1:resource
         PerPlayer: true
@@ -127,9 +119,12 @@
       - Name: agent:met:2:resource
         PerPlayer: true
         InitialValue: 0
-      - Name: agent:met:out:resource
+      - Name: conf:agent:energy:met:1
         PerPlayer: true
-        InitialValue: 0
+        InitialValue: 5
+      - Name: conf:agent:energy:met:2
+        PerPlayer: true
+        InitialValue: 10
 
       # debug variables, used for webui
       - Name: debug:agent:energy
@@ -139,15 +134,6 @@
         InitialValue: 0
         PerPlayer: true
       - Name: debug:agent:met:2
-        InitialValue: 0
-        PerPlayer: true
-      - Name: debug:agent:frozen
-        InitialValue: 0
-        PerPlayer: true
-      - Name: debug:agent:prestige
-        InitialValue: 0
-        PerPlayer: true
-      - Name: debug:agent:shield
         InitialValue: 0
         PerPlayer: true
 
@@ -267,22 +253,14 @@
       MapCharacter: o
       Z: 1
       Variables:
-        - Name: floor:resource
+        - Name: floor:visited
           InitialValue: 0
-        - Name: floor:seed
-          InitialValue: 0
-        - Name: floor:ready
-          InitialValue: 1
       Observers:
         GlobalSpriteObserver:
           - Image: oryx/oryx_fantasy/floor1-0.png
           - Image: oryx/oryx_fantasy/floor4-0.png
           - Image: oryx/oryx_fantasy/floor6-0.png
           - Image: oryx/oryx_fantasy/floor7-0.png
-      InitialActions:
-        - Action: floor:reset
-          ActionId: 1
-          Randomize: true
 
     - Name: generator
       Z: 1
@@ -290,7 +268,7 @@
       Variables:
         - Name: generator:ready
           InitialValue: 0
-        - Name: generator:mode
+        - Name: generator:resource
           InitialValue: 1
       Observers:
         GlobalSpriteObserver:
@@ -304,6 +282,7 @@
       InitialActions:
         - Action: generator:reset
           ActionId: 1
+          Randomize: True
 
     - Name: charger
       Z: 1
@@ -315,6 +294,7 @@
         GlobalSpriteObserver:
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_pda_A.png
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_pda_B.png
+          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_pda_C.png
       InitialActions:
         - Action: charger:reset
           ActionId: 1
@@ -341,10 +321,6 @@
           InitialValue: 0
         - Name: agent:energy
           InitialValue: 0
-        - Name: agent:prestige
-          InitialValue: 0
-        - Name: agent:inv:battery
-          InitialValue: 0
         - Name: agent:shield
           InitialValue: 0
         - Name: agent:frozen
@@ -354,8 +330,6 @@
           InitialValue: 0
         - Name: agent:met:2
           InitialValue: 0
-
-
 
       Observers:
         GlobalSpriteObserver:
@@ -428,8 +402,14 @@
               - sub: [ agent:energy, conf:cost:move ]
               - incr: stats:action:move
               - add: [ stats:energy:used:move, conf:cost:move ]
+              - if:
+                  Conditions:
+                      and:
+                          - eq: [ dst.floor:visited, 1 ]
+                  OnTrue:
+                      - set: [ dst.floor:visited, 0 ]
+                      - reward: 1
               - mov: _dest
-
           Dst:
             Object: [ floor ]
 
@@ -441,39 +421,6 @@
             VectorToDest: [ 0, -1 ]
             Description: "use"
       Behaviours:
-        # pick up food
-        - Src:
-            Object: agent
-            Preconditions:
-              - eq: [ agent:frozen, 0 ]
-              - eq: [ dst.floor:ready, 1 ]
-              - or:
-                - eq: [ dst.floor:resource,  agent:met:1:resource ]
-                - eq: [ dst.floor:resource,  agent:met:2:resource ]
-            Commands:
-                - if:
-                    Conditions:
-                        and:
-                          - eq: [ dst.floor:resource, agent:met:1:resource ]
-                    OnTrue:
-                        - incr: agent:met:1
-                - if:
-                    Conditions:
-                        and:
-                          - eq: [ dst.floor:resource, agent:met:2:resource ]
-                    OnTrue:
-                        - incr: agent:met:2
-                - set: [ dst.floor:resource, agent:met:out:resource ]
-          Dst:
-            Object: [ floor ]
-            Commands:
-              - set: [ floor:ready, 0 ]
-              - set_tile: 0
-              - exec:
-                  Action: floor:spawn
-                  Delay: conf:floor:half_life
-                  Randomize: true
-
         # Use a generator
         - Src:
             Object: agent
@@ -481,10 +428,23 @@
               - and:
                 - eq: [ agent:frozen, 0 ]
                 - eq: [ dst.generator:ready, 1 ]
+                - or:
+                    - eq: [ agent:met:1:resource, dst.generator:resource ]
+                    - eq: [ agent:met:2:resource, dst.generator:resource ]
             Commands:
               - incr: stats:action:use:generator
-              - add: [ agent:inv:battery, 1 ]
-              - incr: stats:battery:collected
+              - incr: stats:resource:collected
+              - reward: 1
+              - if:
+                  Conditions:
+                      eq: [ agent:met:1:resource, dst.generator:resource ]
+                  OnTrue:
+                      - incr: [ agent:met:1 ]
+              - if:
+                  Conditions:
+                      eq: [ agent:met:2:resource, dst.generator:resource ]
+                  OnTrue:
+                      - incr: [ agent:met:2 ]
           Dst:
             Object: generator
             Commands:
@@ -492,7 +452,7 @@
               - set: [ generator:ready, 0 ]
               - exec:
                   Action: generator:reset
-                  ActionId: 1
+                  ActionId: generator:resource
                   Delay: conf:generator:cooldown
 
         # Use a charger
@@ -502,14 +462,24 @@
               - and:
                 - eq: [ agent:frozen, 0 ]
                 - eq: [ dst.charger:ready, 1 ]
-                - gte: [ agent:inv:battery, 1 ]
+                - gte: [ agent:met:1, 1 ]
             Commands:
               - incr: stats:action:use:charger
-              - add: [ agent:energy, conf:charger:energy ]
-              - add: [ stats:energy:gained:charger, conf:charger:energy ]
-              - add: [ stats:energy:gained, conf:charger:energy ]
-              - sub: [ agent:inv:battery, 1 ]
-              - incr: stats:battery:used
+              - reward: 1
+              - decr: agent:met:1
+              - add: [ agent:energy, conf:agent:energy:met:1 ]
+              - add: [ stats:energy:gained:met, conf:agent:energy:met:1 ]
+              - add: [ stats:energy:gained:met:1, conf:agent:energy:met:1 ]
+
+              - if:
+                  Conditions:
+                      gte: [ agent:met:2, 1 ]
+                  OnTrue:
+                      - decr: agent:met:2
+                      - add: [ agent:energy, conf:agent:energy:met:2 ]
+                      - add: [ stats:energy:gained:met, conf:agent:energy:met:2 ]
+                      - add: [ stats:energy:gained:met:2, conf:agent:energy:met:2 ]
+                      - reward: 2
           Dst:
             Object: charger
             Commands:
@@ -532,7 +502,7 @@
               - incr: stats:action:use:altar
               - sub: [ agent:energy, conf:altar:cost ]
               - add: [ stats:energy:used:altar, conf:altar:cost ]
-              - reward: 1
+              - reward: 100
           Dst:
             Object: altar
             Commands:
@@ -633,6 +603,7 @@
                             - set: [ agent:energy, 0 ]
                     OnFalse:
                       - set: [ agent:frozen, conf:attack:freeze_duration ]
+                      - reward: -1000
 
               - incr: stats:action:shield
 
@@ -645,19 +616,16 @@
             MetaData:
               met_1: 1
               met_2: 2
-              met_o: 3
           2:
             VectorToDest: [ 0, 0 ]
             MetaData:
               met_1: 2
               met_2: 3
-              met_o: 1
           3:
             VectorToDest: [ 0, 0 ]
             MetaData:
               met_1: 1
               met_2: 3
-              met_o: 2
 
       Behaviours:
         - Src:
@@ -671,7 +639,6 @@
               - set: [ agent:energy, conf:agent:initial_energy ]
               - set: [ agent:met:1:resource, meta.met_1 ]
               - set: [ agent:met:2:resource, meta.met_2 ]
-              - set: [ agent:met:out:resource, meta.met_o ]
 
     - Name: agent:tick
       InputMapping:
@@ -690,17 +657,6 @@
               - add: [ stats:energy:gained, conf:agent:energy:regen ]
               - set_tile: 0
 
-              # perform metabolism
-              - if:
-                  Conditions:
-                      and:
-                          - gte: [ agent:met:1, 1 ]
-                          - gte: [ agent:met:2, 1 ]
-                  OnTrue:
-                      - decr: agent:met:1
-                      - decr: agent:met:2
-                      - add: [ agent:energy, conf:agent:energy:food ]
-                      - add: [ stats:energy:gained:food, conf:agent:energy:food ]
 
               # handle shield upkeep
               - if:
@@ -742,9 +698,6 @@
               - set: [ debug:agent:energy, agent:energy ]
               - set: [ debug:agent:met:1, agent:met:2 ]
               - set: [ debug:agent:met:2, agent:met:2 ]
-              - set: [ debug:agent:prestige, agent:prestige ]
-              - set: [ debug:agent:frozen, agent:frozen ]
-              - set: [ debug:agent:shield, agent:shield ]
 
               - exec:
                   Action: agent:tick
@@ -758,14 +711,25 @@
         Inputs:
           1:
             VectorToDest: [ 0, 0 ]
+            MetaData:
+              mode: 1
+          2:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              mode: 2
+          3:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              mode: 3
       Behaviours:
         - Src:
             Object: generator
           Dst:
             Object: generator
             Commands:
+              - set: [ generator:resource, meta.mode ]
               - set: [ generator:ready, 1 ]
-              - set_tile: 1
+              - set_tile: generator:resource
 
     - Name: charger:reset
       InputMapping:
@@ -797,66 +761,3 @@
               - set: [ altar:ready, 1 ]
               - set_tile: 0
 
-
-    - Name: floor:reset
-      InputMapping:
-        Internal: true
-        Inputs:
-          1:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              resource: 1
-          2:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              resource: 2
-          3:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              resource: 3
-
-      Behaviours:
-        - Src:
-            Object: floor
-          Dst:
-            Object: floor
-            Commands:
-              - set: [ floor:ready, 1 ]
-              - set: [ floor:resource, meta.resource ]
-              - set: [ floor:seed, meta.resource ]
-              - set_tile: floor:resource
-
-    - Name: floor:spawn
-      InputMapping:
-        Internal: true
-        Inputs:
-          1:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              action_id: 1
-          2:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              action_id: 2
-
-      Behaviours:
-        - Src:
-            Object: floor
-          Dst:
-            Object: floor
-            Commands:
-              - if:
-                  Conditions:
-                      eq: [ meta.action_id, 1]
-                  OnTrue:
-                    - if:
-                        Conditions:
-                            eq: [ floor:ready, 0]
-                        OnTrue:
-                            - set: [ floor:ready, 1 ]
-                            - set_tile: floor:resource
-                  OnFalse:
-                      - exec:
-                          Action: floor:spawn
-                          Delay: conf:floor:half_life
-                          Randomize: true

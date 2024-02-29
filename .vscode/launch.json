@@ -52,7 +52,7 @@
                 // "--experiment=pred.10.0",
                 // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
-                "--experiment=m3.sweep",
+                "--experiment=m1.nr.np",
 
                 "--device=cpu",
                 "--serial=True",

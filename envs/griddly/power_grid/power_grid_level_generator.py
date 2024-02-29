@@ -17,14 +17,12 @@ class PowerGridLevelGenerator():
         "altar:cost": [10, 200],
 
         "charger:cooldown": [ 2, 5 ],
-        "charger:energy": [ 20, 100 ],
-
-        "floor:half_life": [10, 200],
 
         "generator:cooldown": [ 20, 100 ],
 
         "agent:energy:regen": [0, 2],
-        "agent:energy:food": [1, 5],
+        "agent:energy:met:1": [1, 5],
+        "agent:energy:met:2": [10, 30],
         "agent:initial_energy": [10, 200],
 
         "cost:move": [0, 0],
