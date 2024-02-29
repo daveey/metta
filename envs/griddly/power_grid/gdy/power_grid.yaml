@@ -40,7 +40,10 @@
         InitialValue: 0
         PerPlayer: true
 
-      # Floor
+      # Milestone
+      - Name: stats:milestones
+        InitialValue: 0
+        PerPlayer: true
 
       # Agent Upkeep
       - Name: conf:agent:energy:regen
@@ -160,7 +163,7 @@
         TileSize: 32
         Type: SPRITE_2D
         RotateAvatarImage: true
-        BackgroundTile: oryx/oryx_fantasy/floor1-1.png
+        BackgroundTile: oryx/oryx_fantasy/floor1-0.png
         Shader:
             ObjectVariables: [ agent:energy, agent:energy ]
             ObserverAvatarMode: DARKEN
@@ -173,13 +176,13 @@
         W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W
         W
 
-        W   A1/o   o   o   o   o   a   o   o   A2/o  o   o   o   o   o   o   o   A3/o
+        W   A1/o   .   o   o   o   a   o   o   A2/o  o   o   o   o   o   o   o   A3/o
         W
 
-        W   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o
+        W   o   o   .   o   o   o   o   o   o   o   o   o   o   o   o   o   o
         W
 
-        W   o   o   o   o   o   c   o   a   o   o   o   o   o   o   o   o   o
+        W   o   o   .   o   o   c   o   a   o   o   o   o   o   o   o   o   o
         W
 
         W   o   o   g   o   o   o   o   o   o   o   o   o   o   o   o   o   o
@@ -249,16 +252,16 @@
               - oryx/oryx_fantasy/wall2-14.png
               - oryx/oryx_fantasy/wall2-15.png
 
-    - Name: floor
+    - Name: milestone
       MapCharacter: o
       Z: 1
       Variables:
-        - Name: floor:visited
+        - Name: milestone:visited
           InitialValue: 0
       Observers:
         GlobalSpriteObserver:
+          - Image: oryx/oryx_fantasy/floor1-1.png
           - Image: oryx/oryx_fantasy/floor1-0.png
-          - Image: oryx/oryx_fantasy/floor4-0.png
           - Image: oryx/oryx_fantasy/floor6-0.png
           - Image: oryx/oryx_fantasy/floor7-0.png
 
@@ -404,14 +407,29 @@
               - add: [ stats:energy:used:move, conf:cost:move ]
               - if:
                   Conditions:
-                      and:
-                          - eq: [ dst.floor:visited, 1 ]
+                      eq: [ dst.milestone:visited, 0 ]
                   OnTrue:
-                      - set: [ dst.floor:visited, 0 ]
+                      - set: [ dst.milestone:visited, 1 ]
+                      - incr: [ stats:milestones ]
                       - reward: 1
               - mov: _dest
           Dst:
-            Object: [ floor ]
+            Object: [ milestone ]
+            Commands:
+                - set_tile: 1
+
+        - Src:
+            Object: agent
+            Preconditions:
+              - gte: [ agent:energy, conf:cost:move ]
+              - eq: [ agent:frozen, 0 ]
+            Commands:
+              - sub: [ agent:energy, conf:cost:move ]
+              - incr: stats:action:move
+              - add: [ stats:energy:used:move, conf:cost:move ]
+              - mov: _dest
+          Dst:
+            Object: [ _empty ]
 
     - Name: use
       InputMapping:

@@ -40,6 +40,7 @@ class PowerGridLevelGenerator():
         "width": [10, 20],
         "height": [10, 20],
         "wall_density": [0.1, 0.3],
+        "milestone_density": [0, 1],
         "num_altars": [1, 20],
         "num_chargers": [5, 20],
         "num_generators": [5, 50],
@@ -116,14 +117,18 @@ class PowerGridLevelGenerator():
         """
         width = int(self.sample_cfg("width"))
         height = int(self.sample_cfg("height"))
+        p_milestones = self.sample_cfg("milestone_density")
+
+        level = np.random.choice(
+            ['.', 'o'], size=(height, width),
+            p=[p_milestones, 1-p_milestones])
+        floor_tiles = [".", "o"]
 
         # make the bounding box
-        level = [["o"] * width for _ in range(height)]
-        level[0] = ["W"] * width
-        level[-1] = ["W"] * width
-        for i in range(height):
-            level[i][0] = "W"
-            level[i][-1] = "W"
+        level[0,:] = "W"
+        level[-1,:] = "W"
+        level[:,0] = "W"
+        level[:,-1] = "W"
 
         # make the agents
         for i in range(self.num_agents):
@@ -141,7 +146,7 @@ class PowerGridLevelGenerator():
             for _ in range(10):
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
-                if level[y][x] == "o":
+                if level[y][x] in floor_tiles:
                     level[y][x] = "a"
                     break
 
@@ -150,7 +155,7 @@ class PowerGridLevelGenerator():
             for _ in range(10):
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
-                if level[y][x] == "o":
+                if level[y][x] in floor_tiles:
                     level[y][x] = "c"
                     break
 
@@ -159,7 +164,7 @@ class PowerGridLevelGenerator():
             for _ in range(10):
                 x = np.random.randint(1, width-1)
                 y = np.random.randint(1, height-1)
-                if level[y][x] == "o":
+                if level[y][x] in floor_tiles:
                     level[y][x] = "g"
                     break
 
@@ -169,7 +174,7 @@ class PowerGridLevelGenerator():
         for i in range(int(width*height*wall_density)):
             x = np.random.randint(1, width-1)
             y = np.random.randint(1, height-1)
-            if level[y][x] == "o":
+            if level[y][x] in floor_tiles:
                 level[y][x] = "W"
         return level
 
