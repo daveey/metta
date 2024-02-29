@@ -91,12 +91,15 @@ class PowerGridEnv(gym.Env):
         # if self._reward_sharing_matrix is not None:
         #     rewards = np.dot(self._reward_sharing_matrix, rewards)
         rewards = np.array(rewards, dtype=np.float32)
-        self._episode_rewards += rewards
-        # keep the rewards > 0, being frozen wipes out accumulated rewards
-        np.clip(self._episode_rewards, None, 0, out=self._episode_rewards)
+        # set any episode_rewards to 0 if we get a negative reward
+        self._episode_rewards[rewards < 0] = 0
+        # update episode rewards for altar usage
+        self._episode_rewards[rewards > 90] += 1
+
         # scale the rewards from the environment, since they are meant to be
         # mostly hints, not actual rewards
         rewards /= 1000.0
+
         # prestige rewards
         if self._step % self._prestige_steps == 0:
             total_rewards = np.sum(self._episode_rewards)
@@ -105,7 +108,6 @@ class PowerGridEnv(gym.Env):
                 self._episode_prestige_rewards += prestige_rewards
                 rewards += prestige_rewards
         return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
-
 
     def _add_episode_stats(self, infos):
         stat_names = list(filter(

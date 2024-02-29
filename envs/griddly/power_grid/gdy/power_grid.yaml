@@ -621,7 +621,7 @@
                             - set: [ agent:energy, 0 ]
                     OnFalse:
                       - set: [ agent:frozen, conf:attack:freeze_duration ]
-                      - reward: -1000
+                      - reward: -100
 
               - incr: stats:action:shield
 
