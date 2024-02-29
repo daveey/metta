@@ -120,7 +120,7 @@ class PowerGridLevelGenerator():
         p_milestones = self.sample_cfg("milestone_density")
 
         level = np.random.choice(
-            ['.', 'o'], size=(height, width),
+            ['o', '.'], size=(height, width),
             p=[p_milestones, 1-p_milestones])
         floor_tiles = [".", "o"]
 
