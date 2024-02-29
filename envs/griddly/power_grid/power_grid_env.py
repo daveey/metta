@@ -110,8 +110,8 @@ class PowerGridEnv(gym.Env):
                 stat_val = stats[stat_name][0]
                 if len(stats[stat_name]) > 1:
                     stat_val = stats[stat_name][agent + 1]
-                if stat_name.startswith("stats:action"):
-                    stats_val /= self._max_steps
+                    if stat_name.startswith("stats:action"):
+                        stats_val /= self._max_steps
                 infos["episode_extra_stats"][agent][stat_name] = stat_val / self.NORMALIZATION.get(stat_name, 1)
             infos["episode_extra_stats"][agent]["level_max_energy"] = self._max_level_energy
             infos["episode_extra_stats"][agent]["level_max_energy_per_agent"] = self._max_level_energy / self._griddly_env.player_count
