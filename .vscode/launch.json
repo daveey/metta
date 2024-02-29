@@ -71,7 +71,7 @@
                 "--env_num_chargers=10",
                 "--env_num_generators=50",
                 "--env_wall_density=0.11",
-                "--env_milestone_density=0.1",
+                "--env_milestone_density=0",
                 "--load_checkpoint_kind=best",
             ],
         },
