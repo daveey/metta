@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Callable, Optional
 
 import gymnasium as gym
@@ -72,11 +73,12 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
 
         # For better readability, make `infos` a list.
         # In case of a single player, get the first element before returning
-        infos = [infos_dict.copy()] * self.num_agents
+        infos = [deepcopy(infos_dict)] * self.num_agents
         if "episode_extra_stats" in infos_dict:
+            print("xcxc2-1", infos[0]["episode_extra_stats"])
             for i, info in enumerate(infos):
                 info["episode_extra_stats"] = infos_dict["episode_extra_stats"][i]
-            print("xcxc2", info["episode_extra_stats"])
+            print("xcxc2", infos[0]["episode_extra_stats"])
         if self.is_multiagent:
             terminated = [terminated] * self.num_agents
             truncated = [truncated] * self.num_agents
