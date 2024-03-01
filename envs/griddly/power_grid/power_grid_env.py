@@ -133,6 +133,7 @@ class PowerGridEnv(gym.Env):
             agent_stats["level_max_energy"] = self._max_level_energy
             agent_stats["level_max_energy_per_agent"] = self._max_level_energy / self._griddly_env.player_count
             infos["episode_extra_stats"].append(agent_stats)
+        print("xcxc", infos["episode_extra_stats"][0])
 
     def _compute_max_energy(self):
         # compute the max possible energy for the level
