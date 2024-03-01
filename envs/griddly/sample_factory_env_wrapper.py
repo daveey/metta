@@ -75,8 +75,10 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
         # In case of a single player, get the first element before returning
         infos = [deepcopy(infos_dict)] * self.num_agents
         if "episode_extra_stats" in infos_dict:
+            print("xcxc1", infos_dict["episode_extra_stats"][0])
             for i, info in enumerate(infos):
                 info["episode_extra_stats"] = infos_dict["episode_extra_stats"][i].copy()
+            print("xcxc2", infos[0]["episode_extra_stats"])
         if self.is_multiagent:
             terminated = [terminated] * self.num_agents
             truncated = [truncated] * self.num_agents
