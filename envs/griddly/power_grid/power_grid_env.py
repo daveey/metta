@@ -116,7 +116,7 @@ class PowerGridEnv(gym.Env):
         stat_names = list(filter(
             lambda x: x.startswith("stats:"),
             self._griddly_env.game.get_global_variable_names()))
-        stats = self._griddly_env.game.get_global_variable(stat_names)
+        stats = self._griddly_env.game.get_global_variable(stat_names).copy()
         infos["episode_extra_stats"] = []
 
         for agent in range(self._griddly_env.player_count):
