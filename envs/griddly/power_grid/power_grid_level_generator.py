@@ -121,7 +121,7 @@ class PowerGridLevelGenerator():
 
         level = np.random.choice(
             ['o', '.'], size=(height, width),
-            p=[p_milestones, 1-p_milestones])
+            p=[p_milestones, 1-p_milestones]).astype("U2") # 2-char unicode strings
         floor_tiles = [".", "o"]
 
         # make the bounding box
