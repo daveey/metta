@@ -117,9 +117,10 @@ class PowerGridEnv(gym.Env):
             lambda x: x.startswith("stats:"),
             self._griddly_env.game.get_global_variable_names()))
         stats = self._griddly_env.game.get_global_variable(stat_names)
+        infos["episode_extra_stats"] = []
 
-        infos["episode_extra_stats"] = [{}] * self._griddly_env.player_count
         for agent in range(self._griddly_env.player_count):
+            agent_stats = {}
             for stat_name in stat_names:
                 # some are per-agent, some are just global {0: val}
                 stat_val = stats[stat_name][0]
@@ -127,10 +128,11 @@ class PowerGridEnv(gym.Env):
                     stat_val = stats[stat_name][agent + 1]
                     if stat_name.startswith("stats:action"):
                         stat_val /= self._max_steps
-                infos["episode_extra_stats"][agent][stat_name] = stat_val
-            infos["episode_extra_stats"][agent]["prestige_reward"] = self._episode_prestige_rewards[agent]
-            infos["episode_extra_stats"][agent]["level_max_energy"] = self._max_level_energy
-            infos["episode_extra_stats"][agent]["level_max_energy_per_agent"] = self._max_level_energy / self._griddly_env.player_count
+                agent_stats[stat_name] = stat_val
+            agent_stats["prestige_reward"] = self._episode_prestige_rewards[agent]
+            agent_stats["level_max_energy"] = self._max_level_energy
+            agent_stats["level_max_energy_per_agent"] = self._max_level_energy / self._griddly_env.player_count
+            infos["episode_extra_stats"].append(agent_stats)
 
     def _compute_max_energy(self):
         # compute the max possible energy for the level
