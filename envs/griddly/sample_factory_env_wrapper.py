@@ -76,7 +76,7 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
         if "episode_extra_stats" in infos_dict:
             for i, info in enumerate(infos):
                 info["episode_extra_stats"] = infos_dict["episode_extra_stats"][i]
-
+            print("xcxc", info["episode_extra_stats"])
         if self.is_multiagent:
             terminated = [terminated] * self.num_agents
             truncated = [truncated] * self.num_agents
