@@ -103,7 +103,7 @@ class PowerGridEnv(gym.Env):
         if self._step % self._prestige_steps == 0 or terminated or truncated:
             total_rewards = np.sum(self._episode_rewards)
             if total_rewards > 0:
-                prestige_rewards = self._episode_rewards / total_rewards * self._episode_prestige_rewards
+                prestige_rewards = 100 * self._episode_rewards / total_rewards * self._prestige_steps / self._max_steps
                 self._episode_prestige_rewards += prestige_rewards
                 rewards += prestige_rewards
 

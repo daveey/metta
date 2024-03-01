@@ -50,10 +50,10 @@
         InitialValue: 0
       - Name: conf:agent:initial_energy
         InitialValue: 100
-      - Name: stats:action:use
+      - Name: stats:energy:gained
         InitialValue: 0
         PerPlayer: true
-      - Name: stats:energy:gained
+      - Name: stats:energy:gained:regen
         InitialValue: 0
         PerPlayer: true
 
@@ -486,6 +486,7 @@
               - reward: 1
               - decr: agent:met:1
               - add: [ agent:energy, conf:agent:energy:met:1 ]
+              - add: [ stats:energy:gained, conf:agent:energy:met:1 ]
               - add: [ stats:energy:gained:met, conf:agent:energy:met:1 ]
               - add: [ stats:energy:gained:met:1, conf:agent:energy:met:1 ]
 
@@ -495,6 +496,7 @@
                   OnTrue:
                       - decr: agent:met:2
                       - add: [ agent:energy, conf:agent:energy:met:2 ]
+                      - add: [ stats:energy:gained, conf:agent:energy:met:2 ]
                       - add: [ stats:energy:gained:met, conf:agent:energy:met:2 ]
                       - add: [ stats:energy:gained:met:2, conf:agent:energy:met:2 ]
                       - reward: 2
@@ -673,6 +675,7 @@
             Commands:
               - add: [ agent:energy, conf:agent:energy:regen ]
               - add: [ stats:energy:gained, conf:agent:energy:regen ]
+              - add: [ stats:energy:gained:regen, conf:agent:energy:regen ]
               - set_tile: 0
 
 
