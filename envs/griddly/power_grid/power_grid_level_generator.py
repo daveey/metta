@@ -40,7 +40,7 @@ class PowerGridLevelGenerator():
         "width": [10, 20],
         "height": [10, 20],
         "wall_density": [0.1, 0.3],
-        "milestone_density": [0, 1],
+        "milestone_density": [0, 0.1],
         "num_altars": [1, 20],
         "num_chargers": [5, 20],
         "num_generators": [5, 50],
