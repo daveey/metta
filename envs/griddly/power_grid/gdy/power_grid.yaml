@@ -29,6 +29,9 @@
       - Name: stats:energy:gained:met:2
         InitialValue: 0
         PerPlayer: true
+      - Name: stats:energy:gained:met:3
+        InitialValue: 0
+        PerPlayer: true
 
       # Generator
       - Name: conf:generator:cooldown
@@ -122,12 +125,18 @@
       - Name: agent:met:2:resource
         PerPlayer: true
         InitialValue: 0
+      - Name: agent:met:3:resource
+        PerPlayer: true
+        InitialValue: 0
       - Name: conf:agent:energy:met:1
         PerPlayer: true
         InitialValue: 5
       - Name: conf:agent:energy:met:2
         PerPlayer: true
         InitialValue: 10
+      - Name: conf:agent:energy:met:3
+        PerPlayer: true
+        InitialValue: 20
 
       # debug variables, used for webui
       - Name: debug:agent:energy
@@ -137,6 +146,9 @@
         InitialValue: 0
         PerPlayer: true
       - Name: debug:agent:met:2
+        InitialValue: 0
+        PerPlayer: true
+      - Name: debug:agent:met:3
         InitialValue: 0
         PerPlayer: true
 
@@ -284,7 +296,6 @@
           - Image: oryx/oryx_fantasy/ore-6.png
       InitialActions:
         - Action: generator:reset
-          ActionId: 1
           Randomize: True
 
     - Name: charger
@@ -333,6 +344,8 @@
           InitialValue: 0
         - Name: agent:met:2
           InitialValue: 0
+        - Name: agent:met:3
+          InitialValue: 0
 
       Observers:
         GlobalSpriteObserver:
@@ -349,7 +362,6 @@
           Delay: 1
           ActionId: 1
         - Action: agent:init
-          ActionId: 1
           Randomize: true
 
   Actions:
@@ -446,9 +458,6 @@
               - and:
                 - eq: [ agent:frozen, 0 ]
                 - eq: [ dst.generator:ready, 1 ]
-                - or:
-                    - eq: [ agent:met:1:resource, dst.generator:resource ]
-                    - eq: [ agent:met:2:resource, dst.generator:resource ]
             Commands:
               - incr: stats:action:use:generator
               - incr: stats:resource:collected
@@ -463,6 +472,11 @@
                       eq: [ agent:met:2:resource, dst.generator:resource ]
                   OnTrue:
                       - incr: [ agent:met:2 ]
+              - if:
+                  Conditions:
+                      eq: [ agent:met:3:resource, dst.generator:resource ]
+                  OnTrue:
+                      - incr: [ agent:met:3 ]
           Dst:
             Object: generator
             Commands:
@@ -480,7 +494,7 @@
               - and:
                 - eq: [ agent:frozen, 0 ]
                 - eq: [ dst.charger:ready, 1 ]
-                - gte: [ agent:met:1, 1 ]
+                - gt: [ agent:met:1, 0 ]
             Commands:
               - incr: stats:action:use:charger
               - reward: 1
@@ -492,7 +506,7 @@
 
               - if:
                   Conditions:
-                      gte: [ agent:met:2, 1 ]
+                      gt: [ agent:met:2, 0 ]
                   OnTrue:
                       - decr: agent:met:2
                       - add: [ agent:energy, conf:agent:energy:met:2 ]
@@ -500,6 +514,17 @@
                       - add: [ stats:energy:gained:met, conf:agent:energy:met:2 ]
                       - add: [ stats:energy:gained:met:2, conf:agent:energy:met:2 ]
                       - reward: 2
+                      - if:
+                          Conditions:
+                              gt: [ agent:met:3, 0 ]
+                          OnTrue:
+                              - decr: agent:met:3
+                              - add: [ agent:energy, conf:agent:energy:met:3 ]
+                              - add: [ stats:energy:gained, conf:agent:energy:met:3 ]
+                              - add: [ stats:energy:gained:met, conf:agent:energy:met:3 ]
+                              - add: [ stats:energy:gained:met:3, conf:agent:energy:met:3 ]
+                              - reward: 4
+
           Dst:
             Object: charger
             Commands:
@@ -636,16 +661,37 @@
             MetaData:
               met_1: 1
               met_2: 2
+              met_3: 3
           2:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              met_1: 2
-              met_2: 3
-          3:
             VectorToDest: [ 0, 0 ]
             MetaData:
               met_1: 1
               met_2: 3
+              met_3: 2
+          3:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              met_1: 2
+              met_2: 1
+              met_3: 3
+          4:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              met_1: 2
+              met_2: 3
+              met_3: 1
+          5:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              met_1: 3
+              met_2: 1
+              met_3: 2
+          6:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              met_1: 3
+              met_2: 2
+              met_3: 1
 
       Behaviours:
         - Src:
@@ -653,12 +699,11 @@
           Dst:
             Object: agent
             Commands:
-              - set: [ tmp:v1, 1 ]
-              - set: [ tmp:v1, meta.met_1 ]
               - set: [ agent:id, _playerId ]
               - set: [ agent:energy, conf:agent:initial_energy ]
               - set: [ agent:met:1:resource, meta.met_1 ]
               - set: [ agent:met:2:resource, meta.met_2 ]
+              - set: [ agent:met:3:resource, meta.met_3 ]
 
     - Name: agent:tick
       InputMapping:
@@ -717,8 +762,9 @@
 
               # update debug variables
               - set: [ debug:agent:energy, agent:energy ]
-              - set: [ debug:agent:met:1, agent:met:2 ]
+              - set: [ debug:agent:met:1, agent:met:1 ]
               - set: [ debug:agent:met:2, agent:met:2 ]
+              - set: [ debug:agent:met:3, agent:met:3 ]
 
               - exec:
                   Action: agent:tick

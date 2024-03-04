@@ -13,25 +13,24 @@ import jmespath
 
 class PowerGridLevelGenerator():
     GAME_CONFIG = {
-        "altar:cooldown": [10, 20],
+        "altar:cooldown": [2, 5],
         "altar:cost": [10, 200],
 
-        "charger:cooldown": [ 2, 5 ],
-
+        "charger:cooldown": [ 2, 2 ],
         "generator:cooldown": [ 20, 100 ],
 
         "agent:energy:regen": [0, 0],
-        "agent:energy:met:1": [1, 5],
+        "agent:energy:met:1": [1, 10],
         "agent:energy:met:2": [10, 30],
+        "agent:energy:met:3": [30, 100],
         "agent:initial_energy": [10, 200],
 
         "cost:move": [0, 0],
         "cost:rotate": [0, 0],
         "cost:shield": [0, 2],
-        "cost:shield:upkeep": [0, 2],
-        "cost:frozen": [0, 2],
+        "cost:shield:upkeep": [1, 2],
+        "cost:frozen": [0, 0],
         "cost:attack": [5, 40],
-
         "attack:damage": [5, 40],
         "attack:freeze_duration": [5, 100],
     }

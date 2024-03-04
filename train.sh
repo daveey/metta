@@ -8,9 +8,14 @@ python -m train \
     --env=GDY-PowerGrid \
     --with_wandb=True \
     --num_workers=25 \
-    --env_num_agents=20 \
-    --env_width=20:100 \
-    --env_height=20:100 \
+    --env_num_agents=5 \
+    --env_width=20:40 \
+    --env_height=20:40 \
+    --env_num_altars=1:5 \
+    --env_num_chargers=1:5 \
+    --env_num_generators=5:20 \
+    --env_wall_density=0:0.15 \
+    --reward_rank_steps=10 \
     --agent_fc_layers=10 \
     --agent_fc_size=512 \
     --rnn_num_layers=2 \

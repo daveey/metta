@@ -35,6 +35,8 @@ class PowerGridEnv(gym.Env):
         self._episode_rewards = None
         self._prestige_steps = None
         self._episode_prestige_rewards = None
+        self._last_actions = None
+        self._last_rewards = None
 
     def _validate_griddly(self):
         obj_order = self._griddly_env.game.get_object_names()
@@ -78,13 +80,16 @@ class PowerGridEnv(gym.Env):
         self._make_env()
         obs, infos = self._griddly_env.reset(**kwargs)
         self._step = 0
+        self._last_actions = np.zeros((self._griddly_env.player_count, 2), dtype=np.int32)
+        self._last_rewards = np.zeros(self._griddly_env.player_count, dtype=np.float32)
         self._episode_prestige_rewards = np.array([0] * self._griddly_env.player_count, dtype=np.float32)
-        self.global_variable_obs = np.array([
+        self._global_variable_obs = np.array([
             v[0] for v in self._griddly_env.game.get_global_variable(self.global_variable_names).values()])
-        return self._add_global_variables_obs(obs), infos
+        return self._augment_observations(obs), infos
 
     def step(self, actions):
         obs, rewards, terminated, truncated, infos = self._griddly_env.step(actions)
+        self._last_actions = actions
         self._step += 1
 
         # if self._reward_sharing_matrix is not None:
@@ -103,14 +108,21 @@ class PowerGridEnv(gym.Env):
         if self._step % self._prestige_steps == 0 or terminated or truncated:
             total_rewards = np.sum(self._episode_rewards)
             if total_rewards > 0:
-                prestige_rewards = 10 * self._episode_rewards / total_rewards * self._prestige_steps / self._max_steps
+                # rank the agents by their rewards
+                rank = np.argsort(np.argsort(self._episode_rewards))
+                # Scale the ranks to the range -1 to 1
+                prestige_rewards = 2.0 * (rank / (rank.size - 1)) - 1.0
+                # normalize based on how often we get prestige rewards
+                prestige_rewards *= 10 * self._prestige_steps / self._max_steps
                 self._episode_prestige_rewards += prestige_rewards
                 rewards += prestige_rewards
 
         if terminated or truncated:
             self._add_episode_stats(infos)
 
-        return self._add_global_variables_obs(obs), rewards, terminated, truncated, infos
+        self._last_rewards = rewards
+        augmented_obs = self._augment_observations(obs)
+        return augmented_obs, rewards, terminated, truncated, infos
 
     def _add_episode_stats(self, infos):
         stat_names = list(filter(
@@ -155,11 +167,13 @@ class PowerGridEnv(gym.Env):
 
         return max_level_energy
 
-    def _add_global_variables_obs(self, obs):
+    def _augment_observations(self, obs):
         return [{
             "obs": agent_obs,
-            "global_vars": self.global_variable_obs
-        } for agent_obs in obs]
+            "global_vars": self._global_variable_obs,
+            "last_action": np.array(self._last_actions[agent]),
+            "last_reward": np.array(self._last_rewards[agent])
+        } for agent, agent_obs in enumerate(obs)]
 
     @property
     def observation_space(self):
@@ -170,6 +184,14 @@ class PowerGridEnv(gym.Env):
                 "global_vars": gym.spaces.Box(
                     low=-np.inf, high=np.inf,
                     shape=[len(self.global_variable_names)],
+                    dtype=np.float32),
+                "last_action": gym.spaces.Box(
+                    low=0, high=255,
+                    shape=[2],
+                    dtype=np.int32),
+                "last_reward": gym.spaces.Box(
+                    low=-np.inf, high=np.inf,
+                    shape=[1],
                     dtype=np.float32)
             }) for o in self._griddly_env.observation_space]
 

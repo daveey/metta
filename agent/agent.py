@@ -26,7 +26,13 @@ class GriddlyEncoder(Encoder):
     def __init__(self, cfg, obs_space):
         super().__init__(cfg)
 
-        num_features = np.prod(obs_space["obs"].shape) + obs_space["global_vars"].shape[0]
+        num_features = (
+            np.prod(obs_space["obs"].shape) +
+            obs_space["global_vars"].shape[0] +
+            obs_space["last_action"].shape[0] +
+            obs_space["last_reward"].shape[0]
+        )
+
         self.encoder_head = nn.Sequential(*[
             nn.Flatten(),
             layer_init(nn.Linear(num_features, cfg.agent_fc_size)),
@@ -39,11 +45,12 @@ class GriddlyEncoder(Encoder):
         self.encoder_head_out_size = cfg.agent_fc_size
 
     def forward(self, obs_dict):
-        # we always work with dictionary observations. Primary observation is available with the key 'obs'
         x = self.encoder_head(
             torch.concat([
                 obs_dict["obs"].view(obs_dict["obs"].size(0), -1),
-                obs_dict["global_vars"]
+                obs_dict["global_vars"],
+                obs_dict["last_action"],
+                obs_dict["last_reward"]
             ], dim=1))
         x = x.view(-1, self.encoder_head_out_size)
         return x
