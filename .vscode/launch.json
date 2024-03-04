@@ -53,7 +53,7 @@
                 // "--experiment=pred.10.0",
                 // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
-                "--experiment=m3.no_mil",
+                "--experiment=m1.prestige",
 
                 "--device=cpu",
                 "--serial=True",

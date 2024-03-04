@@ -45,12 +45,13 @@ class GriddlyEncoder(Encoder):
         self.encoder_head_out_size = cfg.agent_fc_size
 
     def forward(self, obs_dict):
+        batch_size = obs_dict["last_action"].size(0)
         x = self.encoder_head(
             torch.concat([
-                obs_dict["obs"].view(obs_dict["obs"].size(0), -1),
+                obs_dict["obs"].view(batch_size, -1),
                 obs_dict["global_vars"],
-                obs_dict["last_action"],
-                obs_dict["last_reward"]
+                obs_dict["last_action"].view(batch_size, -1),
+                obs_dict["last_reward"].view(batch_size, -1),
             ], dim=1))
         x = x.view(-1, self.encoder_head_out_size)
         return x

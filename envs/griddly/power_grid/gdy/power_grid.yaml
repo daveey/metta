@@ -3,6 +3,15 @@
     Name: PowerGrid
     Description: Metta - Foraging
     Variables:
+      # Exploration Rewards
+      - Name: conf:reward:use
+        InitialValue: 1
+      - Name: conf:reward:metabolism
+        InitialValue: 1
+      - Name: stats:reward
+        InitialValue: 0
+        PerPlayer: true
+
       # Altar
       - Name: conf:altar:cost
         InitialValue: 50
@@ -268,7 +277,7 @@
       MapCharacter: o
       Z: 1
       Variables:
-        - Name: milestone:visited
+        - Name: milestone:reward
           InitialValue: 0
       Observers:
         GlobalSpriteObserver:
@@ -276,6 +285,9 @@
           - Image: oryx/oryx_fantasy/floor1-0.png
           - Image: oryx/oryx_fantasy/floor6-0.png
           - Image: oryx/oryx_fantasy/floor7-0.png
+      InitialActions:
+        - Action: milestone:init
+          ActionId: 1
 
     - Name: generator
       Z: 1
@@ -285,6 +297,8 @@
           InitialValue: 0
         - Name: generator:resource
           InitialValue: 1
+        - Name: generator:reward
+          InitialValue: 0
       Observers:
         GlobalSpriteObserver:
           - Image: oryx/oryx_fantasy/ore-0.png
@@ -295,6 +309,8 @@
           - Image: oryx/oryx_fantasy/ore-5.png
           - Image: oryx/oryx_fantasy/ore-6.png
       InitialActions:
+        - Action: generator:init
+          ActionId: 1
         - Action: generator:reset
           Randomize: True
 
@@ -304,12 +320,16 @@
       Variables:
         - Name: charger:ready
           InitialValue: 0
+        - Name: charger:reward
+          InitialValue: 0
       Observers:
         GlobalSpriteObserver:
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_pda_A.png
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_pda_B.png
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_pda_C.png
       InitialActions:
+        - Action: charger:init
+          ActionId: 1
         - Action: charger:reset
           ActionId: 1
 
@@ -319,11 +339,15 @@
       Variables:
         - Name: altar:ready
           InitialValue: 0
+        - Name: altar:reward
+          InitialValue: 0
       Observers:
         GlobalSpriteObserver:
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_heart_clear.png
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_heart_full.png
       InitialActions:
+        - Action: altar:init
+          ActionId: 1
         - Action: altar:reset
           ActionId: 1
 
@@ -417,12 +441,10 @@
               - sub: [ agent:energy, conf:cost:move ]
               - incr: stats:action:move
               - add: [ stats:energy:used:move, conf:cost:move ]
-              - if:
-                  Conditions:
-                      eq: [ dst.milestone:visited, 0 ]
-                  OnTrue:
-                      - set: [ dst.milestone:visited, 1 ]
-                      - incr: [ stats:milestones ]
+
+              - reward: dst.milestone:reward
+              - add: [ stats:reward, dst.milestone:reward ]
+              - set: [ dst.milestone:reward, 0 ]
               - mov: _dest
           Dst:
             Object: [ milestone ]
@@ -458,23 +480,28 @@
                 - eq: [ agent:frozen, 0 ]
                 - eq: [ dst.generator:ready, 1 ]
             Commands:
+
+              - reward: dst.generator:reward
+              - add: [ stats:reward, dst.generator:reward ]
+              - set: [ dst.generator:reward, 0 ]
+
               - incr: stats:action:use:generator
               - incr: stats:resource:collected
               - if:
                   Conditions:
                       eq: [ agent:met:1:resource, dst.generator:resource ]
                   OnTrue:
-                      - incr: [ agent:met:1 ]
+                      - incr: agent:met:1
               - if:
                   Conditions:
                       eq: [ agent:met:2:resource, dst.generator:resource ]
                   OnTrue:
-                      - incr: [ agent:met:2 ]
+                      - incr: agent:met:2
               - if:
                   Conditions:
                       eq: [ agent:met:3:resource, dst.generator:resource ]
                   OnTrue:
-                      - incr: [ agent:met:3 ]
+                      - incr: agent:met:3
           Dst:
             Object: generator
             Commands:
@@ -494,6 +521,13 @@
                 - eq: [ dst.charger:ready, 1 ]
                 - gt: [ agent:met:1, 0 ]
             Commands:
+              - reward: dst.charger:reward
+              - add: [ stats:reward, dst.charger:reward ]
+              - set: [ dst.charger:reward, 0 ]
+
+              - reward: conf:reward:metabolism
+              - add: [ stats:reward, conf:reward:metabolism ]
+
               - incr: stats:action:use:charger
               - decr: agent:met:1
               - add: [ agent:energy, conf:agent:energy:met:1 ]
@@ -510,6 +544,8 @@
                       - add: [ stats:energy:gained, conf:agent:energy:met:2 ]
                       - add: [ stats:energy:gained:met, conf:agent:energy:met:2 ]
                       - add: [ stats:energy:gained:met:2, conf:agent:energy:met:2 ]
+                      - reward: conf:reward:metabolism
+                      - add: [ stats:reward, conf:reward:metabolism ]
                       - if:
                           Conditions:
                               gt: [ agent:met:3, 0 ]
@@ -519,6 +555,8 @@
                               - add: [ stats:energy:gained, conf:agent:energy:met:3 ]
                               - add: [ stats:energy:gained:met, conf:agent:energy:met:3 ]
                               - add: [ stats:energy:gained:met:3, conf:agent:energy:met:3 ]
+                              - reward: conf:reward:metabolism
+                              - add: [ stats:reward, conf:reward:metabolism ]
 
           Dst:
             Object: charger
@@ -539,6 +577,10 @@
                 - eq: [ dst.altar:ready, 1 ]
                 - gte: [ agent:energy, conf:altar:cost ]
             Commands:
+              - reward: dst.altar:reward
+              - add: [ stats:reward, dst.altar:reward ]
+              - set: [ dst.altar:reward, 0 ]
+
               - incr: stats:action:use:altar
               - sub: [ agent:energy, conf:altar:cost ]
               - add: [ stats:energy:used:altar, conf:altar:cost ]
@@ -765,6 +807,19 @@
                   ActionId: 1
                   Delay: 1
 
+    - Name: generator:init
+      InputMapping:
+        Internal: true
+        Inputs:
+          1:
+            VectorToDest: [ 0, 0 ]
+      Behaviours:
+        - Src:
+            Object: generator
+          Dst:
+            Object: generator
+            Commands:
+              - set: [ generator:reward, conf:reward:use ]
 
     - Name: generator:reset
       InputMapping:
@@ -792,6 +847,20 @@
               - set: [ generator:ready, 1 ]
               - set_tile: generator:resource
 
+    - Name: charger:init
+      InputMapping:
+        Internal: true
+        Inputs:
+          1:
+            VectorToDest: [ 0, 0 ]
+      Behaviours:
+        - Src:
+            Object: charger
+          Dst:
+            Object: charger
+            Commands:
+              - set: [ charger:reward, conf:reward:use ]
+
     - Name: charger:reset
       InputMapping:
         Internal: true
@@ -806,6 +875,20 @@
             Commands:
               - set: [ charger:ready, 1 ]
               - set_tile: 0
+
+    - Name: altar:init
+      InputMapping:
+        Internal: true
+        Inputs:
+          1:
+            VectorToDest: [ 0, 0 ]
+      Behaviours:
+        - Src:
+            Object: altar
+          Dst:
+            Object: altar
+            Commands:
+              - set: [ dst.altar:reward, conf:reward:use ]
 
     - Name: altar:reset
       InputMapping:
@@ -822,3 +905,16 @@
               - set: [ altar:ready, 1 ]
               - set_tile: 0
 
+    - Name: milestone:init
+      InputMapping:
+        Internal: true
+        Inputs:
+          1:
+            VectorToDest: [ 0, 0 ]
+      Behaviours:
+        - Src:
+            Object: milestone
+          Dst:
+            Object: milestone
+            Commands:
+              - set: [ dst.milestone:reward, conf:reward:use ]

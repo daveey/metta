@@ -13,6 +13,8 @@ import jmespath
 
 class PowerGridLevelGenerator():
     GAME_CONFIG = {
+        "reward:use": [0, 2],
+        "reward:metabolism": [0, 2],
         "altar:cooldown": [2, 5],
         "altar:cost": [10, 200],
 
