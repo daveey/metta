@@ -423,7 +423,6 @@
                   OnTrue:
                       - set: [ dst.milestone:visited, 1 ]
                       - incr: [ stats:milestones ]
-                      - reward: 1
               - mov: _dest
           Dst:
             Object: [ milestone ]
@@ -461,7 +460,6 @@
             Commands:
               - incr: stats:action:use:generator
               - incr: stats:resource:collected
-              - reward: 1
               - if:
                   Conditions:
                       eq: [ agent:met:1:resource, dst.generator:resource ]
@@ -497,7 +495,6 @@
                 - gt: [ agent:met:1, 0 ]
             Commands:
               - incr: stats:action:use:charger
-              - reward: 1
               - decr: agent:met:1
               - add: [ agent:energy, conf:agent:energy:met:1 ]
               - add: [ stats:energy:gained, conf:agent:energy:met:1 ]
@@ -513,7 +510,6 @@
                       - add: [ stats:energy:gained, conf:agent:energy:met:2 ]
                       - add: [ stats:energy:gained:met, conf:agent:energy:met:2 ]
                       - add: [ stats:energy:gained:met:2, conf:agent:energy:met:2 ]
-                      - reward: 2
                       - if:
                           Conditions:
                               gt: [ agent:met:3, 0 ]
@@ -523,7 +519,6 @@
                               - add: [ stats:energy:gained, conf:agent:energy:met:3 ]
                               - add: [ stats:energy:gained:met, conf:agent:energy:met:3 ]
                               - add: [ stats:energy:gained:met:3, conf:agent:energy:met:3 ]
-                              - reward: 4
 
           Dst:
             Object: charger
@@ -648,7 +643,6 @@
                             - set: [ agent:energy, 0 ]
                     OnFalse:
                       - set: [ agent:frozen, conf:attack:freeze_duration ]
-                      - reward: -100
 
               - incr: stats:action:shield
 
