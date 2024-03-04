@@ -77,25 +77,42 @@ class PowerGridEnv(gym.Env):
     def render(self):
         return super().render()
 
+
     def reset(self, **kwargs):
         self._make_env()
-        obs, infos = self._griddly_env.reset(**kwargs)
+        obs, info = self._griddly_env.reset(**kwargs)
+        if self._griddly_env.player_count == 1:
+            obs = [obs]
+
         self._step = 0
         self._last_actions = np.zeros((self._griddly_env.player_count, 2), dtype=np.int32)
         self._last_rewards = np.zeros(self._griddly_env.player_count, dtype=np.float32)
         self._episode_prestige_rewards = np.array([0] * self._griddly_env.player_count, dtype=np.float32)
         self._global_variable_obs = np.array([
             v[0] for v in self._griddly_env.game.get_global_variable(self.global_variable_names).values()])
-        return self._augment_observations(obs), infos
+
+        augmented_obs = self._augment_observations(obs)
+        if self._griddly_env.player_count == 1:
+            return augmented_obs[0], info
+        else:
+            return self._augment_observations(obs), info
 
     def step(self, actions):
-        obs, rewards, terminated, truncated, infos = self._griddly_env.step(actions)
-        self._last_actions = actions
+        obs, rewards, terminated, truncated, info = self._griddly_env.step(actions)
+        if self._griddly_env.player_count == 1:
+            self._last_actions = [actions]
+            obs = [obs]
+            rewards = [rewards]
+        else:
+            self._last_actions = actions
+
         self._step += 1
 
         # if self._reward_sharing_matrix is not None:
         #     rewards = np.dot(self._reward_sharing_matrix, rewards)
+
         rewards = np.array(rewards, dtype=np.float32)
+
         # set any episode_rewards to 0 if we get a negative reward
         self._episode_rewards[rewards < 0] = 0
         # update episode rewards for altar usage
@@ -119,11 +136,14 @@ class PowerGridEnv(gym.Env):
                 rewards += prestige_rewards
 
         if terminated or truncated:
-            self._add_episode_stats(infos)
+            self._add_episode_stats(info)
 
         self._last_rewards = rewards
         augmented_obs = self._augment_observations(obs)
-        return augmented_obs, rewards, terminated, truncated, infos
+        if self._griddly_env.player_count == 1:
+            return augmented_obs[0], rewards[0], terminated, truncated, info
+        else:
+            return augmented_obs, rewards, terminated, truncated, info
 
     def _add_episode_stats(self, infos):
         stat_names = list(filter(
@@ -169,16 +189,13 @@ class PowerGridEnv(gym.Env):
         return max_level_energy
 
     def _augment_observations(self, obs):
-        augment = lambda o: {
-            "obs": o,
+        return [{
+            "obs": agent_obs,
             "global_vars": self._global_variable_obs,
-            "last_action": np.array(self._last_actions),
-            "last_reward": np.array(self._last_rewards)
-        }
-        if self._griddly_env.player_count == 1:
-            return augment(obs)
-        else:
-            return [augment(o) for o in obs]
+            "last_action": np.array(self._last_actions[agent]),
+            "last_reward": np.array(self._last_rewards[agent])
+        } for agent, agent_obs in enumerate(obs)]
+
 
     @property
     def observation_space(self):

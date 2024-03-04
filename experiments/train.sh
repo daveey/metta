@@ -1,5 +1,9 @@
 #/bin/bash -e
 
+pkill -9 wandb
+pkill -9 python
+git pull
+
 python -m train \
     --algo=APPO \
     --env=GDY-PowerGrid \

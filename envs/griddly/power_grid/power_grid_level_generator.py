@@ -97,6 +97,7 @@ class PowerGridLevelGenerator():
             level=0,
             max_steps=self.max_steps,
             render_mode=render_mode,
+
         )
         return env
 
