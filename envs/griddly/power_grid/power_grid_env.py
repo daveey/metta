@@ -43,6 +43,7 @@ class PowerGridEnv(gym.Env):
         var_order = self._griddly_env.game.get_object_variable_names()
         assert obj_order == sorted(obj_order)
         assert var_order == sorted(var_order)
+        assert self._griddly_env.action_names == ["rotate", "move", "use", "shield", "attack"]
 
     def _make_env(self):
         self._griddly_env = self._level_generator.make_env(self._render_mode)
@@ -168,12 +169,16 @@ class PowerGridEnv(gym.Env):
         return max_level_energy
 
     def _augment_observations(self, obs):
-        return [{
-            "obs": agent_obs,
+        augment = lambda o: {
+            "obs": o,
             "global_vars": self._global_variable_obs,
-            "last_action": np.array(self._last_actions[agent]),
-            "last_reward": np.array(self._last_rewards[agent])
-        } for agent, agent_obs in enumerate(obs)]
+            "last_action": np.array(self._last_actions),
+            "last_reward": np.array(self._last_rewards)
+        }
+        if self._griddly_env.player_count == 1:
+            return augment(obs)
+        else:
+            return [augment(o) for o in obs]
 
     @property
     def observation_space(self):

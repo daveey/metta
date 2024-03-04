@@ -107,6 +107,9 @@
       - Name: stats:energy:used:shield:upkeep
         InitialValue: 0
         PerPlayer: true
+      - Name: stats:energy:used:shield:toggle
+        InitialValue: 0
+        PerPlayer: true
       - Name: stats:energy:used:shield:defence
         InitialValue: 0
         PerPlayer: true
@@ -609,6 +612,7 @@
             Preconditions:
               - and:
                 - eq: [ agent:frozen, 0 ]
+                - gte: [ agent:energy, conf:cost:shield ]
             Commands:
               - if:
                     Conditions:
@@ -616,6 +620,8 @@
                     OnTrue:
                       - set: [ agent:shield, 0 ]
                     OnFalse:
+                      - sub: [ agent:energy, conf:cost:shield ]
+                      - add: [ stats:energy:used:shield:toggle, conf:cost:shield ]
                       - set: [ agent:shield, 1 ]
 
               - incr: stats:action:shield

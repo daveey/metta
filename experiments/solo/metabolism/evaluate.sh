@@ -1,14 +1,13 @@
 #!/bin/bash -e
 
-python -m envs.griddly.enjoy \
-    --seed=0 \
-    --env=GDY-PowerGrid \
-    --device=cpu \
-    --train_dir=./train_dir/ \
-    --fps=0 \
-    --no_render \
-    --max_num_frames=1000 \
-    --eval_env_frameskip=1 \
-    --load_checkpoint_kind=best \
-    --experiment "$@"
-
+./experiments/solo/evaluate.sh \
+    --env_width=10 \
+    --env_height=10 \
+    --env_num_altars=1 \
+    --env_num_chargers=1 \
+    --env_num_generators=10 \
+    --env_wall_density=0 \
+    --env_cost:shield=10000 \
+    --env_cost:attack=10000 \
+    --env_agent:initial_energy=0 \
+    "$@"
