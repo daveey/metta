@@ -14,33 +14,39 @@ pip install -r requirements.txt
 ```
 
 3. install griddly (from source)
-## Griddly prerequisites:
-1. Ninja (`brew install ninja` in MacOS)
 
-```
-git clone https://github.com/Bam4d/Griddly.git griddly
+    #### Griddly prerequisites:
+    * Ninja (`brew install ninja` in MacOS)
 
-cd griddly
 
-pip install conan==1.59.0
+    #### Installing Griddly:
+    ```
+    git clone https://github.com/daveey/Griddly.git griddly
 
-conan install deps/conanfile.txt --profile default --profile deps/build.profile -s build_type=Release --build missing -if build
+    cd griddly
 
-cmake . -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_CXX_FLAGS=-w
+    pip install conan==1.59.0
 
-cmake --build build --config Release
+    conan install deps/conanfile.txt --profile default --profile deps/build.profile -s build_type=Release --build missing -if build
 
-cd python && pip install -e .
-```
+    cmake . -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_CXX_FLAGS=-w
+
+    cmake --build build --config Release
+
+    cd python && pip install -e . 
+    cd ../..
+    ```
 
 4. install vulkan sdk from https://vulkan.lunarg.com/sdk/home (1.3.224.1)
 
 5. install sample-factory (from source)
 
-```
-git clone https://github.com/daveey/sample-factory.git
-cd sample-factory && pip install -e .
-```
+    ```
+    git clone https://github.com/daveey/sample-factory.git
+    cd sample-factory && pip install -e .
+    cd ..
+    ```
+
 
 ### Troubleshooting
 #### conan installation
