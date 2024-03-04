@@ -33,14 +33,16 @@ RUN apt upgrade -y libopenblas-dev
 RUN pip uninstall -y numpy
 RUN pip install numpy
 
-RUN git clone https://github.com/daveey/sample-factory.git
+RUN git clone https://github.com/daveey/sample-factory.git sample-factory
 WORKDIR /workspace/sample-factory
 RUN pip install -e .
 
-RUN git clone https://github.com/daveey/metta.git
+WORKDIR /workspace/
+RUN git clone https://github.com/daveey/metta.git metta
 WORKDIR /workspace/metta
 RUN pip install -r requirements.txt
 
+WORKDIR /workspace/
 # Install screen
 RUN apt-get update && apt-get install -y screen
 
