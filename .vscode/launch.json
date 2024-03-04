@@ -65,7 +65,7 @@
                 "--max_num_frames=1000",
                 "--eval_env_frameskip=1",
                 "--env=GDY-PowerGrid",
-                "--env_num_agents=5",
+                "--env_num_agents=1",
                 "--env_width=25",
                 "--env_height=25",
                 "--env_num_altars=2",

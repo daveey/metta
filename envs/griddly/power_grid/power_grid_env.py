@@ -177,23 +177,25 @@ class PowerGridEnv(gym.Env):
 
     @property
     def observation_space(self):
-        # augment the observation space with the global variables
-        return [
-            gym.spaces.Dict({
-                "obs": o,
-                "global_vars": gym.spaces.Box(
-                    low=-np.inf, high=np.inf,
-                    shape=[len(self.global_variable_names)],
-                    dtype=np.float32),
-                "last_action": gym.spaces.Box(
-                    low=0, high=255,
-                    shape=[2],
-                    dtype=np.int32),
-                "last_reward": gym.spaces.Box(
-                    low=-np.inf, high=np.inf,
-                    shape=[1],
-                    dtype=np.float32)
-            }) for o in self._griddly_env.observation_space]
+        augment = lambda o: gym.spaces.Dict({
+            "obs": o,
+            "global_vars": gym.spaces.Box(
+                low=-np.inf, high=np.inf,
+                shape=[len(self.global_variable_names)],
+                dtype=np.float32),
+            "last_action": gym.spaces.Box(
+                low=0, high=255,
+                shape=[2],
+                dtype=np.int32),
+            "last_reward": gym.spaces.Box(
+                low=-np.inf, high=np.inf,
+                shape=[1],
+                dtype=np.float32)
+        })
+        if self._griddly_env.player_count == 1:
+            return augment(self._griddly_env.observation_space)
+        else:
+            return [augment(o) for o in self._griddly_env.observation_space]
 
     @property
     def action_space(self):
