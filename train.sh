@@ -15,7 +15,7 @@ python -m train \
     --env_num_chargers=1:5 \
     --env_num_generators=5:20 \
     --env_wall_density=0:0.15 \
-    --reward_rank_steps=10 \
+    --env_reward_rank_steps=10 \
     --agent_fc_layers=10 \
     --agent_fc_size=512 \
     --rnn_num_layers=2 \
