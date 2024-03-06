@@ -6,8 +6,7 @@
       # Exploration Rewards
       - Name: conf:reward:use
         InitialValue: 1
-      - Name: conf:reward:metabolism
-        InitialValue: 1
+
       - Name: stats:reward
         InitialValue: 0
         PerPlayer: true
@@ -156,6 +155,8 @@
       - Name: conf:agent:energy:met:3
         PerPlayer: true
         InitialValue: 20
+      - Name: conf:reward:metabolism
+        InitialValue: 1
 
       # debug variables, used for webui
       - Name: debug:agent:energy
