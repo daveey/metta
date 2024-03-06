@@ -1,9 +1,9 @@
 #/bin/bash -e
 
 ./train.sh \
-    --env_num_agents=5 \
     --env_width=25 \
     --env_height=25 \
+    --env_num_agents=5 \
     --env_num_altars=1 \
     --env_num_chargers=3 \
     --env_num_generators=15 \
@@ -11,6 +11,7 @@
     --env_reward_rank_steps=1000 \
     --env_reward:use=1 \
     --env_reward:metabolism=3 \
+    --reward_prestige_weight=0 \
     --env_cost:attack=10000 \
     --env_cost:shield=10000 \
     --agent_fc_layers=4 \
