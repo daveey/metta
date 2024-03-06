@@ -13,13 +13,13 @@
     --env_reward:metabolism=3 \
     --env_cost:attack=10000 \
     --env_cost:shield=10000 \
-    --agent_fc_layers=10 \
+    --agent_fc_layers=4 \
     --agent_fc_size=512 \
-    --rnn_num_layers=2 \
-    --rnn_size=256 \
+    --rnn_num_layers=1 \
+    --rnn_size=512 \
     --rnn_type=gru \
     --rollout=256 \
-    --batch_size=2048 \
+    --batch_size=4096 \
     --decorrelate_experience_max_seconds=150  \
     --value_loss_coeff=0.976 \
     --exploration_loss=symmetric_kl \
