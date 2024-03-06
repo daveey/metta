@@ -556,6 +556,8 @@
               - add: [ stats:energy:gained, conf:agent:energy:met:1 ]
               - add: [ stats:energy:gained:met, conf:agent:energy:met:1 ]
               - add: [ stats:energy:gained:met:1, conf:agent:energy:met:1 ]
+              - reward: conf:agent:energy:met:1
+              - add: [ stats:reward, conf:agent:energy:met:1 ]
 
               - if:
                   Conditions:
@@ -566,7 +568,9 @@
                       - add: [ stats:energy:gained, conf:agent:energy:met:2 ]
                       - add: [ stats:energy:gained:met, conf:agent:energy:met:2 ]
                       - add: [ stats:energy:gained:met:2, conf:agent:energy:met:2 ]
-                      - reward: conf:reward:metabolism
+                      - reward: conf:agent:energy:met:2
+                      - add: [ stats:reward, conf:agent:energy:met:2 ]
+                      - reward: conf:agent:energy:met:2
                       - add: [ stats:reward, conf:reward:metabolism ]
                       - if:
                           Conditions:
@@ -577,6 +581,8 @@
                               - add: [ stats:energy:gained, conf:agent:energy:met:3 ]
                               - add: [ stats:energy:gained:met, conf:agent:energy:met:3 ]
                               - add: [ stats:energy:gained:met:3, conf:agent:energy:met:3 ]
+                              - reward: conf:agent:energy:met:3
+                              - add: [ stats:reward, conf:agent:energy:met:3 ]
                               - reward: conf:reward:metabolism
                               - add: [ stats:reward, conf:reward:metabolism ]
 
@@ -783,6 +789,9 @@
               - add: [ agent:energy, conf:agent:energy:regen ]
               - add: [ stats:energy:gained, conf:agent:energy:regen ]
               - add: [ stats:energy:gained:regen, conf:agent:energy:regen ]
+              - reward: conf:agent:energy:regen
+              - add: [ stats:reward, conf:agent:energy:regen ]
+
               - set_tile: 0
 
 

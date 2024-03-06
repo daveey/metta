@@ -32,6 +32,7 @@ class PowerGridEnv(gym.Env):
 
         self._validate_griddly()
         self._max_level_energy = None
+        self._max_level_energy_per_agent = None
         self._episode_rewards = None
         self._prestige_reward_weight = None
         self._prestige_steps = None
@@ -50,7 +51,7 @@ class PowerGridEnv(gym.Env):
         self._griddly_env = self._level_generator.make_env(self._render_mode)
         self._max_steps = self._level_generator.max_steps
         self._setup_reward_sharing()
-        self._max_level_energy = self._compute_max_energy()
+        self._compute_max_energy()
         self._episode_rewards = np.array([0] * self._griddly_env.player_count, dtype=np.float32)
         self._prestige_steps = int(self._level_generator.sample_cfg("reward_rank_steps"))
         self._prestige_reward_weight = self._level_generator.sample_cfg("reward_prestige_weight")
@@ -114,6 +115,7 @@ class PowerGridEnv(gym.Env):
         #     rewards = np.dot(self._reward_sharing_matrix, rewards)
 
         rewards = np.array(rewards, dtype=np.float32)
+        rewards /= self._max_level_energy_per_agent
 
         # prestige rewards
         rewards = self._compute_presitge_rewards(rewards)
@@ -169,7 +171,7 @@ class PowerGridEnv(gym.Env):
                 agent_stats[stat_name] = stat_val
             agent_stats["prestige_reward"] = self._episode_prestige_rewards[agent]
             agent_stats["level_max_energy"] = self._max_level_energy
-            agent_stats["level_max_energy_per_agent"] = self._max_level_energy / self._griddly_env.player_count
+            agent_stats["level_max_energy_per_agent"] = self._max_level_energy_per_agent
             infos["episode_extra_stats"].append(agent_stats)
 
     def _compute_max_energy(self):
@@ -188,10 +190,9 @@ class PowerGridEnv(gym.Env):
             filter(lambda x: x["Name"] == "generator",
             self._griddly_env.game.get_state()["Objects"])))
         max_resources = num_generators * (1 + num_steps // generator_cooldown)
-        max_met_energy = (m1 + m2) * max_resources / 3
-        max_level_energy = max_met_energy + self._griddly_env.player_count * agent_regen * num_steps
-
-        return max_level_energy
+        max_met_energy = float(m1 + m2) * max_resources / 3
+        self._max_level_energy = max_met_energy + self._griddly_env.player_count * agent_regen * num_steps
+        self._max_level_energy_per_agent = self._max_level_energy / self._griddly_env.player_count
 
     def _augment_observations(self, obs):
         return [{
