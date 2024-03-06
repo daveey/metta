@@ -1,0 +1,31 @@
+#/bin/bash -e
+
+./train.sh \
+    --env_num_agents=5 \
+    --env_width=20 \
+    --env_height=20 \
+    --env_num_altars=1 \
+    --env_num_chargers=3 \
+    --env_num_generators=15 \
+    --env_wall_density=0 \
+    --env_reward_rank_steps=1000 \
+    --env_reward:use=1 \
+    --env_reward:metabolism=3 \
+    --env_cost:attack=10000 \
+    --env_cost:shield=10000 \
+    --agent_fc_layers=10 \
+    --agent_fc_size=512 \
+    --rnn_num_layers=2 \
+    --rnn_size=256 \
+    --rnn_type=gru \
+    --rollout=256 \
+    --batch_size=2048 \
+    --decorrelate_experience_max_seconds=150  \
+    --value_loss_coeff=0.976 \
+    --exploration_loss=symmetric_kl \
+    --exploration_loss_coeff=0.002 \
+    --policy_initialization=orthogonal \
+    --learning_rate=0.0000195 \
+    --max_policy_lag=2000 \
+    --nonlinearity=elu \
+    "$@"
