@@ -18,14 +18,4 @@
     --rnn_num_layers=1 \
     --rnn_size=512 \
     --rnn_type=gru \
-    --rollout=256 \
-    --batch_size=4096 \
-    --decorrelate_experience_max_seconds=150  \
-    --value_loss_coeff=0.976 \
-    --exploration_loss=symmetric_kl \
-    --exploration_loss_coeff=0.002 \
-    --policy_initialization=orthogonal \
-    --learning_rate=0.0000195 \
-    --max_policy_lag=2000 \
-    --nonlinearity=elu \
     "$@"
