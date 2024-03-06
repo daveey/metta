@@ -11,7 +11,7 @@
     --env_reward_rank_steps=1000 \
     --env_reward:use=1 \
     --env_reward:metabolism=3 \
-    --reward_prestige_weight=0 \
+    --env_reward_prestige_weight=0 \
     --env_cost:attack=10000 \
     --env_cost:shield=10000 \
     --agent_fc_layers=4 \
