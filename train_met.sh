@@ -2,8 +2,8 @@
 
 ./train.sh \
     --env_num_agents=5 \
-    --env_width=20 \
-    --env_height=20 \
+    --env_width=25 \
+    --env_height=25 \
     --env_num_altars=1 \
     --env_num_chargers=3 \
     --env_num_generators=15 \
