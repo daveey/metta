@@ -12,7 +12,6 @@
             "args": [
                 "--experiment=mac.pres2",
 
-
                 "--algo=APPO",
                 "--device=cpu",
                 "--restart_behavior=restart",
@@ -36,7 +35,7 @@
                 "--env_max_steps=100",
                 "--load_checkpoint_kind=best",
 
-                // "--normalize_input=False",
+                "--normalize_input=False",
                 // "--aux_loss_coef=0.1",
                 "--agent_fc_layers=2",
                 "--agent_fc_size=512",
@@ -53,7 +52,7 @@
                 // "--experiment=pred.10.0",
                 // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
-                "--experiment=m1.prestige",
+                "--experiment=mac.pres2",
 
                 "--device=cpu",
                 "--serial=True",

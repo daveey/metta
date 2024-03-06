@@ -15,6 +15,8 @@
       # Altar
       - Name: conf:altar:cost
         InitialValue: 50
+      - Name: conf:altar:reward
+        InitialValue: 10
       - Name: conf:altar:cooldown
         InitialValue: 2
       - Name: stats:action:use:altar
@@ -66,6 +68,11 @@
         InitialValue: 0
         PerPlayer: true
       - Name: stats:energy:gained:regen
+        InitialValue: 0
+        PerPlayer: true
+
+      # No-Op
+      - Name: stats:action:noop
         InitialValue: 0
         PerPlayer: true
 
@@ -360,6 +367,8 @@
       Variables:
         - Name: agent:id
           InitialValue: 0
+        - Name: agent:dir
+          InitialValue: 0
         - Name: agent:energy
           InitialValue: 0
         - Name: agent:shield
@@ -398,15 +407,23 @@
             1:
               Description: Face down
               OrientationVector: [0, 1]
+              MetaData:
+                dir: 1
             2:
               Description: Face left
               OrientationVector: [-1, 0]
+              MetaData:
+                dir: 2
             3:
               Description: Face right
               OrientationVector: [1, 0]
+              MetaData:
+                dir: 3
             4:
               Description: Face Up
               OrientationVector: [0, -1]
+              MetaData:
+                dir: 4
 
       Behaviours:
         - Src:
@@ -419,6 +436,7 @@
               - sub: [ agent:energy, conf:cost:rotate ]
               - incr: stats:action:rotate
               - add: [ stats:energy:used:rotate, conf:cost:rotate ]
+              - set: [ agent:dir, meta.dir ]
           Dst:
             Object: agent
 
@@ -583,11 +601,12 @@
               - reward: dst.altar:reward
               - add: [ stats:reward, dst.altar:reward ]
               - set: [ dst.altar:reward, 0 ]
+              - reward: conf:altar:reward
+              - add: [ stats:reward, conf:altar:reward ]
 
               - incr: stats:action:use:altar
               - sub: [ agent:energy, conf:altar:cost ]
               - add: [ stats:energy:used:altar, conf:altar:cost ]
-              - reward: 100
           Dst:
             Object: altar
             Commands:

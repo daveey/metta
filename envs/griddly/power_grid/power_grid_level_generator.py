@@ -15,8 +15,10 @@ class PowerGridLevelGenerator():
     GAME_CONFIG = {
         "reward:use": [0, 2],
         "reward:metabolism": [0, 2],
+
         "altar:cooldown": [2, 5],
         "altar:cost": [10, 200],
+        "altar:reward": [0, 0],
 
         "charger:cooldown": [ 2, 2 ],
         "generator:cooldown": [ 20, 100 ],
@@ -48,7 +50,9 @@ class PowerGridLevelGenerator():
         "wall_density": [0.0, 0.15],
         "rsm_num_families": [0, 0],
         "rsm_family_reward": [0, 0],
+
         "reward_rank_steps": [10, 500],
+        "reward_prestige_weight": [10, 50],
     }
 
     def __init__(self, cfg):

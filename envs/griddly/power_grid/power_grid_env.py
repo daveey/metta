@@ -33,6 +33,7 @@ class PowerGridEnv(gym.Env):
         self._validate_griddly()
         self._max_level_energy = None
         self._episode_rewards = None
+        self._prestige_reward_weight = None
         self._prestige_steps = None
         self._episode_prestige_rewards = None
         self._last_actions = None
@@ -52,6 +53,7 @@ class PowerGridEnv(gym.Env):
         self._max_level_energy = self._compute_max_energy()
         self._episode_rewards = np.array([0] * self._griddly_env.player_count, dtype=np.float32)
         self._prestige_steps = int(self._level_generator.sample_cfg("reward_rank_steps"))
+        self._prestige_reward_weight = self._level_generator.sample_cfg("reward_prestige_weight")
 
     def _setup_reward_sharing(self):
         self._reward_sharing_matrix = None
@@ -113,27 +115,8 @@ class PowerGridEnv(gym.Env):
 
         rewards = np.array(rewards, dtype=np.float32)
 
-        # set any episode_rewards to 0 if we get a negative reward
-        self._episode_rewards[rewards < 0] = 0
-        # update episode rewards for altar usage
-        self._episode_rewards[rewards > 90] += 1
-
-        # scale the rewards from the environment, since they are meant to be
-        # mostly hints, not actual rewards
-        rewards /= 1000.0
-
         # prestige rewards
-        if self._step % self._prestige_steps == 0 or terminated or truncated:
-            total_rewards = np.sum(self._episode_rewards)
-            if total_rewards > 0:
-                # rank the agents by their rewards
-                rank = np.argsort(np.argsort(self._episode_rewards))
-                # Scale the ranks to the range -1 to 1
-                prestige_rewards = 2.0 * (rank / (rank.size - 1)) - 1.0
-                # normalize based on how often we get prestige rewards
-                prestige_rewards *= 10 * self._prestige_steps / self._max_steps
-                self._episode_prestige_rewards += prestige_rewards
-                rewards += prestige_rewards
+        rewards = self._compute_presitge_rewards(rewards)
 
         if terminated or truncated:
             self._add_episode_stats(info)
@@ -144,6 +127,28 @@ class PowerGridEnv(gym.Env):
             return augmented_obs[0], rewards[0], terminated, truncated, info
         else:
             return augmented_obs, rewards, terminated, truncated, info
+
+    def _compute_presitge_rewards(self, rewards):
+
+        if self._prestige_reward_weight == 0 or self._step % self._prestige_steps != 0:
+            return rewards
+
+        altar_energy = np.array(
+            [v for v in self._griddly_env.game.get_global_variable(
+                ["stats:energy:used:altar"])["stats:energy:used:altar"].values()
+            ])
+        if altar_energy.sum() == 0:
+            return rewards
+
+        # rank the agents by their rewards
+        rank = np.argsort(np.argsort(altar_energy))
+        # Scale the ranks to the range -1 to 1
+        prestige_rewards = 2.0 * (rank / (rank.size - 1)) - 1.0
+        # normalize based on how often we get prestige rewards
+        prestige_rewards *= self._prestige_reward_weight * self._prestige_steps / self._max_steps
+        self._episode_prestige_rewards += prestige_rewards
+        rewards += prestige_rewards
+        return rewards
 
     def _add_episode_stats(self, infos):
         stat_names = list(filter(

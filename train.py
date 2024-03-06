@@ -9,6 +9,8 @@ from envs.griddly.sample_factory_env_wrapper import GriddlyEnvWrapper
 from agent import agent
 
 from envs.griddly.power_grid import power_grid_env, power_grid_level_generator
+import agent.settings
+import scenario
 
 def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optional[str] = None):
     lg = power_grid_level_generator.PowerGridLevelGenerator(cfg)
@@ -30,6 +32,8 @@ def parse_custom_args(argv=None, evaluation=False):
     parser.add_argument("--env_num_agents", default=8, type=int,
                         help="number of agents in the environment")
     parser.add_argument("--env_max_steps", default=1000, type=int)
+    parser.add_argument("--scenario", default=None, type=str)
+    parser.add_argument("--agent", default=None, type=str)
 
     power_grid_level_generator.add_env_args(parser)
     agent.add_args(parser)
@@ -41,6 +45,11 @@ def main():
     """Script entry point."""
     register_custom_components()
     cfg = parse_custom_args()
+    cfg.env = "GDY-PowerGrid"
+
+    scenario.load_scenario_config(cfg)
+    # agent.load_agent_config(cfg)
+
     status =  run_rl(cfg)
     return status
 
