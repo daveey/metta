@@ -736,7 +736,7 @@
                     eq: [ agent:shield, 1 ]
                   OnTrue:
                     - sub: [ agent:energy, conf:cost:shield:upkeep ]
-                    - add: [ stats:energy:used:shield:upkeep, conf:cost:shield ]
+                    - add: [ stats:energy:used:shield:upkeep, conf:cost:shield:upkeep ]
                     - incr: stats:agent:shield:ticks
                     - set_tile: 1
 
