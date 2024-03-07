@@ -176,11 +176,10 @@ class PowerGridEnv(gym.Env):
 
     def _compute_max_energy(self):
         # compute the max possible energy for the level
-        m1, m2, generator_cooldown, agent_regen = map(
+        charger_energy, generator_cooldown, agent_regen = map(
             lambda x: float(x[0]),
             self._griddly_env.game.get_global_variable([
-                "conf:agent:energy:met:1",
-                "conf:agent:energy:met:2",
+                "conf:charger:energy",
                 "conf:generator:cooldown",
                 "conf:agent:energy:regen"]
             ).values())
@@ -190,8 +189,8 @@ class PowerGridEnv(gym.Env):
             filter(lambda x: x["Name"] == "generator",
             self._griddly_env.game.get_state()["Objects"])))
         max_resources = num_generators * (1 + num_steps // generator_cooldown)
-        max_met_energy = float(m1 + m2) * max_resources / 3
-        self._max_level_energy = max_met_energy + self._griddly_env.player_count * agent_regen * num_steps
+        max_charger_energy = float(charger_energy) * max_resources
+        self._max_level_energy = max_charger_energy + self._griddly_env.player_count * agent_regen * num_steps
         self._max_level_energy_per_agent = self._max_level_energy / self._griddly_env.player_count
 
     def _augment_observations(self, obs):
