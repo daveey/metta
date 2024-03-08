@@ -173,7 +173,7 @@
         IncludeVariables: true
         # IncludeRotation: true
       GlobalSpriteObserver:
-        TileSize: 32
+        TileSize: 16
         Type: SPRITE_2D
         RotateAvatarImage: true
         BackgroundTile: oryx/oryx_fantasy/floor1-0.png
