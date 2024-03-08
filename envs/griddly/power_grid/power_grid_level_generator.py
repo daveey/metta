@@ -45,6 +45,7 @@ class PowerGridLevelGenerator():
         "num_chargers": [5, 20],
         "num_generators": [5, 50],
         "wall_density": [0.0, 0.15],
+
         "rsm_num_families": [0, 0],
         "rsm_family_reward": [0, 0],
 
@@ -124,7 +125,7 @@ class PowerGridLevelGenerator():
 
         level = np.random.choice(
             ['o', '.'], size=(height, width),
-            p=[p_milestones, 1-p_milestones]).astype("U2") # 2-char unicode strings
+            p=[p_milestones, 1-p_milestones]).astype("U4") # 2-char unicode strings
         floor_tiles = [".", "o"]
 
         # make the bounding box

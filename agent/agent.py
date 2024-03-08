@@ -30,7 +30,8 @@ class GriddlyEncoder(Encoder):
             np.prod(obs_space["obs"].shape) +
             obs_space["global_vars"].shape[0] +
             obs_space["last_action"].shape[0] +
-            obs_space["last_reward"].shape[0]
+            obs_space["last_reward"].shape[0] +
+            obs_space["kinship"].shape[0]
         )
 
         self.encoder_head = nn.Sequential(*[
@@ -52,6 +53,7 @@ class GriddlyEncoder(Encoder):
                 obs_dict["global_vars"],
                 obs_dict["last_action"].view(batch_size, -1),
                 obs_dict["last_reward"].view(batch_size, -1),
+                obs_dict["kinship"].view(batch_size, -1),
             ], dim=1))
         x = x.view(-1, self.encoder_head_out_size)
         return x
