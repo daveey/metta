@@ -37,6 +37,7 @@ class PowerGridLevelGenerator():
     }
 
     LEVEL_CONFIG = {
+        "tile_size": [32, 32],
         "width": [10, 20],
         "height": [10, 20],
         "wall_density": [0.1, 0.3],
@@ -85,6 +86,7 @@ class PowerGridLevelGenerator():
 
         game_config = deepcopy(self.game_config)
         game_config["Environment"]["Player"]["Count"] = self.num_agents
+        game_config["Environment"]["Observers"]["GlobalSpriteObserver"]["TileSize"] = int(self.sample_cfg("tile_size"))
         game_config["Environment"]["Levels"] = [self.make_level_string()]
         for var_name, value in self.GAME_CONFIG.items():
             _update_global_variable(
@@ -125,7 +127,7 @@ class PowerGridLevelGenerator():
 
         level = np.random.choice(
             ['o', '.'], size=(height, width),
-            p=[p_milestones, 1-p_milestones]).astype("U4") # 2-char unicode strings
+            p=[p_milestones, 1-p_milestones]).astype("U6") # 2-char unicode strings
         floor_tiles = [".", "o"]
 
         # make the bounding box

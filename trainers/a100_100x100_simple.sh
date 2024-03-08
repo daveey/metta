@@ -2,12 +2,12 @@
 
 
 ./train.sh \
-    --env_width=25 \
-    --env_height=25 \
-    --env_num_agents=5 \
-    --env_num_altars=1 \
-    --env_num_chargers=3 \
-    --env_num_generators=15 \
+    --env_width=100 \
+    --env_height=100 \
+    --env_num_agents=100 \
+    --env_num_altars=20 \
+    --env_num_chargers=30 \
+    --env_num_generators=200 \
     --env_wall_density=0.01 \
     --env_reward_rank_steps=1000 \
     --env_reward:use=1 \
