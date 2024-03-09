@@ -20,4 +20,5 @@
     --rnn_num_layers=1 \
     --rnn_size=512 \
     --rnn_type=gru \
+    --max_policy_lag=20000 \
     "$@"

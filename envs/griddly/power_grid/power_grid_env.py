@@ -9,6 +9,7 @@ import gymnasium as gym
 import numpy as np
 from pygame import init
 import yaml
+from envs.reward_sharing import FamillyAllocator, FamillySparseAllocator, RewardAllocator
 from griddly.gym import GymWrapper
 from gymnasium.core import Env
 from envs.griddly.power_grid.power_grid_level_generator import PowerGridLevelGenerator
@@ -39,8 +40,7 @@ class PowerGridEnv(gym.Env):
         self._episode_prestige_rewards = None
         self._last_actions = None
         self._last_rewards = None
-        self._reward_sharing_matrix = None
-        self._agent_kinship = None
+        self._reward_sharing = None
 
     def _validate_griddly(self):
         obj_order = self._griddly_env.game.get_object_names()
@@ -52,63 +52,43 @@ class PowerGridEnv(gym.Env):
     def _make_env(self):
         self._griddly_env = self._level_generator.make_env(self._render_mode)
         self._max_steps = self._level_generator.max_steps
-        self._setup_reward_sharing()
+        self._num_agents = self._griddly_env.player_count
         self._compute_max_energy()
-        self._episode_rewards = np.array([0] * self._griddly_env.player_count, dtype=np.float32)
+        self._episode_rewards = np.array([0] * self._num_agents, dtype=np.float32)
         self._prestige_steps = int(self._level_generator.sample_cfg("reward_rank_steps"))
         self._prestige_reward_weight = self._level_generator.sample_cfg("reward_prestige_weight")
 
-    def _setup_reward_sharing(self):
-        self._reward_sharing_matrix = None
-        num_families = int(self._level_generator.sample_cfg("rsm_num_families"))
+        self._reward_sharing = RewardAllocator(self._num_agents)
+        num_families = self._level_generator.sample_cfg("rsm_num_families")
         family_reward = self._level_generator.sample_cfg("rsm_family_reward")
-
-        self._agent_kinship = np.array(range(self._griddly_env.player_count))
-
-        if num_families > 0 and family_reward > 0:
-            agents = np.array(range(self._griddly_env.player_count))
-            np.random.shuffle(agents)
-            families = np.array_split(agents, num_families)
-
-            rsm = np.zeros((len(agents), len(agents)), dtype=np.float32)
-            # share the reward among the families
-            for family_id, family in enumerate(families):
-                fr = family_reward / ( len(family) - 1 )
-                for a in family:
-                    self._agent_kinship[a] = family_id
-                    rsm[a, family] = fr
-                    rsm[a, a] = 1 - family_reward
-
-            # normalize
-            rsm = rsm / rsm.sum(axis=1, keepdims=True)
-            self._reward_sharing_matrix = rsm
+        if num_families > 0:
+            self._reward_sharing = FamillyAllocator(self._num_agents, num_families, family_reward)
 
     def render(self):
         return super().render()
 
-
     def reset(self, **kwargs):
         self._make_env()
         obs, info = self._griddly_env.reset(**kwargs)
-        if self._griddly_env.player_count == 1:
+        if self._num_agents == 1:
             obs = [obs]
 
         self._step = 0
-        self._last_actions = np.zeros((self._griddly_env.player_count, 2), dtype=np.int32)
-        self._last_rewards = np.zeros(self._griddly_env.player_count, dtype=np.float32)
-        self._episode_prestige_rewards = np.array([0] * self._griddly_env.player_count, dtype=np.float32)
+        self._last_actions = np.zeros((self._num_agents, 2), dtype=np.int32)
+        self._last_rewards = np.zeros(self._num_agents, dtype=np.float32)
+        self._episode_prestige_rewards = np.array([0] * self._num_agents, dtype=np.float32)
         self._global_variable_obs = np.array([
             v[0] for v in self._griddly_env.game.get_global_variable(self.global_variable_names).values()])
 
         augmented_obs = self._augment_observations(obs)
-        if self._griddly_env.player_count == 1:
+        if self._num_agents == 1:
             return augmented_obs[0], info
         else:
             return self._augment_observations(obs), info
 
     def step(self, actions):
         obs, rewards, terminated, truncated, info = self._griddly_env.step(actions)
-        if self._griddly_env.player_count == 1:
+        if self._num_agents == 1:
             self._last_actions = [actions]
             obs = [obs]
             rewards = [rewards]
@@ -116,14 +96,10 @@ class PowerGridEnv(gym.Env):
             self._last_actions = actions
 
         self._step += 1
+
         rewards = np.array(rewards, dtype=np.float32)
-
-        # prestige rewards
         rewards = self._compute_presitge_rewards(rewards)
-
-        # share the rewards
-        if self._reward_sharing_matrix is not None:
-            rewards = self._reward_sharing_matrix @ rewards.transpose()
+        rewards = self._reward_sharing.compute_shared_rewards(rewards)
 
         # normalize by total available energy
         rewards /= self._max_level_energy_per_agent
@@ -133,10 +109,11 @@ class PowerGridEnv(gym.Env):
 
         self._last_rewards = rewards
         augmented_obs = self._augment_observations(obs)
-        if self._griddly_env.player_count == 1:
+        if self._num_agents == 1:
             return augmented_obs[0], rewards[0], terminated, truncated, info
         else:
             return augmented_obs, rewards, terminated, truncated, info
+
 
     def _compute_presitge_rewards(self, rewards):
 
@@ -167,7 +144,7 @@ class PowerGridEnv(gym.Env):
         stats = self._griddly_env.game.get_global_variable(stat_names).copy()
         infos["episode_extra_stats"] = []
 
-        for agent in range(self._griddly_env.player_count):
+        for agent in range(self._num_agents):
             agent_stats = {}
             for stat_name in stat_names:
                 # some are per-agent, some are just global {0: val}
@@ -198,8 +175,8 @@ class PowerGridEnv(gym.Env):
             self._griddly_env.game.get_state()["Objects"])))
         max_resources = num_generators * (1 + num_steps // generator_cooldown)
         max_charger_energy = float(charger_energy) * max_resources
-        self._max_level_energy = max_charger_energy + self._griddly_env.player_count * agent_regen * num_steps
-        self._max_level_energy_per_agent = self._max_level_energy / self._griddly_env.player_count
+        self._max_level_energy = max_charger_energy + self._num_agents * agent_regen * num_steps
+        self._max_level_energy_per_agent = self._max_level_energy / self._num_agents
 
     def _augment_observations(self, obs):
         return [{
@@ -207,7 +184,7 @@ class PowerGridEnv(gym.Env):
             "global_vars": self._global_variable_obs,
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),
-            "kinship": np.array(self._agent_kinship[agent]),
+            "kinship": self._reward_sharing.obs(agent),
         } for agent, agent_obs in enumerate(obs)]
 
 
@@ -232,7 +209,7 @@ class PowerGridEnv(gym.Env):
                 shape=[1],
                 dtype=np.float32)
             })
-        if self._griddly_env.player_count == 1:
+        if self._num_agents == 1:
             return augment(self._griddly_env.observation_space)
         else:
             return [augment(o) for o in self._griddly_env.observation_space]
@@ -247,7 +224,7 @@ class PowerGridEnv(gym.Env):
 
     @property
     def player_count(self):
-        return self._griddly_env.player_count
+        return self._num_agents
 
 
     def render_observer(self, *args, **kwargs):
