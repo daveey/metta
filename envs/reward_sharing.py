@@ -5,13 +5,12 @@ import numpy as np
 class RewardAllocator():
     def __init__(self, num_agents) -> None:
         self._num_agents = num_agents
-        self._obs = np.arange(num_agents, dtype=np.int32).reshape(-1, 1)
 
     def compute_shared_rewards(self, rewards):
         return rewards
 
-    def obs(self, agent_id):
-        return self._obs[agent_id]
+    def obs(self, agent_id, agent_obs):
+        return agent_obs
 
 class MatrixRewardAllocator(RewardAllocator):
     def __init__(self, num_agents, reward_sharing_matrix) -> None:
@@ -49,13 +48,6 @@ class FamillySparseAllocator(RewardAllocator):
                 shared_rewards[agent] += reward * self._self_reward_coef[agent]
         return shared_rewards
 
-    def obs(self, agent_id, agent_obs):
-        kin_obs = agent_obs.copy()
-        agent_idxs = np.nonzero(agent_obs)
-        agent_ids = agent_obs[agent_idxs] - 1
-        families = self._agent_to_family_id[agent_ids] + 1
-        kin_obs[agent_idxs] = families
-        return kin_obs
 
 class FamillyAllocator(FamillySparseAllocator):
     def __init__(self, num_agents, num_families, family_reward_coef) -> None:
