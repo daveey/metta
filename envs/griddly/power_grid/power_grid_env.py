@@ -58,6 +58,10 @@ class PowerGridEnv(gym.Env):
         self._prestige_steps = int(self._level_generator.sample_cfg("reward_rank_steps"))
         self._prestige_reward_weight = self._level_generator.sample_cfg("reward_prestige_weight")
 
+        # compute the index of the agent id in the observation
+        self._agent_id_obs_idx = len(self._griddly_env.object_names) \
+            + self._griddly_env.variable_names.index("agent:id")
+
         self._reward_sharing = RewardAllocator(self._num_agents)
         num_families = self._level_generator.sample_cfg("rsm_num_families")
         family_reward = self._level_generator.sample_cfg("rsm_family_reward")
@@ -184,7 +188,7 @@ class PowerGridEnv(gym.Env):
             "global_vars": self._global_variable_obs,
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),
-            "kinship": self._reward_sharing.obs(agent),
+            "kinship": self._reward_sharing.obs(agent, agent_obs[self._agent_id_obs_idx]),
         } for agent, agent_obs in enumerate(obs)]
 
 
@@ -206,7 +210,7 @@ class PowerGridEnv(gym.Env):
                 dtype=np.float32),
             "kinship": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
-                shape=[1],
+                shape=o.shape[1:],
                 dtype=np.float32)
             })
         if self._num_agents == 1:
