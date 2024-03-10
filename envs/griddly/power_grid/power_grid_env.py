@@ -82,14 +82,22 @@ class PowerGridEnv(gym.Env):
         self._last_actions = np.zeros((self._num_agents, 2), dtype=np.int32)
         self._last_rewards = np.zeros(self._num_agents, dtype=np.float32)
         self._episode_prestige_rewards = np.array([0] * self._num_agents, dtype=np.float32)
-        self._global_variable_obs = np.array([
-            v[0] for v in self._griddly_env.game.get_global_variable(self.global_variable_names).values()])
+        self._compute_global_variable_obs()
 
         augmented_obs = self._augment_observations(obs)
         if self._num_agents == 1:
             return augmented_obs[0], info
         else:
             return self._augment_observations(obs), info
+
+    def _compute_global_variable_obs(self):
+        vals = []
+        for v in self._griddly_env.game.get_global_variable(self.global_variable_names).values():
+            if len(v) == 1:
+                vals.append([v[0]] * self._num_agents)
+            else:
+                vals.append(list(v.values())[1:])
+        self._global_variable_obs = np.array(vals).transpose()
 
     def step(self, actions):
         obs, rewards, terminated, truncated, info = self._griddly_env.step(actions)
@@ -99,6 +107,10 @@ class PowerGridEnv(gym.Env):
             rewards = [rewards]
         else:
             self._last_actions = actions
+
+        # config variables get update in the first few steps (species get set)
+        if self._step < 2:
+            self._compute_global_variable_obs()
 
         self._step += 1
 
@@ -196,7 +208,7 @@ class PowerGridEnv(gym.Env):
     def _augment_observations(self, obs):
         return [{
             "obs": agent_obs,
-            "global_vars": self._global_variable_obs,
+            "global_vars": self._global_variable_obs[agent],
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),
             "kinship": self._reward_sharing.obs(agent, agent_obs[self._agent_id_obs_idx]),
@@ -210,7 +222,7 @@ class PowerGridEnv(gym.Env):
             "global_vars": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
                 shape=[len(self.global_variable_names)],
-                dtype=np.float32),
+                dtype=np.int32),
             "last_action": gym.spaces.Box(
                 low=0, high=255,
                 shape=[2],
