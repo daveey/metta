@@ -62,6 +62,7 @@ class PowerGridEnv(gym.Env):
         self._agent_id_obs_idx = len(self._griddly_env.object_names) \
             + self._griddly_env.variable_names.index("agent:id")
 
+        # set up reward sharing
         self._reward_sharing = RewardAllocator(self._num_agents)
         num_families = self._level_generator.sample_cfg("rsm_num_families")
         family_reward = self._level_generator.sample_cfg("rsm_family_reward")
@@ -150,14 +151,24 @@ class PowerGridEnv(gym.Env):
 
         for agent in range(self._num_agents):
             agent_stats = {}
+            agent_species = None
+            if stats["stats:species:prey"][agent + 1] > 0:
+                agent_species = "prey"
+            elif stats["stats:species:predator"][agent + 1] > 0:
+                agent_species = "predator"
+
             for stat_name in stat_names:
                 # some are per-agent, some are just global {0: val}
                 stat_val = stats[stat_name][0]
                 if len(stats[stat_name]) > 1:
                     stat_val = stats[stat_name][agent + 1]
+                    # normalize action stats by episode length
                     if stat_name.startswith("stats:action"):
                         stat_val /= self._max_steps
                 agent_stats[stat_name] = stat_val
+                if agent_species is not None:
+                    agent_stats[f"{agent_species}_{stat_name}"] = stat_val
+
             agent_stats["prestige_reward"] = self._episode_prestige_rewards[agent]
             agent_stats["level_max_energy"] = self._max_level_energy
             agent_stats["level_max_energy_per_agent"] = self._max_level_energy_per_agent

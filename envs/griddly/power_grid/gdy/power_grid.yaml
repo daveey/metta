@@ -54,7 +54,11 @@
       # Agent Upkeep
       - Name: conf:agent:energy:regen
         InitialValue: 0
-      - Name: conf:agent:initial_energy
+        PerPlayer: true
+      - Name: conf:agent:energy:max
+        InitialValue: 500
+        PerPlayer: true
+      - Name: conf:agent:energy:initial
         InitialValue: 100
       - Name: stats:energy:gained
         InitialValue: 0
@@ -71,6 +75,7 @@
       # Movement
       - Name: conf:cost:move
         InitialValue: 0
+        PerPlayer: True
       - Name: stats:action:move
         InitialValue: 0
         PerPlayer: true
@@ -116,12 +121,15 @@
       # Attack
       - Name: conf:cost:attack
         InitialValue: 20
+        PerPlayer: True
       - Name: conf:attack:damage
         InitialValue: 15
+        PerPlayer: True
       - Name: conf:attack:freeze_duration
         InitialValue: 15
       - Name: conf:cost:frozen
-        InitialValue: 1
+        InitialValue: 0
+        PerPlayer: True
       - Name: stats:action:attack
         InitialValue: 0
         PerPlayer: true
@@ -138,6 +146,13 @@
         InitialValue: 0
         PerPlayer: true
 
+      # Species
+      - Name: stats:species:prey
+        InitialValue: 0
+        PerPlayer: true
+      - Name: stats:species:predator
+        InitialValue: 0
+        PerPlayer: true
 
       # debug variables, used for webui
       - Name: debug:agent:energy
@@ -155,6 +170,9 @@
 
       # variables for controlling rendering
       - Name: render:agent:attacked
+        InitialValue: 0
+        PerPlayer: true
+      - Name: render:agent:tile
         InitialValue: 0
         PerPlayer: true
 
@@ -210,7 +228,7 @@
         W   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o
         W
 
-        W   A4/o   o   g   o   A9   o   o   o   g   o   o   o   o   o   g   o   A5/o
+        W   A4/o   o   g   o   .   o   o   o   g   o   o   o   o   o   g   o   A5/o
         W
 
         W   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o
@@ -366,23 +384,39 @@
         - Name: agent:frozen
           InitialValue: 0
 
+        - Name: agent:species
+          InitialValue: 0
+
         - Name: agent:inv:1
           InitialValue: 0
         - Name: agent:inv:2
-          InitialValue: 2
+          InitialValue: 0
         - Name: agent:inv:3
-          InitialValue: 3
+          InitialValue: 0
 
       Observers:
         GlobalSpriteObserver:
-          # Shield off
+          # Egg
+          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_void_d1.png
+
+          # Species 1 (prey)
+          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_slime_u1.png
+          # Shield on
+          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_larvae_u1.png
+          # Frozen
+          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_void_d1.png
+          # Attacked
+          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_stalker_u1.png
+
+          # Species 2 (predator)
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_u1.png
           # Shield on
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_beast_u1.png
           # Frozen
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_void_d1.png
           # Attacked
-          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_alien_elder_u1.png
+          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_stalker_u1.png
+
       InitialActions:
         - Action: agent:tick
           Delay: 1
@@ -706,7 +740,42 @@
             Object: agent
             Commands:
               - set: [ agent:id, _playerId ]
-              - set: [ agent:energy, conf:agent:initial_energy ]
+              - set: [ agent:energy, conf:agent:energy:initial ]
+              - exec:
+                  Action: agent:change_species
+                  Randomize: True
+
+    - Name: agent:change_species
+      InputMapping:
+        Internal: true
+        Inputs:
+          1:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              species: 1
+          2:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              species: 2
+      Behaviours:
+        - Src:
+            Object: agent
+          Dst:
+            Object: agent
+            Commands:
+              - set: [ agent:species, meta.species ]
+              - if:
+                  Conditions:
+                      eq: [ meta.species, 1 ]
+                  OnTrue:
+                      - incr: stats:species:prey
+                      - set: [ conf:cost:attack, 1000 ]
+              - if:
+                  Conditions:
+                      eq: [ meta.species, 2 ]
+                  OnTrue:
+                      - incr: stats:species:predator
+                      - set: [ conf:cost:move, 1 ]
 
     - Name: agent:tick
       InputMapping:
@@ -727,8 +796,7 @@
               - reward: conf:agent:energy:regen
               - add: [ stats:reward, conf:agent:energy:regen ]
 
-              - set_tile: 0
-
+              - set: [ render:agent:tile, 0]
 
               # handle shield upkeep
               - if:
@@ -738,7 +806,7 @@
                     - sub: [ agent:energy, conf:cost:shield:upkeep ]
                     - add: [ stats:energy:used:shield:upkeep, conf:cost:shield:upkeep ]
                     - incr: stats:agent:shield:ticks
-                    - set_tile: 1
+                    - set: [ render:agent:tile, 1 ]
 
               # record number of steps spent frozen
               - if:
@@ -749,7 +817,7 @@
                     - sub: [ agent:energy, conf:cost:frozen ]
                     - add: [ stats:energy:used:frozen, conf:cost:frozen ]
                     - decr: agent:frozen
-                    - set_tile: 2
+                    - set: [ render:agent:tile, 2 ]
 
               - if:
                   Conditions:
@@ -757,7 +825,7 @@
                   OnTrue:
                     - decr: render:agent:attacked
                     - set_tile: 3
-
+                    - set: [ render:agent:tile, 3 ]
 
               # maintain positive energy
               - if:
@@ -765,6 +833,27 @@
                     lt: [ agent:energy, 0 ]
                   OnTrue:
                     - set: [ agent:energy, 0 ]
+
+              # maintain max energy
+              - if:
+                  Conditions:
+                    gt: [ agent:energy, conf:agent:energy:max ]
+                  OnTrue:
+                    - set: [ agent:energy, conf:agent:energy:max ]
+
+              # render the agent tile
+              - if:
+                  Conditions:
+                    eq: [ agent:species, 1 ]
+                  OnTrue:
+                    - add: [ render:agent:tile, 1 ]
+              - if:
+                  Conditions:
+                    eq: [ agent:species, 2 ]
+                  OnTrue:
+                    - add: [ render:agent:tile, 5 ]
+
+              - set_tile: render:agent:tile
 
               # update debug variables
               - set: [ debug:agent:energy, agent:energy ]

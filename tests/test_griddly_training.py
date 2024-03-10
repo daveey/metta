@@ -45,7 +45,7 @@ class TestGridlyTraining(unittest.TestCase):
             "--power_grid_width=4",
             "--power_grid_height=4",
             "--power_grid_chargers_per_agent=1",
-            "--power_grid_initial_energy=3",
+            "--power_grid_energy:initial=3",
             "--power_grid_wall_density=0.0",
             "--env_max_steps=5"
         ]
@@ -70,7 +70,7 @@ class TestGridlyTraining(unittest.TestCase):
             "--power_grid_width=9",
             "--power_grid_height=9",
             "--power_grid_chargers_per_agent=1",
-            "--power_grid_initial_energy=16",
+            "--power_grid_energy:initial=16",
             "--power_grid_wall_density=0.0",
             "--env_max_steps=20"
         ]

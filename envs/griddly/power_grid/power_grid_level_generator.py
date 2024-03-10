@@ -24,7 +24,8 @@ class PowerGridLevelGenerator():
         "generator:cooldown": [ 20, 100 ],
 
         "agent:energy:regen": [0, 0],
-        "agent:initial_energy": [10, 200],
+        "agent:energy:initial": [10, 200],
+        "agent:energy:max": [500, 500],
 
         "cost:move": [0, 0],
         "cost:rotate": [0, 0],
