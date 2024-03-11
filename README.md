@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
     cmake --build build --config Release
 
-    cd python && pip install -e . 
+    cd python && pip install -e .
     cd ../..
     ```
 
@@ -67,11 +67,5 @@ Follow these steps (tested on MacOS):
 
 # Run evaluation
 ```
-python -m envs.griddly.enjoy \
-    --device=cpu \
-    --train_dir=./train_dir/ \
-    --fps=10 --max_num_frames=1000 \
-    --eval_env_frameskip=1 \
-    --env=GDY-PowerGrid \
-    --experiment=g.pbt.4090
+./evals/a20_40x40_rich.sh --experiment=p2.a100.species --train_dir=model_checkpoints
 ```
