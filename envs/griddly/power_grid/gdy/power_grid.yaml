@@ -770,6 +770,7 @@
                   OnTrue:
                       - incr: stats:species:prey
                       - set: [ conf:cost:attack, 1000 ]
+                      - set: [ conf:cost:shield:upkeep, 2 ]
                       - set: [ conf:agent:energy:max, 200 ]
               - if:
                   Conditions:
