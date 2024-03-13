@@ -17,7 +17,7 @@ class PowerGridLevelGenerator():
         "altar:cost": [10, 200],
 
         "charger:cooldown": [ 2, 2 ],
-        "charger:energy": [ 100, 100 ],
+        "charger:energy": [ 50, 50 ],
         "generator:cooldown": [ 20, 100 ],
 
         "agent:energy:regen": [0, 0],

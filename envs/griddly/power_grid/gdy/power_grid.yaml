@@ -31,6 +31,9 @@
       - Name: stats:energy:gained:charger
         InitialValue: 0
         PerPlayer: true
+      - Name: stats:energy:gained:charger:bonus
+        InitialValue: 0
+        PerPlayer: true
 
       # Generator
       - Name: conf:generator:cooldown
@@ -66,6 +69,9 @@
         InitialValue: 0
         PerPlayer: true
       - Name: stats:action:gift:inv:1
+        InitialValue: 0
+        PerPlayer: true
+      - Name: stats:action:gift:inv:2
         InitialValue: 0
         PerPlayer: true
 
@@ -176,12 +182,12 @@
       - Name: debug:agent:inv:1
         InitialValue: 0
         PerPlayer: true
-      # - Name: debug:agent:inv:2
-      #   InitialValue: 0
-      #   PerPlayer: true
-      # - Name: debug:agent:inv:3
-      #   InitialValue: 0
-      #   PerPlayer: true
+      - Name: debug:agent:inv:2
+        InitialValue: 0
+        PerPlayer: true
+      - Name: debug:agent:inv:3
+        InitialValue: 0
+        PerPlayer: true
 
       # variables for controlling rendering
       - Name: render:agent:attacked
@@ -329,10 +335,10 @@
           InitialValue: 0
         - Name: charger:input:1
           InitialValue: 0
-        # - Name: charger:input:2
-        #   InitialValue: 0
-        # - Name: charger:input:3
-        #   InitialValue: 0
+        - Name: charger:input:2
+          InitialValue: 0
+        - Name: charger:input:3
+          InitialValue: 0
         - Name: charger:output
           InitialValue: 0
       Observers:
@@ -382,10 +388,10 @@
 
         - Name: agent:inv:1
           InitialValue: 0
-        # - Name: agent:inv:2
-        #   InitialValue: 0
-        # - Name: agent:inv:3
-        #   InitialValue: 0
+        - Name: agent:inv:2
+          InitialValue: 0
+        - Name: agent:inv:3
+          InitialValue: 0
 
       Observers:
         GlobalSpriteObserver:
@@ -529,16 +535,16 @@
                       eq: [ dst.generator:resource, 1 ]
                   OnTrue:
                       - incr: agent:inv:1
-              # - if:
-              #     Conditions:
-              #         eq: [ dst.generator:resource, 2 ]
-              #     OnTrue:
-              #         - incr: agent:inv:2
-              # - if:
-              #     Conditions:
-              #         eq: [ dst.generator:resource, 3 ]
-              #     OnTrue:
-              #         - incr: agent:inv:3
+              - if:
+                  Conditions:
+                      eq: [ dst.generator:resource, 2 ]
+                  OnTrue:
+                      - incr: agent:inv:2
+              - if:
+                  Conditions:
+                      eq: [ dst.generator:resource, 3 ]
+                  OnTrue:
+                      - incr: agent:inv:3
           Dst:
             Object: generator
             Commands:
@@ -557,13 +563,13 @@
                 - eq: [ agent:frozen, 0 ]
                 - eq: [ dst.charger:ready, 1 ]
                 - gte: [ agent:inv:1, dst.charger:input:1 ]
-                # - gte: [ agent:inv:2, dst.charger:input:2 ]
-                # - gte: [ agent:inv:3, dst.charger:input:3 ]
+                - gte: [ agent:inv:2, dst.charger:input:2 ]
+                - gte: [ agent:inv:3, dst.charger:input:3 ]
             Commands:
               - incr: stats:action:use:charger
               - sub: [ agent:inv:1, dst.charger:input:1 ]
-              # - sub: [ agent:inv:2, dst.charger:input:2 ]
-              # - sub: [ agent:inv:3, dst.charger:input:3 ]
+              - sub: [ agent:inv:2, dst.charger:input:2 ]
+              - sub: [ agent:inv:3, dst.charger:input:3 ]
               - add: [ agent:energy, dst.charger:output ]
               - add: [ stats:energy:gained, dst.charger:output ]
               - add: [ stats:energy:gained:charger, dst.charger:output ]
@@ -574,6 +580,14 @@
             Commands:
               - set_tile: 1
               - set: [ charger:ready, 0 ]
+              - if:
+                  Conditions:
+                    and:
+                      - eq: [ charger:input:1, 1 ]
+                      - eq: [ charger:input:2, 1 ]
+                  OnTrue:
+                    - set_tile: 2
+                    - incr: stats:energy:gained:charger:bonus
               - exec:
                   Action: charger:reset
                   ActionId: 1
@@ -620,6 +634,11 @@
             Description: "gift inv 1"
             MetaData:
               gift: 2
+          3:
+            VectorToDest: [ 0, -1 ]
+            Description: "gift inv 2"
+            MetaData:
+              gift: 3
       Behaviours:
         - Src:
             Object: agent
@@ -647,16 +666,16 @@
                       - add: [ dst.agent:inv:1, 1 ]
                       - sub: [ agent:inv:1, 1 ]
                       - incr: stats:action:gift:inv:1
-                # # Resource 2
-                # - if:
-                #   Conditions:
-                #     and:
-                #       - eq: [ meta.gift, 1 ]
-                #       - gt: [ agent:inv:2, 1 ]
-                #   OnTrue:
-                #     - add: [ dst.agent:inv:2, 1 ]
-                #     - sub: [ agent:inv:2, 1 ]
-                #     - incr: stats:action:gift:inv:2
+                # Resource 2
+                - if:
+                    Conditions:
+                      and:
+                        - eq: [ meta.gift, 3 ]
+                        - gte: [ agent:inv:2, 1 ]
+                    OnTrue:
+                      - add: [ dst.agent:inv:2, 1 ]
+                      - sub: [ agent:inv:2, 1 ]
+                      - incr: stats:action:gift:inv:2
                 # # Resource 3
                 # - if:
                 #   Conditions:
@@ -752,16 +771,16 @@
                   OnTrue:
                       - add: [ agent:inv:1, dst.agent:inv:1 ]
                       - add: [ stats:attack:loot, dst.agent:inv:1 ]
-                      # - add: [ agent:inv:2, dst.agent:inv:2 ]
-                      # - add: [ stats:attack:loot, dst.agent:inv:2 ]
-                      # - add: [ agent:inv:3, dst.agent:inv:3 ]
-                      # - add: [ stats:attack:loot, dst.agent:inv:3 ]
+                      - add: [ agent:inv:2, dst.agent:inv:2 ]
+                      - add: [ stats:attack:loot, dst.agent:inv:2 ]
+                      - add: [ agent:inv:3, dst.agent:inv:3 ]
+                      - add: [ stats:attack:loot, dst.agent:inv:3 ]
                       - incr: [ stats:attack:victory ]
                       - set: [ dst.agent:shield, 0 ]
                       - set: [ dst.agent:energy, 0 ]
                       - set: [ dst.agent:inv:1, 0 ]
-                      # - set: [ dst.agent:inv:2, 0 ]
-                      # - set: [ dst.agent:inv:3, 0 ]
+                      - set: [ dst.agent:inv:2, 0 ]
+                      - set: [ dst.agent:inv:3, 0 ]
           Dst:
             Object: agent
             Commands:
@@ -918,8 +937,8 @@
               # update debug variables
               - set: [ debug:agent:energy, agent:energy ]
               - set: [ debug:agent:inv:1, agent:inv:1 ]
-              # - set: [ debug:agent:inv:2, agent:inv:2 ]
-              # - set: [ debug:agent:inv:3, agent:inv:3 ]
+              - set: [ debug:agent:inv:2, agent:inv:2 ]
+              - set: [ debug:agent:inv:3, agent:inv:3 ]
 
               - exec:
                   Action: agent:tick
@@ -946,10 +965,10 @@
             VectorToDest: [ 0, 0 ]
             MetaData:
               mode: 1
-          # 2:
-          #   VectorToDest: [ 0, 0 ]
-          #   MetaData:
-          #     mode: 2
+          2:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              mode: 2
           # 3:
           #   VectorToDest: [ 0, 0 ]
           #   MetaData:
@@ -974,18 +993,28 @@
               i1: 1
               i2: 0
               i3: 0
-          # 2:
-          #   VectorToDest: [ 0, 0 ]
-          #   MetaData:
-          #     i1: 0
-          #     i2: 1
-          #     i3: 0
+              bonus: 0
+          2:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              i1: 0
+              i2: 1
+              i3: 0
+              bonus: 0
           # 3:
           #   VectorToDest: [ 0, 0 ]
           #   MetaData:
           #     i1: 0
           #     i2: 0
           #     i3: 1
+          #     output: 100
+          4:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              i1: 1
+              i2: 1
+              i3: 0
+              bonus: 1
       Behaviours:
         - Src:
             Object: charger
@@ -993,9 +1022,15 @@
             Object: charger
             Commands:
               - set: [ charger:input:1, meta.i1 ]
-              # - set: [ charger:input:2, meta.i2 ]
-              # - set: [ charger:input:3, meta.i3 ]
+              - set: [ charger:input:2, meta.i2 ]
+              - set: [ charger:input:3, meta.i3 ]
               - set: [ charger:output, conf:charger:energy ]
+              - if:
+                  Conditions:
+                      eq: [ meta.bonus, 1 ]
+                  OnTrue:
+                    - add: [ charger:output, conf:charger:energy ]
+                    - add: [ charger:output, conf:charger:energy ]
 
     - Name: charger:reset
       InputMapping:
