@@ -13,11 +13,8 @@ import jmespath
 
 class PowerGridLevelGenerator():
     GAME_CONFIG = {
-        "reward:use": [0, 2],
-
         "altar:cooldown": [2, 5],
         "altar:cost": [10, 200],
-        "altar:reward": [0, 0],
 
         "charger:cooldown": [ 2, 2 ],
         "charger:energy": [ 100, 100 ],
@@ -27,11 +24,17 @@ class PowerGridLevelGenerator():
         "agent:energy:initial": [10, 200],
         "agent:energy:max": [500, 500],
 
+        "gift:energy": [20, 20],
+
+        "cost:move:predator": [0, 0],
+        "cost:move:prey": [0, 0],
         "cost:move": [0, 0],
+        "cost:jump": [3, 3],
         "cost:rotate": [0, 0],
         "cost:shield": [0, 2],
         "cost:shield:upkeep": [1, 2],
         "cost:frozen": [0, 0],
+
         "cost:attack": [5, 40],
         "attack:damage": [5, 40],
         "attack:freeze_duration": [5, 100],
@@ -124,11 +127,8 @@ class PowerGridLevelGenerator():
         """
         width = int(self.sample_cfg("width"))
         height = int(self.sample_cfg("height"))
-        p_milestones = self.sample_cfg("milestone_density")
 
-        level = np.random.choice(
-            ['o', '.'], size=(height, width),
-            p=[p_milestones, 1-p_milestones]).astype("U6") # 2-char unicode strings
+        level = np.array([["."]*width]*height).astype("U6") # 2-char unicode strings
         floor_tiles = [".", "o"]
 
         # make the bounding box

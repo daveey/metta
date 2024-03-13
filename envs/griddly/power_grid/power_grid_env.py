@@ -47,7 +47,7 @@ class PowerGridEnv(gym.Env):
         var_order = self._griddly_env.game.get_object_variable_names()
         assert obj_order == sorted(obj_order)
         assert var_order == sorted(var_order)
-        assert self._griddly_env.action_names == ["rotate", "move", "use", "shield", "attack"]
+        assert self._griddly_env.action_names == ["rotate", "move", "jump", "use", "gift", "shield", "attack"]
 
     def _make_env(self):
         self._griddly_env = self._level_generator.make_env(self._render_mode)
@@ -234,7 +234,7 @@ class PowerGridEnv(gym.Env):
             "kinship": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
                 shape=o.shape[1:],
-                dtype=np.float32)
+                dtype=np.float32),
             })
         if self._num_agents == 1:
             return augment(self._griddly_env.observation_space)

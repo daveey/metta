@@ -4,9 +4,6 @@
     Description: Metta - Foraging
     Variables:
       # Exploration Rewards
-      - Name: conf:reward:use
-        InitialValue: 1
-
       - Name: stats:reward
         InitialValue: 0
         PerPlayer: true
@@ -14,8 +11,6 @@
       # Altar
       - Name: conf:altar:cost
         InitialValue: 50
-      - Name: conf:altar:reward
-        InitialValue: 10
       - Name: conf:altar:cooldown
         InitialValue: 2
       - Name: stats:action:use:altar
@@ -24,6 +19,7 @@
       - Name: stats:energy:used:altar
         InitialValue: 0
         PerPlayer: true
+
       # Charger
       - Name: conf:charger:cooldown
         InitialValue: 2
@@ -46,11 +42,6 @@
         InitialValue: 0
         PerPlayer: true
 
-      # Milestone
-      - Name: stats:milestones
-        InitialValue: 0
-        PerPlayer: true
-
       # Agent Upkeep
       - Name: conf:agent:energy:regen
         InitialValue: 0
@@ -67,6 +58,17 @@
         InitialValue: 0
         PerPlayer: true
 
+      # Gift
+      - Name: conf:gift:energy
+        InitialValue: 10
+        PerPlayer: true
+      - Name: stats:action:gift:energy
+        InitialValue: 0
+        PerPlayer: true
+      - Name: stats:action:gift:inv:1
+        InitialValue: 0
+        PerPlayer: true
+
       # No-Op
       - Name: stats:action:noop
         InitialValue: 0
@@ -76,10 +78,23 @@
       - Name: conf:cost:move
         InitialValue: 0
         PerPlayer: True
+      - Name: conf:cost:move:prey
+        InitialValue: 0
+      - Name: conf:cost:move:predator
+        InitialValue: 0
       - Name: stats:action:move
         InitialValue: 0
         PerPlayer: true
+      - Name: conf:cost:jump
+        InitialValue: 1
+        PerPlayer: true
       - Name: stats:energy:used:move
+        InitialValue: 0
+        PerPlayer: true
+      - Name: stats:action:jump
+        InitialValue: 0
+        PerPlayer: true
+      - Name: stats:energy:used:jump
         InitialValue: 0
         PerPlayer: true
       - Name: conf:cost:rotate
@@ -161,12 +176,12 @@
       - Name: debug:agent:inv:1
         InitialValue: 0
         PerPlayer: true
-      - Name: debug:agent:inv:2
-        InitialValue: 0
-        PerPlayer: true
-      - Name: debug:agent:inv:3
-        InitialValue: 0
-        PerPlayer: true
+      # - Name: debug:agent:inv:2
+      #   InitialValue: 0
+      #   PerPlayer: true
+      # - Name: debug:agent:inv:3
+      #   InitialValue: 0
+      #   PerPlayer: true
 
       # variables for controlling rendering
       - Name: render:agent:attacked
@@ -207,52 +222,52 @@
         W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W
         W
 
-        W   A1/o   .   o   o   o   a   o   o   A2/o  o   o   o   o   o   o   o   A3/o
+        W   A1   .   .   .   .   a   .   .   A2  .   .   .   .   .   .   .   A3
         W
 
-        W   o   o   .   o   o   o   o   o   o   o   o   o   o   o   o   o   o
+        W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
         W
 
-        W   o   o   .   o   o   c   o   a   o   o   o   o   o   o   o   o   o
+        W   .   .   .   .   .   c   .   a   .   .   .   .   .   .   .   .   .
         W
 
-        W   o   o   g   o   o   o   o   o   o   o   o   o   o   o   o   o   o
+        W   .   .   g   .   .   .   .   .   .   .   .   .   .   .   .   .   .
         W
 
-        W   o   o   o   o   o   c   o   o   o   o   g   o   o   o   o   o   o
+        W   .   .   .   .   .   c   .   .   .   .   g   .   .   .   .   .   .
         W
 
-        W   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o
+        W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
         W
 
-        W   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o
+        W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
         W
 
-        W   A4/o   o   g   o   .   o   o   o   g   o   o   o   o   o   g   o   A5/o
+        W   A4   .   g   .   .   .   .   .   g   .   .   .   .   .   g   .   A5
         W
 
-        W   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o
+        W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
         W
 
-        W   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o
+        W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
         W
 
-        W   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o
+        W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
         W
 
-        W   o   o   o   o   o   g   o   o   o   o   o   o   o   o   o   o   o
+        W   .   .   .   .   .   g   .   .   .   .   .   .   .   .   .   .   .
         W
 
-        W   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o
+        W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
         W
 
-        W   o   o   o   o   o   o   o   o   g   o   o   g   o   o   o   o   o
+        W   .   .   .   .   .   .   .   .   g   .   .   g   .   .   .   .   .
         W
 
-        W   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o   o
+        W   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
         W
 
-        W   A6/o   o   o   o   o   o   o   o   o   A7/o   o   o   o   o   o   o   o
+        W   A6   .   .   .   .   .   .   .   .   A7   .   .   .   .   .   .   .
         W
 
         W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W   W
@@ -283,22 +298,6 @@
               - oryx/oryx_fantasy/wall2-14.png
               - oryx/oryx_fantasy/wall2-15.png
 
-    - Name: milestone
-      MapCharacter: o
-      Z: 1
-      Variables:
-        - Name: milestone:reward
-          InitialValue: 0
-      Observers:
-        GlobalSpriteObserver:
-          - Image: oryx/oryx_fantasy/floor1-1.png
-          - Image: oryx/oryx_fantasy/floor1-0.png
-          - Image: oryx/oryx_fantasy/floor6-0.png
-          - Image: oryx/oryx_fantasy/floor7-0.png
-      InitialActions:
-        - Action: milestone:init
-          ActionId: 1
-
     - Name: generator
       Z: 1
       MapCharacter: g
@@ -307,8 +306,6 @@
           InitialValue: 0
         - Name: generator:resource
           InitialValue: 1
-        - Name: generator:reward
-          InitialValue: 0
       Observers:
         GlobalSpriteObserver:
           - Image: oryx/oryx_fantasy/ore-0.png
@@ -330,14 +327,12 @@
       Variables:
         - Name: charger:ready
           InitialValue: 0
-        - Name: charger:reward
-          InitialValue: 0
         - Name: charger:input:1
           InitialValue: 0
-        - Name: charger:input:2
-          InitialValue: 0
-        - Name: charger:input:3
-          InitialValue: 0
+        # - Name: charger:input:2
+        #   InitialValue: 0
+        # - Name: charger:input:3
+        #   InitialValue: 0
         - Name: charger:output
           InitialValue: 0
       Observers:
@@ -356,8 +351,6 @@
       MapCharacter: a
       Variables:
         - Name: altar:ready
-          InitialValue: 0
-        - Name: altar:reward
           InitialValue: 0
       Observers:
         GlobalSpriteObserver:
@@ -389,10 +382,10 @@
 
         - Name: agent:inv:1
           InitialValue: 0
-        - Name: agent:inv:2
-          InitialValue: 0
-        - Name: agent:inv:3
-          InitialValue: 0
+        # - Name: agent:inv:2
+        #   InitialValue: 0
+        # - Name: agent:inv:3
+        #   InitialValue: 0
 
       Observers:
         GlobalSpriteObserver:
@@ -475,7 +468,6 @@
           2:
             VectorToDest: [ 0, 1 ]
             Description: "move backward"
-
       Behaviours:
         - Src:
             Object: agent
@@ -486,26 +478,31 @@
               - sub: [ agent:energy, conf:cost:move ]
               - incr: stats:action:move
               - add: [ stats:energy:used:move, conf:cost:move ]
-
-              - reward: dst.milestone:reward
-              - add: [ stats:reward, dst.milestone:reward ]
-              - set: [ dst.milestone:reward, 0 ]
               - mov: _dest
           Dst:
-            Object: [ milestone ]
-            Commands:
-                - set_tile: 1
+            Object: [ _empty ]
 
+    - Name: jump
+      InputMapping:
+        Relative: true
+        Inputs:
+          1:
+            VectorToDest: [ 0, -1 ]
+            Description: "jump forward"
+      Behaviours:
         - Src:
             Object: agent
             Preconditions:
-              - gte: [ agent:energy, conf:cost:move ]
+              - gte: [ agent:energy, conf:cost:jump ]
               - eq: [ agent:frozen, 0 ]
             Commands:
-              - sub: [ agent:energy, conf:cost:move ]
-              - incr: stats:action:move
-              - add: [ stats:energy:used:move, conf:cost:move ]
+              - sub: [ agent:energy, conf:cost:jump ]
+              - incr: stats:action:jump
+              - add: [ stats:energy:used:jump, conf:cost:jump ]
               - mov: _dest
+              - exec:
+                  Action: move
+                  ActionId: 1
           Dst:
             Object: [ _empty ]
 
@@ -525,11 +522,6 @@
                 - eq: [ agent:frozen, 0 ]
                 - eq: [ dst.generator:ready, 1 ]
             Commands:
-
-              - reward: dst.generator:reward
-              - add: [ stats:reward, dst.generator:reward ]
-              - set: [ dst.generator:reward, 0 ]
-
               - incr: stats:action:use:generator
               - incr: stats:resource:collected
               - if:
@@ -537,16 +529,16 @@
                       eq: [ dst.generator:resource, 1 ]
                   OnTrue:
                       - incr: agent:inv:1
-              - if:
-                  Conditions:
-                      eq: [ dst.generator:resource, 2 ]
-                  OnTrue:
-                      - incr: agent:inv:2
-              - if:
-                  Conditions:
-                      eq: [ dst.generator:resource, 3 ]
-                  OnTrue:
-                      - incr: agent:inv:3
+              # - if:
+              #     Conditions:
+              #         eq: [ dst.generator:resource, 2 ]
+              #     OnTrue:
+              #         - incr: agent:inv:2
+              # - if:
+              #     Conditions:
+              #         eq: [ dst.generator:resource, 3 ]
+              #     OnTrue:
+              #         - incr: agent:inv:3
           Dst:
             Object: generator
             Commands:
@@ -565,17 +557,13 @@
                 - eq: [ agent:frozen, 0 ]
                 - eq: [ dst.charger:ready, 1 ]
                 - gte: [ agent:inv:1, dst.charger:input:1 ]
-                - gte: [ agent:inv:2, dst.charger:input:2 ]
-                - gte: [ agent:inv:3, dst.charger:input:3 ]
+                # - gte: [ agent:inv:2, dst.charger:input:2 ]
+                # - gte: [ agent:inv:3, dst.charger:input:3 ]
             Commands:
-              - reward: dst.charger:reward
-              - add: [ stats:reward, dst.charger:reward ]
-              - set: [ dst.charger:reward, 0 ]
-
               - incr: stats:action:use:charger
               - sub: [ agent:inv:1, dst.charger:input:1 ]
-              - sub: [ agent:inv:2, dst.charger:input:2 ]
-              - sub: [ agent:inv:3, dst.charger:input:3 ]
+              # - sub: [ agent:inv:2, dst.charger:input:2 ]
+              # - sub: [ agent:inv:3, dst.charger:input:3 ]
               - add: [ agent:energy, dst.charger:output ]
               - add: [ stats:energy:gained, dst.charger:output ]
               - add: [ stats:energy:gained:charger, dst.charger:output ]
@@ -600,11 +588,10 @@
                 - eq: [ dst.altar:ready, 1 ]
                 - gte: [ agent:energy, conf:altar:cost ]
             Commands:
-              - reward: dst.altar:reward
-              - add: [ stats:reward, dst.altar:reward ]
-              - set: [ dst.altar:reward, 0 ]
-              - reward: conf:altar:reward
-              - add: [ stats:reward, conf:altar:reward ]
+              - reward: conf:altar:cost
+              - reward: conf:altar:cost
+              - add: [ stats:reward, conf:altar:cost ]
+              - add: [ stats:reward, conf:altar:cost ]
 
               - incr: stats:action:use:altar
               - sub: [ agent:energy, conf:altar:cost ]
@@ -618,6 +605,71 @@
                   Action: altar:reset
                   ActionId: 1
                   Delay: conf:altar:cooldown
+
+    - Name: gift
+      InputMapping:
+        Relative: true
+        Inputs:
+          1:
+            VectorToDest: [ 0, -1 ]
+            Description: "gift energy"
+            MetaData:
+              gift: 1
+          2:
+            VectorToDest: [ 0, -1 ]
+            Description: "gift inv 1"
+            MetaData:
+              gift: 2
+      Behaviours:
+        - Src:
+            Object: agent
+            Preconditions:
+              - and:
+                - eq: [ agent:frozen, 0 ]
+            Commands:
+                # Energy
+                - if:
+                    Conditions:
+                      and:
+                        - eq: [ meta.gift, 1 ]
+                        - gte: [ agent:energy, conf:gift:energy ]
+                    OnTrue:
+                      - add: [ dst.agent:energy, conf:gift:energy ]
+                      - sub: [ agent:energy, conf:gift:energy ]
+                      - incr: stats:action:gift:energy
+                # Resource 1
+                - if:
+                    Conditions:
+                      and:
+                        - eq: [ meta.gift, 2 ]
+                        - gte: [ agent:inv:1, 1 ]
+                    OnTrue:
+                      - add: [ dst.agent:inv:1, 1 ]
+                      - sub: [ agent:inv:1, 1 ]
+                      - incr: stats:action:gift:inv:1
+                # # Resource 2
+                # - if:
+                #   Conditions:
+                #     and:
+                #       - eq: [ meta.gift, 1 ]
+                #       - gt: [ agent:inv:2, 1 ]
+                #   OnTrue:
+                #     - add: [ dst.agent:inv:2, 1 ]
+                #     - sub: [ agent:inv:2, 1 ]
+                #     - incr: stats:action:gift:inv:2
+                # # Resource 3
+                # - if:
+                #   Conditions:
+                #     and:
+                #       - eq: [ meta.gift, 1 ]
+                #       - gt: [ agent:inv:3, 1 ]
+                #   OnTrue:
+                #     - add: [ dst.agent:inv:3, 1 ]
+                #     - sub: [ agent:inv:3, 1 ]
+                #     - incr: stats:action:gift:inv:3
+
+          Dst:
+            Object: agent
 
     - Name: shield
       InputMapping:
@@ -700,16 +752,16 @@
                   OnTrue:
                       - add: [ agent:inv:1, dst.agent:inv:1 ]
                       - add: [ stats:attack:loot, dst.agent:inv:1 ]
-                      - add: [ agent:inv:2, dst.agent:inv:2 ]
-                      - add: [ stats:attack:loot, dst.agent:inv:2 ]
-                      - add: [ agent:inv:3, dst.agent:inv:3 ]
-                      - add: [ stats:attack:loot, dst.agent:inv:3 ]
+                      # - add: [ agent:inv:2, dst.agent:inv:2 ]
+                      # - add: [ stats:attack:loot, dst.agent:inv:2 ]
+                      # - add: [ agent:inv:3, dst.agent:inv:3 ]
+                      # - add: [ stats:attack:loot, dst.agent:inv:3 ]
                       - incr: [ stats:attack:victory ]
                       - set: [ dst.agent:shield, 0 ]
                       - set: [ dst.agent:energy, 0 ]
                       - set: [ dst.agent:inv:1, 0 ]
-                      - set: [ dst.agent:inv:2, 0 ]
-                      - set: [ dst.agent:inv:3, 0 ]
+                      # - set: [ dst.agent:inv:2, 0 ]
+                      # - set: [ dst.agent:inv:3, 0 ]
           Dst:
             Object: agent
             Commands:
@@ -749,10 +801,10 @@
       InputMapping:
         Internal: true
         Inputs:
-          1:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              species: 1
+          # 1:
+          #   VectorToDest: [ 0, 0 ]
+          #   MetaData:
+          #     species: 1
           2:
             VectorToDest: [ 0, 0 ]
             MetaData:
@@ -764,20 +816,26 @@
             Object: agent
             Commands:
               - set: [ agent:species, meta.species ]
+
+              # Prey
               - if:
                   Conditions:
                       eq: [ meta.species, 1 ]
                   OnTrue:
                       - incr: stats:species:prey
+                      - set: [ conf:cost:move, conf:cost:move:prey ]
+                      - set: [ conf:agent:energy:max, 50 ]
                       - set: [ conf:cost:attack, 1000 ]
+                      - set: [ conf:cost:jump, 1000 ]
                       - set: [ conf:cost:shield:upkeep, 2 ]
-                      - set: [ conf:agent:energy:max, 200 ]
+
+              # Predator
               - if:
                   Conditions:
                       eq: [ meta.species, 2 ]
                   OnTrue:
                       - incr: stats:species:predator
-                      - set: [ conf:cost:move, 1 ]
+                      - set: [ conf:cost:move, conf:cost:move:predator ]
 
     - Name: agent:tick
       InputMapping:
@@ -860,8 +918,8 @@
               # update debug variables
               - set: [ debug:agent:energy, agent:energy ]
               - set: [ debug:agent:inv:1, agent:inv:1 ]
-              - set: [ debug:agent:inv:2, agent:inv:2 ]
-              - set: [ debug:agent:inv:3, agent:inv:3 ]
+              # - set: [ debug:agent:inv:2, agent:inv:2 ]
+              # - set: [ debug:agent:inv:3, agent:inv:3 ]
 
               - exec:
                   Action: agent:tick
@@ -879,8 +937,6 @@
             Object: generator
           Dst:
             Object: generator
-            Commands:
-              - set: [ generator:reward, conf:reward:use ]
 
     - Name: generator:reset
       InputMapping:
@@ -890,14 +946,14 @@
             VectorToDest: [ 0, 0 ]
             MetaData:
               mode: 1
-          2:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              mode: 2
-          3:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              mode: 3
+          # 2:
+          #   VectorToDest: [ 0, 0 ]
+          #   MetaData:
+          #     mode: 2
+          # 3:
+          #   VectorToDest: [ 0, 0 ]
+          #   MetaData:
+          #     mode: 3
       Behaviours:
         - Src:
             Object: generator
@@ -918,28 +974,27 @@
               i1: 1
               i2: 0
               i3: 0
-          2:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              i1: 0
-              i2: 1
-              i3: 0
-          3:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              i1: 0
-              i2: 0
-              i3: 1
+          # 2:
+          #   VectorToDest: [ 0, 0 ]
+          #   MetaData:
+          #     i1: 0
+          #     i2: 1
+          #     i3: 0
+          # 3:
+          #   VectorToDest: [ 0, 0 ]
+          #   MetaData:
+          #     i1: 0
+          #     i2: 0
+          #     i3: 1
       Behaviours:
         - Src:
             Object: charger
           Dst:
             Object: charger
             Commands:
-              - set: [ charger:reward, conf:reward:use ]
               - set: [ charger:input:1, meta.i1 ]
-              - set: [ charger:input:2, meta.i2 ]
-              - set: [ charger:input:3, meta.i3 ]
+              # - set: [ charger:input:2, meta.i2 ]
+              # - set: [ charger:input:3, meta.i3 ]
               - set: [ charger:output, conf:charger:energy ]
 
     - Name: charger:reset
@@ -968,8 +1023,6 @@
             Object: altar
           Dst:
             Object: altar
-            Commands:
-              - set: [ dst.altar:reward, conf:reward:use ]
 
     - Name: altar:reset
       InputMapping:
@@ -986,16 +1039,3 @@
               - set: [ altar:ready, 1 ]
               - set_tile: 0
 
-    - Name: milestone:init
-      InputMapping:
-        Internal: true
-        Inputs:
-          1:
-            VectorToDest: [ 0, 0 ]
-      Behaviours:
-        - Src:
-            Object: milestone
-          Dst:
-            Object: milestone
-            Commands:
-              - set: [ dst.milestone:reward, conf:reward:use ]
