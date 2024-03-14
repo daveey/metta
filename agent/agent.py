@@ -23,11 +23,9 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
 
 class GriddlyEncoder(Encoder):
 
-    PADDED_INPUT_SIZE = 4096
-
     def __init__(self, cfg, obs_space):
         super().__init__(cfg)
-
+        self._obs_size = cfg.agent_obs_size
         self._num_features = (
             np.prod(obs_space["obs"].shape) +
             obs_space["global_vars"].shape[0] +
@@ -35,11 +33,11 @@ class GriddlyEncoder(Encoder):
             obs_space["last_reward"].shape[0] +
             np.prod(obs_space["kinship"].shape)
         )
-        self._padding = self.PADDED_INPUT_SIZE - self._num_features
+        self._padding = self._obs_size - self._num_features
 
         self.encoder_head = nn.Sequential(*[
             nn.Flatten(),
-            layer_init(nn.Linear(self.PADDED_INPUT_SIZE, cfg.agent_fc_size)),
+            layer_init(nn.Linear(self._obs_size, cfg.agent_fc_size)),
             nonlinearity(cfg)
         ] + [
             layer_init(nn.Linear(cfg.agent_fc_size, cfg.agent_fc_size), cfg.agent_fc_size),
@@ -77,5 +75,6 @@ def register_custom_components():
 
 
 def add_args(parser):
+    parser.add_argument("--agent_obs_size", default=4096, type=int, help="Size of the padded observation space")
     parser.add_argument("--agent_fc_layers", default=4, type=int, help="Number of encoder fc layers")
     parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")

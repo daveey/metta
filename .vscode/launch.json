@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "train",
             "args": [
-                "--experiment=mac.pres2",
+                "--experiment=mac.pres4",
 
                 "--algo=APPO",
                 "--device=cpu",
@@ -40,7 +40,7 @@
                 "--load_checkpoint_kind=best",
 
                 "--normalize_input=False",
-                // "--aux_loss_coef=0.1",
+                "--aux_loss_coef=0.1",
                 "--agent_fc_layers=2",
                 "--agent_fc_size=512",
                 // "--train_for_env_steps=1000"

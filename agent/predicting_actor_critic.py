@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from sample_factory.algo.utils.tensor_dict import TensorDict
+import torch.nn.functional as F
 
 import numpy as np
 from torch import nn
@@ -16,11 +17,12 @@ from sample_factory.algo.utils.context import global_model_factory
 class PredictingActorCritic(ActorCriticSharedWeights):
     def __init__(self, model_factory, obs_space, action_space, cfg: Config):
         super().__init__(model_factory, obs_space, action_space, cfg)
-        self.obs_size = np.prod(obs_space["obs"].shape)
+        self._obs_size = cfg.agent_obs_size
+        self._padding = self._obs_size - np.prod(obs_space["obs"].shape)
         self.obs_predictor = nn.Sequential(
             nn.Linear(self.encoder.get_out_size(), 512),
             nn.ReLU(),
-            nn.Linear(512, self.obs_size),
+            nn.Linear(512, self._obs_size),
             nn.ReLU(),
         )
 
@@ -30,8 +32,10 @@ class PredictingActorCritic(ActorCriticSharedWeights):
         # and pass it through as the last action
         batch_size = rnn_states.shape[0]
         obs = normalized_obs_dict['obs'].view(batch_size, -1)
-        obs_pred = self.obs_predictor(rnn_states).round()
-        return torch.mean((obs - obs_pred) ** 2)
+        obs_pred = self.obs_predictor(rnn_states)
+        padded_obs = F.pad(obs, pad=(0, self._padding), mode='constant', value=0)
+
+        return torch.mean((padded_obs - obs_pred) ** 2)
 
 def make_actor_critic_func(cfg, obs_space, action_space):
     return PredictingActorCritic(

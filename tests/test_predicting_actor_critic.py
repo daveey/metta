@@ -57,14 +57,14 @@ class TestPredictingActorCritic(unittest.TestCase):
         }
         self.action_space = gym.spaces.Tuple([gym.spaces.Discrete(4), gym.spaces.Box(-1, 1, (1,))])
         self.actor_critic = PredictingActorCritic(sf_context.model_factory, self.obs_space, self.action_space, self.cfg)
-        self.actor_critic.obs_predictor = MockObsPredictor(self.actor_critic.obs_size)
+        self.actor_critic.obs_predictor = MockObsPredictor(self.actor_critic._obs_size)
 
     def test_forward(self):
         batch_size = 23
         obs = torch.tensor([self.obs_space['obs'].sample() for _ in range(batch_size)])
         obs_dict = {'obs': obs}
 
-        errors = torch.rand((batch_size, self.actor_critic.obs_size))
+        errors = torch.rand((batch_size, self.actor_critic._obs_size))
         self.actor_critic.obs_predictor.return_value = \
             obs.view(batch_size, -1).to(torch.float32) + errors
 
