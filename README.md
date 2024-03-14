@@ -67,5 +67,5 @@ Follow these steps (tested on MacOS):
 
 # Run evaluation
 ```
-./evals/a20_40x40_rich.sh --experiment=p2.a100.species --train_dir=model_checkpoints
+./evals/a20_40x40_rich.sh --experiment=p2.a100.batch.17.lr.e3 --train_dir=model_checkpoints
 ```
