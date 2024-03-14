@@ -6,7 +6,6 @@
     --env_num_chargers=10 \
     --env_num_generators=40 \
     --env_reward_rank_steps=1000 \
-    --env_altar:reward=100 \
     --env_altar:cost=100 \
     --env_cost:shield=0 \
     --env_reward_prestige_weight=0 \
