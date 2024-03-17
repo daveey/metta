@@ -20,6 +20,10 @@ import matplotlib.pyplot as plt
 GYM_ENV_NAME = "GDY-PowerGrid"
 
 class PowerGridEnv(gym.Env):
+    OBS_NUM_FEATURES = 50
+    OBS_GLOBAL_VARS = 100
+    OBS_KINSHIP_FEATURES = 10
+
     def __init__(self, level_generator: PowerGridLevelGenerator, render_mode="rgb_array"):
         super().__init__()
         self._level_generator = level_generator
@@ -32,6 +36,8 @@ class PowerGridEnv(gym.Env):
               if v.startswith("conf:")])
 
         self._validate_griddly()
+        self._set_up_observation_padding(self._griddly_env.observation_space)
+
         self._max_level_energy = None
         self._max_level_energy_per_agent = None
         self._episode_rewards = None
@@ -68,6 +74,19 @@ class PowerGridEnv(gym.Env):
         family_reward = self._level_generator.sample_cfg("rsm_family_reward")
         if num_families > 0:
             self._reward_sharing = FamillyAllocator(self._num_agents, num_families, family_reward)
+
+    def _set_up_observation_padding(self, obs_space):
+        if self._num_agents == 1:
+            obs_space = self._griddly_env.observation_space
+        else:
+            obs_space = self._griddly_env.observation_space[0]
+
+        num_obs_features = obs_space.shape[0]
+        self._observation_padding = {
+            "obs": ((0, self.OBS_NUM_FEATURES - num_obs_features), (0, 0), (0, 0)),
+            "global_vars": (0, self.OBS_GLOBAL_VARS - len(self.global_variable_names)),
+            "kinship": ((0, self.OBS_KINSHIP_FEATURES - 1), (0, 0), (0, 0)),
+        }
 
     def render(self):
         return super().render()
@@ -205,23 +224,36 @@ class PowerGridEnv(gym.Env):
         self._max_level_energy = max_charger_energy + self._num_agents * agent_regen * num_steps
         self._max_level_energy_per_agent = self._max_level_energy / self._num_agents
 
+    def _pad_observation_key(self, key, obs_value):
+        return np.pad(obs_value, self._observation_padding[key], "constant")
+
     def _augment_observations(self, obs):
         return [{
-            "obs": agent_obs,
-            "global_vars": self._global_variable_obs[agent],
+            "obs": self._pad_observation_key("obs", agent_obs),
+            "global_vars": self._pad_observation_key("global_vars", self._global_variable_obs[agent]),
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),
-            "kinship": self._reward_sharing.obs(agent, agent_obs[self._agent_id_obs_idx]),
+            "kinship": self._pad_observation_key("kinship",
+                self._reward_sharing.obs(agent, agent_obs[self._agent_id_obs_idx]))
         } for agent, agent_obs in enumerate(obs)]
-
 
     @property
     def observation_space(self):
-        augment = lambda o: gym.spaces.Dict({
-            "obs": o,
+        if self._num_agents == 1:
+            obs_space = self._griddly_env.observation_space
+        else:
+            obs_space = self._griddly_env.observation_space[0]
+
+        padded_obs_space = gym.spaces.Box(
+                low=-np.inf, high=np.inf,
+                shape=[ self.OBS_NUM_FEATURES ] + list(obs_space.shape[1:]),
+                dtype=np.int32)
+
+        agent_obs_space = gym.spaces.Dict({
+            "obs": padded_obs_space,
             "global_vars": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
-                shape=[len(self.global_variable_names)],
+                shape=[self.OBS_GLOBAL_VARS],
                 dtype=np.int32),
             "last_action": gym.spaces.Box(
                 low=0, high=255,
@@ -233,13 +265,13 @@ class PowerGridEnv(gym.Env):
                 dtype=np.float32),
             "kinship": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
-                shape=o.shape[1:],
+                shape=[ self.OBS_KINSHIP_FEATURES ] + list(obs_space.shape[1:]),
                 dtype=np.float32),
             })
         if self._num_agents == 1:
-            return augment(self._griddly_env.observation_space)
+            return agent_obs_space
         else:
-            return [augment(o) for o in self._griddly_env.observation_space]
+            return [agent_obs_space] * self._num_agents
 
     @property
     def action_space(self):

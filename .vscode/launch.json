@@ -10,11 +10,11 @@
             "request": "launch",
             "module": "train",
             "args": [
-                "--experiment=mac.pres4",
+                "--experiment=mac.pres6",
 
                 "--algo=APPO",
                 "--device=cpu",
-                "--restart_behavior=restart",
+                "--restart_behavior=resume",
                 "--env=GDY-PowerGrid",
                 "--save_every_sec=60",
                 "--experiment_summaries_interval=10",
@@ -39,7 +39,7 @@
                 "--env_max_steps=100",
                 "--load_checkpoint_kind=best",
 
-                "--normalize_input=False",
+                "--normalize_input=True",
                 "--aux_loss_coef=0.1",
                 "--agent_fc_layers=2",
                 "--agent_fc_size=512",

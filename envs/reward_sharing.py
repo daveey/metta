@@ -10,7 +10,7 @@ class RewardAllocator():
         return rewards
 
     def obs(self, agent_id, agent_obs):
-        return agent_obs
+        return np.array([agent_obs])
 
 class MatrixRewardAllocator(RewardAllocator):
     def __init__(self, num_agents, reward_sharing_matrix) -> None:
