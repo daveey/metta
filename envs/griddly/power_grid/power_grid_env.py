@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 GYM_ENV_NAME = "GDY-PowerGrid"
 
 class PowerGridEnv(gym.Env):
-    OBS_NUM_FEATURES = 50
+    OBS_NUM_FEATURES = 35
     OBS_GLOBAL_VARS = 100
     OBS_KINSHIP_FEATURES = 10
 
