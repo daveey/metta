@@ -22,13 +22,13 @@ python -m train \
     --rnn_size=256 \
     --rnn_type=gru \
     --rollout=256 \
-    --batch_size=2048 \
+    --batch_size=131072 \
     --decorrelate_experience_max_seconds=150  \
     --value_loss_coeff=0.976 \
     --exploration_loss=symmetric_kl \
     --exploration_loss_coeff=0.002 \
     --policy_initialization=orthogonal \
-    --learning_rate=0.0000195 \
+    --learning_rate=0.0001 \
     --max_policy_lag=2000 \
     --nonlinearity=elu \
     --normalize_input=True \
