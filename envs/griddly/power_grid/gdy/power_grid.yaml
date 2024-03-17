@@ -333,8 +333,6 @@
       Variables:
         - Name: charger:ready
           InitialValue: 0
-        - Name: charger:xcxc
-          InitialValue: 0
         - Name: charger:input:1
           InitialValue: 0
         - Name: charger:input:2
