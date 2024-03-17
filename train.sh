@@ -22,7 +22,7 @@ python -m train \
     --rnn_size=256 \
     --rnn_type=gru \
     --rollout=256 \
-    --batch_size=131072 \
+    --batch_size=65536 \
     --decorrelate_experience_max_seconds=150  \
     --value_loss_coeff=0.976 \
     --exploration_loss=symmetric_kl \
