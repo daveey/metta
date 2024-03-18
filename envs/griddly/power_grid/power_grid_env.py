@@ -24,7 +24,7 @@ class PowerGridEnv(gym.Env):
     OBS_NUM_FEATURES = 23 # 35
     OBS_GLOBAL_VARS = 20 # 100
     OBS_KINSHIP_FEATURES = 1 # 10
-    NUM_ACTIONS = 7 #20
+    NUM_ACTIONS = 20
 
     def __init__(self, level_generator: PowerGridLevelGenerator, render_mode="rgb_array"):
         super().__init__()
