@@ -13,9 +13,6 @@ import jmespath
 
 class PowerGridLevelGenerator():
     GAME_CONFIG = {
-        "altar:cooldown": [2, 5],
-        "altar:cost": [10, 200],
-
         "charger:cooldown": [ 2, 2 ],
         "charger:energy": [ 50, 50 ],
         "generator:cooldown": [ 20, 100 ],
@@ -26,7 +23,10 @@ class PowerGridLevelGenerator():
 
         "gift:energy": [20, 20],
 
-        "cost:move:predator": [0, 0],
+        "cost:altar:female": [100, 100],
+        "cost:altar:male": [10, 10],
+
+    "cost:move:predator": [0, 0],
         "cost:move:prey": [0, 0],
         "cost:move": [0, 0],
         "cost:jump": [3, 3],

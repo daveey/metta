@@ -8,18 +8,6 @@
         InitialValue: 0
         PerPlayer: true
 
-      # Altar
-      - Name: conf:altar:cost
-        InitialValue: 50
-      - Name: conf:altar:cooldown
-        InitialValue: 2
-      - Name: stats:action:use:altar
-        InitialValue: 0
-        PerPlayer: true
-      - Name: stats:energy:used:altar
-        InitialValue: 0
-        PerPlayer: true
-
       # Charger
       - Name: conf:charger:cooldown
         InitialValue: 2
@@ -175,6 +163,32 @@
         InitialValue: 0
         PerPlayer: true
 
+      # Mating / Altar
+      - Name: stats:gender:female
+        InitialValue: 0
+        PerPlayer: true
+      - Name: stats:gender:male
+        InitialValue: 0
+        PerPlayer: true
+      - Name: conf:cost:altar:female
+        InitialValue: 50
+        PerPlayer: true
+      - Name: conf:cost:altar:male
+        InitialValue: 5
+        PerPlayer: true
+      - Name: stats:action:use:altar
+        InitialValue: 0
+        PerPlayer: true
+      - Name: stats:energy:used:altar
+        InitialValue: 0
+        PerPlayer: true
+      - Name: mating:mate
+        InitialValue: 0
+        PerPlayer: true
+      - Name: mating:last_mate
+        InitialValue: 0
+        PerPlayer: true
+
       # debug variables, used for webui
       - Name: debug:agent:energy
         InitialValue: 0
@@ -187,7 +201,6 @@
         PerPlayer: true
       - Name: debug:agent:inv:3
         InitialValue: 0
-        PerPlayer: true
 
       # variables for controlling rendering
       - Name: render:agent:attacked
@@ -358,16 +371,18 @@
       Z: 1
       MapCharacter: a
       Variables:
-        - Name: altar:ready
-          InitialValue: 0
+        # 0 empty, 1 ready, 2 mating
+        - Name: altar:state
+          InitialValue: 1
+        - Name: altar:player
+          InitialValue: 3
       Observers:
         GlobalSpriteObserver:
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_heart_clear.png
           - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_heart_full.png
+          - Image: oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_larvae_u1.png
       InitialActions:
         - Action: altar:init
-          ActionId: 1
-        - Action: altar:reset
           ActionId: 1
 
     - Name: agent
@@ -386,6 +401,8 @@
           InitialValue: 0
 
         - Name: agent:species
+          InitialValue: 0
+        - Name: agent:gender
           InitialValue: 0
 
         - Name: agent:inv:1
@@ -597,32 +614,51 @@
                   ActionId: 1
                   Delay: conf:charger:cooldown
 
-        # Use Altar
+        # Female uses an altar
         - Src:
             Object: agent
             Preconditions:
               - and:
                 - eq: [ agent:frozen, 0 ]
-                - eq: [ dst.altar:ready, 1 ]
-                - gte: [ agent:energy, conf:altar:cost ]
+                - eq: [ agent:gender, 0 ]
+                - gte: [ agent:energy, conf:cost:altar:female ]
+                - neq: [ dst.altar:state, 2 ] # altar is not done
             Commands:
-              - reward: conf:altar:cost
-              - reward: conf:altar:cost
-              - add: [ stats:reward, conf:altar:cost ]
-              - add: [ stats:reward, conf:altar:cost ]
-
               - incr: stats:action:use:altar
-              - sub: [ agent:energy, conf:altar:cost ]
-              - add: [ stats:energy:used:altar, conf:altar:cost ]
+              - sub: [ agent:energy, conf:cost:altar:female ]
+              - add: [ stats:energy:used:altar, conf:cost:altar:female ]
+              - set: [ dst.altar:player, agent:id ]
           Dst:
             Object: altar
             Commands:
               - set_tile: 1
-              - set: [ altar:ready, 0 ]
+              - set: [ altar:state, 1 ]
+
+        # Male uses an altar
+        - Src:
+            Object: agent
+            Preconditions:
+              - and:
+                - eq: [ agent:frozen, 0 ]
+                - eq: [ agent:gender, 1 ]
+                - gte: [ agent:energy, conf:cost:altar:male ]
+                - eq: [ dst.altar:state, 1 ] # altar is ready
+            Commands:
+              - incr: stats:action:use:altar
+              - sub: [ agent:energy, conf:cost:altar:male ]
+              - add: [ stats:energy:used:altar, conf:cost:altar:male ]
+              - reward: conf:cost:altar:female
+              - reward: conf:cost:altar:male
+              - set: [ mating:mate, dst.altar:player ]
+          Dst:
+            Object: altar
+            Commands:
+              - set_tile: 2
+              - set: [ altar:state, 2 ]
               - exec:
                   Action: altar:reset
                   ActionId: 1
-                  Delay: conf:altar:cooldown
+                  Delay: 4
 
     - Name: gift
       InputMapping:
@@ -819,6 +855,9 @@
               - exec:
                   Action: agent:change_species
                   Randomize: True
+              - exec:
+                  Action: agent:change_gender
+                  Randomize: True
 
     - Name: agent:change_species
       InputMapping:
@@ -859,6 +898,40 @@
                   OnTrue:
                       - incr: stats:species:predator
                       - set: [ conf:cost:move, conf:cost:move:predator ]
+
+    - Name: agent:change_gender
+      InputMapping:
+        Internal: true
+        Inputs:
+          1:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              gender: 0 # female
+          2:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              gender: 1 # male
+      Behaviours:
+        - Src:
+            Object: agent
+          Dst:
+            Object: agent
+            Commands:
+              - set: [ agent:gender, meta.gender ]
+
+              # Female
+              - if:
+                  Conditions:
+                      eq: [ meta.gender, 0 ]
+                  OnTrue:
+                      - incr: stats:gender:female
+
+              # Male
+              - if:
+                  Conditions:
+                      eq: [ meta.gender, 1 ]
+                  OnTrue:
+                      - incr: stats:gender:male
 
     - Name: agent:tick
       InputMapping:
@@ -925,25 +998,39 @@
                     - set: [ agent:energy, conf:agent:energy:max ]
 
               # render the agent tile
+              # - if:
+              #     Conditions:
+              #       eq: [ agent:species, 1 ]
+              #     OnTrue:
+              #       - add: [ render:agent:tile, 1 ]
+              # - if:
+              #     Conditions:
+              #       eq: [ agent:species, 2 ]
+              #     OnTrue:
+              #       - add: [ render:agent:tile, 5 ]
               - if:
                   Conditions:
-                    eq: [ agent:species, 1 ]
+                    eq: [ agent:gender, 0 ]
                   OnTrue:
                     - add: [ render:agent:tile, 1 ]
               - if:
                   Conditions:
-                    eq: [ agent:species, 2 ]
+                    eq: [ agent:gender, 1 ]
                   OnTrue:
                     - add: [ render:agent:tile, 5 ]
 
               - set_tile: render:agent:tile
+
+              # reset the last_mate. hack since we need
+              # to keep the mate for the rest of the tick
+              - set: [ mating:last_mate, mating:mate ]
+              - set: [ mating:mate, 0 ]
 
               # update debug variables
               - set: [ debug:agent:energy, agent:energy ]
               - set: [ debug:agent:inv:1, agent:inv:1 ]
               - set: [ debug:agent:inv:2, agent:inv:2 ]
               - set: [ debug:agent:inv:3, agent:inv:3 ]
-
               - exec:
                   Action: agent:tick
                   ActionId: 1
@@ -1063,6 +1150,8 @@
             Object: altar
           Dst:
             Object: altar
+            Commands:
+              - set_tile: altar:state
 
     - Name: altar:reset
       InputMapping:
@@ -1076,6 +1165,7 @@
           Dst:
             Object: altar
             Commands:
-              - set: [ altar:ready, 1 ]
+              - set: [ altar:state, 0 ]
               - set_tile: 0
+              - set: [ altar:player, 0 ]
 

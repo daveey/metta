@@ -123,7 +123,7 @@ class PowerGridEnv(gym.Env):
 
     def step(self, actions):
         actions = [
-            a if a[0] < self._num_griddly_actions else [0, 0]
+            a if a[0] <= self._num_griddly_actions else [0, 0]
             for a in actions
         ]
         actions = [ a[:self._num_griddly_actions] for a in actions ]
