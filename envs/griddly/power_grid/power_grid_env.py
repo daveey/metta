@@ -13,6 +13,7 @@ from envs.reward_sharing import FamillyAllocator, FamillySparseAllocator, Reward
 from griddly.gym import GymWrapper
 from gymnasium.core import Env
 from envs.griddly.power_grid.power_grid_level_generator import PowerGridLevelGenerator
+from gymnasium.spaces import Space
 
 import util.args_parsing as args_parsing
 import cv2
@@ -23,6 +24,7 @@ class PowerGridEnv(gym.Env):
     OBS_NUM_FEATURES = 35
     OBS_GLOBAL_VARS = 100
     OBS_KINSHIP_FEATURES = 10
+    NUM_ACTIONS = 20
 
     def __init__(self, level_generator: PowerGridLevelGenerator, render_mode="rgb_array"):
         super().__init__()
@@ -37,6 +39,7 @@ class PowerGridEnv(gym.Env):
 
         self._validate_griddly()
         self._set_up_observation_padding(self._griddly_env.observation_space)
+        self._num_griddly_actions = len(self._griddly_env.action_names)
 
         self._max_level_energy = None
         self._max_level_energy_per_agent = None
@@ -53,7 +56,7 @@ class PowerGridEnv(gym.Env):
         var_order = self._griddly_env.game.get_object_variable_names()
         assert obj_order == sorted(obj_order)
         assert var_order == sorted(var_order)
-        assert self._griddly_env.action_names == ["rotate", "move", "jump", "use", "gift", "shield", "attack"]
+        assert self._griddly_env.action_names == ["rotate", "xcxc", "move", "jump", "use", "gift", "shield", "attack"]
 
     def _make_env(self):
         self._griddly_env = self._level_generator.make_env(self._render_mode)
@@ -119,6 +122,11 @@ class PowerGridEnv(gym.Env):
         self._global_variable_obs = np.array(vals).transpose()
 
     def step(self, actions):
+        actions = [
+            a if a[0] < self._num_griddly_actions else [0, 0]
+            for a in actions
+        ]
+        actions = [ a[:self._num_griddly_actions] for a in actions ]
         obs, rewards, terminated, truncated, info = self._griddly_env.step(actions)
         if self._num_agents == 1:
             self._last_actions = [actions]
@@ -275,7 +283,8 @@ class PowerGridEnv(gym.Env):
 
     @property
     def action_space(self):
-        return self._griddly_env.action_space
+        return [ gym.spaces.MultiDiscrete([self.NUM_ACTIONS, 10]) ] * self._num_agents
+        # return self._griddly_env.action_space
 
     @property
     def global_observation_space(self):

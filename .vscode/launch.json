@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "train",
             "args": [
-                "--experiment=mac.pres6",
+                "--experiment=mac.pres7",
 
                 "--algo=APPO",
                 "--device=cpu",
