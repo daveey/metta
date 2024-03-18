@@ -56,7 +56,7 @@ class PowerGridEnv(gym.Env):
         var_order = self._griddly_env.game.get_object_variable_names()
         assert obj_order == sorted(obj_order)
         assert var_order == sorted(var_order)
-        assert self._griddly_env.action_names == ["rotate", "xcxc", "move", "jump", "use", "gift", "shield", "attack"]
+        assert self._griddly_env.action_names == ["rotate", "move", "jump", "use", "gift", "shield", "attack"]
 
     def _make_env(self):
         self._griddly_env = self._level_generator.make_env(self._render_mode)
