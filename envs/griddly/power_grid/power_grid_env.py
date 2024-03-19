@@ -216,7 +216,9 @@ class PowerGridEnv(gym.Env):
 
     def _augment_observations(self, obs):
         return [{
-            "obs": agent_obs,
+            **{
+                "obs_" + k: agent_obs[idx] for idx, k in enumerate(self._griddly_obs_names)
+            },
             "global_vars": self._global_variable_obs[agent],
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),

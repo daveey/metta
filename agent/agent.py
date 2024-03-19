@@ -24,9 +24,11 @@ class GriddlyEncoder(Encoder):
 
     def __init__(self, cfg, obs_space):
         super().__init__(cfg)
+
         self._griddly_features_names = filter(
             lambda k: k.startswith("obs_"),
             obs_space.keys())
+
 
         self._num_features = (
             cfg.agent_embedding_size +
