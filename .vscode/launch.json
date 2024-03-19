@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "train",
             "args": [
-                "--experiment=mac.pres7",
+                "--experiment=mac.pres8",
 
                 "--algo=APPO",
                 "--device=cpu",
@@ -38,9 +38,10 @@
                 "--env_rsm_family_reward=0.5",
                 "--env_max_steps=100",
                 "--load_checkpoint_kind=latest",
+                "--load_checkpoint_path=/Users/daveey/code/metta/train_dir/mac.pres7/checkpoint_p0/checkpoint_000000596_610304.pth",
 
                 "--normalize_input=True",
-                "--aux_loss_coef=0.1",
+                "--aux_loss_coef=0",
                 "--agent_fc_layers=2",
                 "--agent_fc_size=512",
                 // "--train_for_env_steps=1000"

@@ -17,13 +17,13 @@ from sample_factory.algo.utils.context import global_model_factory
 class PredictingActorCritic(ActorCriticSharedWeights):
     def __init__(self, model_factory, obs_space, action_space, cfg: Config):
         super().__init__(model_factory, obs_space, action_space, cfg)
-        self._obs_size = np.prod(obs_space["obs"].shape)
-        self.obs_predictor = nn.Sequential(
-            nn.Linear(self.encoder.get_out_size(), 512),
-            nn.ReLU(),
-            nn.Linear(512, self._obs_size),
-            nn.ReLU(),
-        )
+        # self._obs_size = np.prod(obs_space["obs"].shape)
+        # self.obs_predictor = nn.Sequential(
+        #     nn.Linear(self.encoder.get_out_size(), 512),
+        #     nn.ReLU(),
+        #     nn.Linear(512, self._obs_size),
+        #     nn.ReLU(),
+        # )
 
     def aux_loss(self, normalized_obs_dict: TensorDict, rnn_states: torch.Tensor, result: TensorDict):
         # compute the prediction error of observations

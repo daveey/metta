@@ -24,6 +24,10 @@ class GriddlyEncoder(Encoder):
 
     def __init__(self, cfg, obs_space):
         super().__init__(cfg)
+        self._griddly_features_names = filter(
+            lambda k: k.startswith("obs_"),
+            obs_space.keys())
+
         self._num_features = (
             cfg.agent_embedding_size +
             obs_space["global_vars"].shape[0] +
@@ -33,14 +37,13 @@ class GriddlyEncoder(Encoder):
         )
 
         # Create a separate nn.Linear layer for each feature
-        self._num_obs_features = obs_space["obs"].shape[0]
-        self.feature_encoders = nn.ModuleList([
-            nn.Sequential(
+        self.feature_encoders = nn.ModuleDict({
+            key: nn.Sequential(
                 nn.Flatten(),
-                layer_init(nn.Linear(np.prod(obs_space["obs"].shape[1:]), cfg.agent_embedding_size)),
+                layer_init(nn.Linear(np.prod(obs_space[key].shape), cfg.agent_embedding_size)),
                 nonlinearity(cfg)
-            ) for _ in range(self._num_obs_features)
-        ])
+            ) for key in self._griddly_features_names
+        })
 
         # Self-attention layer
         self.attention = nn.Sequential(
@@ -64,7 +67,9 @@ class GriddlyEncoder(Encoder):
         batch_size = obs_dict["last_action"].size(0)
 
         # Encode each feature separately
-        encoded_features = [encoder(obs.view(batch_size, -1)) for obs, encoder in zip(obs_dict["obs"].unbind(dim=1), self.feature_encoders)]
+        encoded_features = [
+            encoder(obs_dict[key].view(batch_size, -1))
+            for key, encoder in self.feature_encoders.items()]
 
         # Apply self-attention
         attention_weights = self.attention(torch.stack(encoded_features, dim=1))
