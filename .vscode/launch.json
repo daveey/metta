@@ -14,7 +14,7 @@
 
                 "--algo=APPO",
                 "--device=cpu",
-                "--restart_behavior=restart",
+                "--restart_behavior=resume",
                 "--env=GDY-PowerGrid",
                 "--save_every_sec=60",
                 "--experiment_summaries_interval=10",
@@ -37,7 +37,7 @@
                 "--env_rsm_num_families=0",
                 "--env_rsm_family_reward=0.5",
                 "--env_max_steps=100",
-                "--load_checkpoint_kind=best",
+                "--load_checkpoint_kind=latest",
 
                 "--normalize_input=True",
                 "--aux_loss_coef=0.1",

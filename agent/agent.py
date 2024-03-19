@@ -20,21 +20,37 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
     nn.init.orthogonal_(layer.weight, std)
     nn.init.constant_(layer.bias, bias_const)
     return layer
-
 class GriddlyEncoder(Encoder):
 
     def __init__(self, cfg, obs_space):
         super().__init__(cfg)
         self._num_features = (
-            np.prod(obs_space["obs"].shape) +
+            cfg.agent_embedding_size +
             obs_space["global_vars"].shape[0] +
             obs_space["last_action"].shape[0] +
             obs_space["last_reward"].shape[0] +
             np.prod(obs_space["kinship"].shape)
         )
 
+        # Create a separate nn.Linear layer for each feature
+        self._num_obs_features = obs_space["obs"].shape[0]
+        self.feature_encoders = nn.ModuleList([
+            nn.Sequential(
+                nn.Flatten(),
+                layer_init(nn.Linear(np.prod(obs_space["obs"].shape[1:]), cfg.agent_embedding_size)),
+                nonlinearity(cfg)
+            ) for _ in range(self._num_obs_features)
+        ])
+
+        # Self-attention layer
+        self.attention = nn.Sequential(
+            nn.Linear(cfg.agent_embedding_size, cfg.agent_attention_size),
+            nn.Tanh(),
+            nn.Linear(cfg.agent_attention_size, 1),
+            nn.Softmax(dim=1)
+        )
+
         self.encoder_head = nn.Sequential(*[
-            nn.Flatten(),
             layer_init(nn.Linear(self._num_features, cfg.agent_fc_size)),
             nonlinearity(cfg)
         ] + [
@@ -46,24 +62,29 @@ class GriddlyEncoder(Encoder):
 
     def forward(self, obs_dict):
         batch_size = obs_dict["last_action"].size(0)
-        features = torch.concat([
-                obs_dict["obs"].view(batch_size, -1),
-                obs_dict["global_vars"],
-                obs_dict["last_action"].view(batch_size, -1),
-                obs_dict["last_reward"].view(batch_size, -1),
-                obs_dict["kinship"].view(batch_size, -1),
-            ], dim=1)
-        x = self.encoder_head(features)
 
+        # Encode each feature separately
+        encoded_features = [encoder(obs.view(batch_size, -1)) for obs, encoder in zip(obs_dict["obs"].unbind(dim=1), self.feature_encoders)]
+
+        # Apply self-attention
+        attention_weights = self.attention(torch.stack(encoded_features, dim=1))
+        attended_features = (attention_weights * torch.stack(encoded_features, dim=1)).sum(dim=1)
+
+        features = torch.cat([attended_features,
+            obs_dict["global_vars"],
+            obs_dict["last_action"].view(batch_size, -1),
+            obs_dict["last_reward"].view(batch_size, -1),
+            obs_dict["kinship"].view(batch_size, -1),
+        ], dim=1)
+
+        x = self.encoder_head(features)
         x = x.view(-1, self.encoder_head_out_size)
         return x
-
     def get_out_size(self) -> int:
         return self.encoder_head_out_size
 
 class GriddlyDecoder(MlpDecoder):
     pass
-
 
 def register_custom_components():
     global_model_factory().register_encoder_factory(GriddlyEncoder)
@@ -74,3 +95,5 @@ def register_custom_components():
 def add_args(parser):
     parser.add_argument("--agent_fc_layers", default=4, type=int, help="Number of encoder fc layers")
     parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
+    parser.add_argument("--agent_embedding_size", default=512, type=int, help="Size of each feature embedding")
+    parser.add_argument("--agent_attention_size", default=512, type=int, help="Inner size of the attention layer")

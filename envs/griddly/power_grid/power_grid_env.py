@@ -21,11 +21,6 @@ import matplotlib.pyplot as plt
 GYM_ENV_NAME = "GDY-PowerGrid"
 
 class PowerGridEnv(gym.Env):
-    OBS_NUM_FEATURES = 35
-    OBS_GLOBAL_VARS = 20 # 100
-    OBS_KINSHIP_FEATURES = 1 # 10
-    NUM_ACTIONS = 7 #20
-
     def __init__(self, level_generator: PowerGridLevelGenerator, render_mode="rgb_array"):
         super().__init__()
         self._level_generator = level_generator
@@ -33,12 +28,11 @@ class PowerGridEnv(gym.Env):
 
         self._make_env()
 
-        self.global_variable_names = sorted([
+        self._global_variable_names = sorted([
             v for v in self._griddly_env.game.get_global_variable_names()
               if v.startswith("conf:")])
 
         self._validate_griddly()
-        self._set_up_observation_padding(self._griddly_env.observation_space)
         self._num_griddly_actions = len(self._griddly_env.action_names)
 
         self._max_level_energy = None
@@ -66,7 +60,8 @@ class PowerGridEnv(gym.Env):
         self._episode_rewards = np.array([0] * self._num_agents, dtype=np.float32)
         self._prestige_steps = int(self._level_generator.sample_cfg("reward_rank_steps"))
         self._prestige_reward_weight = self._level_generator.sample_cfg("reward_prestige_weight")
-
+        self._griddly_obs_names = self._griddly_env.game.get_object_names() \
+            + self._griddly_env.game.get_object_variable_names()
         # compute the index of the agent id in the observation
         self._agent_id_obs_idx = len(self._griddly_env.object_names) \
             + self._griddly_env.variable_names.index("agent:id")
@@ -77,19 +72,6 @@ class PowerGridEnv(gym.Env):
         family_reward = self._level_generator.sample_cfg("rsm_family_reward")
         if num_families > 0:
             self._reward_sharing = FamillyAllocator(self._num_agents, num_families, family_reward)
-
-    def _set_up_observation_padding(self, obs_space):
-        if self._num_agents == 1:
-            obs_space = self._griddly_env.observation_space
-        else:
-            obs_space = self._griddly_env.observation_space[0]
-
-        num_obs_features = obs_space.shape[0]
-        self._observation_padding = {
-            "obs": ((0, self.OBS_NUM_FEATURES - num_obs_features), (0, 0), (0, 0)),
-            "global_vars": (0, self.OBS_GLOBAL_VARS - len(self.global_variable_names)),
-            "kinship": ((0, self.OBS_KINSHIP_FEATURES - 1), (0, 0), (0, 0)),
-        }
 
     def render(self):
         return super().render()
@@ -114,7 +96,7 @@ class PowerGridEnv(gym.Env):
 
     def _compute_global_variable_obs(self):
         vals = []
-        for v in self._griddly_env.game.get_global_variable(self.global_variable_names).values():
+        for v in self._griddly_env.game.get_global_variable(self._global_variable_names).values():
             if len(v) == 1:
                 vals.append([v[0]] * self._num_agents)
             else:
@@ -232,17 +214,14 @@ class PowerGridEnv(gym.Env):
         self._max_level_energy = max_charger_energy + self._num_agents * agent_regen * num_steps
         self._max_level_energy_per_agent = self._max_level_energy / self._num_agents
 
-    def _pad_observation_key(self, key, obs_value):
-        return np.pad(obs_value, self._observation_padding[key], "constant")
-
     def _augment_observations(self, obs):
         return [{
-            "obs": self._pad_observation_key("obs", agent_obs),
-            "global_vars": self._pad_observation_key("global_vars", self._global_variable_obs[agent]),
+            "obs": agent_obs,
+            "global_vars": self._global_variable_obs[agent],
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),
-            "kinship": self._pad_observation_key("kinship",
-                self._reward_sharing.obs(agent, agent_obs[self._agent_id_obs_idx]))
+            "kinship": self._reward_sharing.obs(
+                agent, agent_obs[self._agent_id_obs_idx])
         } for agent, agent_obs in enumerate(obs)]
 
     @property
@@ -252,16 +231,12 @@ class PowerGridEnv(gym.Env):
         else:
             obs_space = self._griddly_env.observation_space[0]
 
-        padded_obs_space = gym.spaces.Box(
-                low=-np.inf, high=np.inf,
-                shape=[ self.OBS_NUM_FEATURES ] + list(obs_space.shape[1:]),
-                dtype=np.int32)
 
         agent_obs_space = gym.spaces.Dict({
-            "obs": padded_obs_space,
+            "obs": obs_space,
             "global_vars": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
-                shape=[self.OBS_GLOBAL_VARS],
+                shape=[ len(self._global_variable_names)],
                 dtype=np.int32),
             "last_action": gym.spaces.Box(
                 low=0, high=255,
@@ -273,7 +248,7 @@ class PowerGridEnv(gym.Env):
                 dtype=np.float32),
             "kinship": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
-                shape=[ self.OBS_KINSHIP_FEATURES ] + list(obs_space.shape[1:]),
+                shape=[ 1 ] + list(obs_space.shape[1:]),
                 dtype=np.float32),
             })
         if self._num_agents == 1:
@@ -283,8 +258,7 @@ class PowerGridEnv(gym.Env):
 
     @property
     def action_space(self):
-        return [ gym.spaces.MultiDiscrete([self.NUM_ACTIONS, 10]) ] * self._num_agents
-        # return self._griddly_env.action_space
+        return self._griddly_env.action_space
 
     @property
     def global_observation_space(self):
