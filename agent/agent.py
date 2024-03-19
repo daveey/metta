@@ -38,20 +38,28 @@ class GriddlyEncoder(Encoder):
 
         # Create a separate nn.Linear layer for each feature
         self.feature_encoders = nn.ModuleDict({
-            key: nn.Sequential(
-                nn.Flatten(),
-                layer_init(nn.Linear(np.prod(obs_space[key].shape), cfg.agent_embedding_size)),
-                nonlinearity(cfg)
+            key: nn.Sequential(*[
+                    nn.Flatten(),
+                    layer_init(nn.Linear(np.prod(obs_space[key].shape), cfg.agent_embedding_size)),
+                    nonlinearity(cfg),
+                ] + [
+                    layer_init(
+                        nn.Linear(cfg.agent_embedding_size, cfg.agent_embedding_size), cfg.agent_embedding_size),
+                        nonlinearity(cfg)
+                ] * cfg.agent_fc_layers
             ) for key in self._griddly_features_names
         })
 
         # Self-attention layer
-        self.attention = nn.Sequential(
+        self.attention = nn.Sequential(*[
             nn.Linear(cfg.agent_embedding_size, cfg.agent_attention_size),
             nn.Tanh(),
+        ] + [
+            nn.Linear(cfg.agent_attention_size, cfg.agent_attention_size),
+        ] * cfg.agent_attention_layers + [
             nn.Linear(cfg.agent_attention_size, 1),
             nn.Softmax(dim=1)
-        )
+        ])
 
         self.encoder_head = nn.Sequential(*[
             layer_init(nn.Linear(self._num_features, cfg.agent_fc_size)),
@@ -101,4 +109,6 @@ def add_args(parser):
     parser.add_argument("--agent_fc_layers", default=4, type=int, help="Number of encoder fc layers")
     parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
     parser.add_argument("--agent_embedding_size", default=512, type=int, help="Size of each feature embedding")
+    parser.add_argument("--agent_embedding_layers", default=3, type=int, help="Size of each feature embedding")
     parser.add_argument("--agent_attention_size", default=512, type=int, help="Inner size of the attention layer")
+    parser.add_argument("--agent_attention_layers", default=3, type=int, help="Number of attention layers")
