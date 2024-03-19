@@ -56,6 +56,7 @@ class GriddlyEncoder(Encoder):
             nn.Tanh(),
         ] + [
             nn.Linear(cfg.agent_attention_size, cfg.agent_attention_size),
+            nn.Tanh(),
         ] * cfg.agent_attention_layers + [
             nn.Linear(cfg.agent_attention_size, 1),
             nn.Softmax(dim=1)
