@@ -1,4 +1,5 @@
 from __future__ import annotations
+from turtle import pos
 
 
 import numpy as np
@@ -86,11 +87,10 @@ class GriddlyEncoder(Encoder):
         batch_size = griddly_obs.size(0)
 
         # Pad features to fixed size
-        if self._cached_pos_and_padding is None or self._cached_pos_and_padding.size(0) != batch_size:
-            self._cached_pos_and_padding = self._position_and_padding.expand(batch_size, -1, -1, -1)
-            self._cached_pos_and_padding = self._cached_pos_and_padding.to(griddly_obs.device)
+        pos_and_padding = self._position_and_padding.expand(batch_size, -1, -1, -1)
+        pos_and_padding = pos_and_padding.to(griddly_obs.device)
 
-        griddly_obs = torch.cat([self._cached_pos_and_padding, griddly_obs], dim=1)
+        griddly_obs = torch.cat([pos_and_padding, griddly_obs], dim=1)
 
         # create one big batch of objects (batch_size * grid_size, num_features)
         object_obs = griddly_obs.permute(0, 2, 3, 1).reshape(-1, self._num_object_features)
