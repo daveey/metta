@@ -41,6 +41,9 @@
       - Name: stats:action:use:generator
         InitialValue: 0
         PerPlayer: true
+      - Name: stats:action:use:generator:cursed
+        InitialValue: 0
+        PerPlayer: true
       - Name: stats:resource:collected
         InitialValue: 0
         PerPlayer: true
@@ -312,6 +315,8 @@
           InitialValue: 0
         - Name: generator:resource
           InitialValue: 1
+        - Name: generator:cursed
+          InitialValue: 0
       Observers:
         GlobalSpriteObserver:
           - Image: oryx/oryx_fantasy/ore-0.png
@@ -323,7 +328,7 @@
           - Image: oryx/oryx_fantasy/ore-6.png
       InitialActions:
         - Action: generator:init
-          ActionId: 1
+          Randomize: True
         - Action: generator:reset
           Randomize: True
 
@@ -547,6 +552,12 @@
                       eq: [ dst.generator:resource, 3 ]
                   OnTrue:
                       - incr: agent:inv:3
+              - if:
+                  Conditions:
+                      eq: [ dst.generator:cursed, 1 ]
+                  OnTrue:
+                      - sub: [ agent:energy, 50 ]
+                      - incr: [ stats:action:use:generator:cursed ]
           Dst:
             Object: generator
             Commands:
@@ -955,11 +966,19 @@
         Inputs:
           1:
             VectorToDest: [ 0, 0 ]
+            MetaData:
+              cursed: 0
+          2:
+            VectorToDest: [ 0, 0 ]
+            MetaData:
+              cursed: 1
       Behaviours:
         - Src:
             Object: generator
           Dst:
             Object: generator
+            Commands:
+              - set: [ generator:cursed, meta.cursed ]
 
     - Name: generator:reset
       InputMapping:
