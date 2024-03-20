@@ -33,12 +33,13 @@ class GriddlyEncoder(Encoder):
         self._features_padding = torch.zeros(
             1, # batch
             self._griddly_max_features - obs_space["griddly_obs"].shape[0],
-            *self._grid_shape)
+            *self._grid_shape).to(cfg.device)
 
-        position_encodings = self._create_position_encodings()
+        position_encodings = self._create_position_encodings().to(cfg.device)
         self._position_and_padding = torch.cat([
             position_encodings,
             self._features_padding], dim=1)
+        self._cached_pos_and_padding = None
 
         self._num_object_features = self._griddly_max_features + 2 # position encodings
 
@@ -76,7 +77,7 @@ class GriddlyEncoder(Encoder):
     def _create_position_encodings(self):
         x = torch.linspace(-1, 1, self._grid_shape[0])
         y = torch.linspace(-1, 1, self._grid_shape[1])
-        pos_x, pos_y = torch.meshgrid(x, y)
+        pos_x, pos_y = torch.meshgrid(x, y, indexing='xy')
         position_encodings = torch.stack((pos_x, pos_y), dim=-1)
         return position_encodings.unsqueeze(0).permute(0, 3, 1, 2)
 
@@ -85,8 +86,11 @@ class GriddlyEncoder(Encoder):
         batch_size = griddly_obs.size(0)
 
         # Pad features to fixed size
-        pos_and_padding = self._position_and_padding.expand(batch_size, -1, -1, -1)
-        griddly_obs = torch.cat([pos_and_padding, griddly_obs], dim=1)
+        if self._cached_pos_and_padding is None or self._cached_pos_and_padding.size(0) != batch_size:
+            self._cached_pos_and_padding = self._position_and_padding.expand(batch_size, -1, -1, -1)
+            self._cached_pos_and_padding = self._cached_pos_and_padding.to(griddly_obs.device)
+
+        griddly_obs = torch.cat([self._cached_pos_and_padding, griddly_obs], dim=1)
 
         # create one big batch of objects (batch_size * grid_size, num_features)
         object_obs = griddly_obs.permute(0, 2, 3, 1).reshape(-1, self._num_object_features)
