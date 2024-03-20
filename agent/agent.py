@@ -34,9 +34,9 @@ class GriddlyEncoder(Encoder):
         self._features_padding = torch.zeros(
             1, # batch
             self._griddly_max_features - obs_space["griddly_obs"].shape[0],
-            *self._grid_shape).to(cfg.device)
+            *self._grid_shape)
 
-        position_encodings = self._create_position_encodings().to(cfg.device)
+        position_encodings = self._create_position_encodings()
         self._position_and_padding = torch.cat([
             position_encodings,
             self._features_padding], dim=1)
