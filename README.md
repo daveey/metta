@@ -3,8 +3,8 @@
 1. create conda environment
 
 ```
-conda create -n meta python=3.11
-conda activate meta
+conda create -n metta python=3.11
+conda activate metta
 ```
 
 2. install requirements
