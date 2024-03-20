@@ -1,3 +1,5 @@
+set -e
+
 pip install -e requirements.txt
 
 cd third_party/griddly
