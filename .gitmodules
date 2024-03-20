@@ -1,0 +1,6 @@
+[submodule "third_party/sample_factory"]
+	path = third_party/sample_factory
+	url = https://github.com/daveey/sample-factory.git
+[submodule "third_party/griddly"]
+	path = third_party/griddly
+	url = https://github.com/daveey/Griddly.git
