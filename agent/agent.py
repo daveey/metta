@@ -20,82 +20,92 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
     nn.init.orthogonal_(layer.weight, std)
     nn.init.constant_(layer.bias, bias_const)
     return layer
+
 class GriddlyEncoder(Encoder):
 
     def __init__(self, cfg, obs_space):
         super().__init__(cfg)
 
-        self._griddly_features_names = filter(
-            lambda k: k.startswith("obs_"),
-            obs_space.keys())
+        self._grid_shape = obs_space["griddly_obs"].shape[1:3]
+        self._griddly_max_features = cfg.agent_max_features
 
+        # Precompute position encodings and padding
+        self._features_padding = torch.zeros(
+            1, # batch
+            self._griddly_max_features - obs_space["griddly_obs"].shape[0],
+            *self._grid_shape)
 
-        self._num_features = (
-            cfg.agent_embedding_size +
-            obs_space["global_vars"].shape[0] +
-            obs_space["last_action"].shape[0] +
-            obs_space["last_reward"].shape[0] +
-            np.prod(obs_space["kinship"].shape)
+        position_encodings = self._create_position_encodings()
+        self._position_and_padding = torch.cat([
+            position_encodings,
+            self._features_padding], dim=1)
+
+        self._num_object_features = self._griddly_max_features + 2 # position encodings
+
+        # Object embedding network
+        self.object_embedding = nn.Sequential(
+            layer_init(nn.Linear(self._num_object_features, cfg.agent_embedding_size)),
+            nonlinearity(cfg),
+            *[
+                nn.Sequential(
+                layer_init(nn.Linear(cfg.agent_embedding_size, cfg.agent_embedding_size)),
+                nonlinearity(cfg)
+              ) for _ in range(cfg.agent_embedding_layers)]
         )
 
-        # Create a separate nn.Linear layer for each feature
-        self.feature_encoders = nn.ModuleDict({
-            key: nn.Sequential(*[
-                    nn.Flatten(),
-                    layer_init(nn.Linear(np.prod(obs_space[key].shape), cfg.agent_embedding_size)),
-                    nonlinearity(cfg),
-                ] + [
-                    layer_init(
-                        nn.Linear(cfg.agent_embedding_size, cfg.agent_embedding_size), cfg.agent_embedding_size),
-                        nonlinearity(cfg)
-                ] * cfg.agent_fc_layers
-            ) for key in self._griddly_features_names
-        })
+        # Additional features size calculation
+        all_embeddings_size = (
+            cfg.agent_embedding_size * np.prod(self._grid_shape) +
+            obs_space["global_vars"].shape[0] +
+            obs_space["last_action"].shape[0] +
+            obs_space["last_reward"].shape[0]
+        )
 
-        # Self-attention layer
-        self.attention = nn.Sequential(*[
-            nn.Linear(cfg.agent_embedding_size, cfg.agent_attention_size),
-            nn.Tanh(),
-        ] + [
-            nn.Linear(cfg.agent_attention_size, cfg.agent_attention_size),
-            nn.Tanh(),
-        ] * cfg.agent_attention_layers + [
-            nn.Linear(cfg.agent_attention_size, 1),
-            nn.Softmax(dim=1)
-        ])
-
-        self.encoder_head = nn.Sequential(*[
-            layer_init(nn.Linear(self._num_features, cfg.agent_fc_size)),
-            nonlinearity(cfg)
-        ] + [
-            layer_init(nn.Linear(cfg.agent_fc_size, cfg.agent_fc_size), cfg.agent_fc_size),
-            nonlinearity(cfg)
-        ] * cfg.agent_fc_layers)
-
+        # Encoder head
+        self.encoder_head = nn.Sequential(
+            layer_init(nn.Linear(all_embeddings_size, cfg.agent_fc_size)),
+            nonlinearity(cfg),
+            *[nn.Sequential(
+                layer_init(nn.Linear(cfg.agent_fc_size, cfg.agent_fc_size)),
+                nonlinearity(cfg)
+              ) for _ in range(cfg.agent_fc_layers)]
+        )
         self.encoder_head_out_size = cfg.agent_fc_size
 
+    # generate position encodings, shaped (1, 2, width, height)
+    def _create_position_encodings(self):
+        x = torch.linspace(-1, 1, self._grid_shape[0])
+        y = torch.linspace(-1, 1, self._grid_shape[1])
+        pos_x, pos_y = torch.meshgrid(x, y)
+        position_encodings = torch.stack((pos_x, pos_y), dim=-1)
+        return position_encodings.unsqueeze(0).permute(0, 3, 1, 2)
+
     def forward(self, obs_dict):
-        batch_size = obs_dict["last_action"].size(0)
+        griddly_obs = obs_dict["griddly_obs"]
+        batch_size = griddly_obs.size(0)
 
-        # Encode each feature separately
-        encoded_features = [
-            encoder(obs_dict[key].view(batch_size, -1))
-            for key, encoder in self.feature_encoders.items()]
+        # Pad features to fixed size
+        pos_and_padding = self._position_and_padding.expand(batch_size, -1, -1, -1)
+        griddly_obs = torch.cat([pos_and_padding, griddly_obs], dim=1)
 
-        # Apply self-attention
-        attention_weights = self.attention(torch.stack(encoded_features, dim=1))
-        attended_features = (attention_weights * torch.stack(encoded_features, dim=1)).sum(dim=1)
+        # create one big batch of objects (batch_size * grid_size, num_features)
+        object_obs = griddly_obs.permute(0, 2, 3, 1).reshape(-1, self._num_object_features)
 
-        features = torch.cat([attended_features,
+        # Object embedding
+        object_embeddings = self.object_embedding(object_obs).view(batch_size, -1)
+
+        # Additional features
+        additional_features = torch.cat([
             obs_dict["global_vars"],
             obs_dict["last_action"].view(batch_size, -1),
-            obs_dict["last_reward"].view(batch_size, -1),
-            obs_dict["kinship"].view(batch_size, -1),
+            obs_dict["last_reward"].view(batch_size, -1)
         ], dim=1)
 
-        x = self.encoder_head(features)
-        x = x.view(-1, self.encoder_head_out_size)
-        return x
+        all_obs = torch.cat([object_embeddings, additional_features], dim=1)
+        # Final encoding
+        x = self.encoder_head(all_obs)
+        return x.view(-1, self.encoder_head_out_size)
+
     def get_out_size(self) -> int:
         return self.encoder_head_out_size
 
@@ -109,6 +119,7 @@ def register_custom_components():
 
 
 def add_args(parser):
+    parser.add_argument("--agent_max_features", default=50, type=int, help="Max number of griddly features")
     parser.add_argument("--agent_fc_layers", default=4, type=int, help="Number of encoder fc layers")
     parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
     parser.add_argument("--agent_embedding_size", default=512, type=int, help="Size of each feature embedding")

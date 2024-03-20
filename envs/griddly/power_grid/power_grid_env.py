@@ -216,9 +216,7 @@ class PowerGridEnv(gym.Env):
 
     def _augment_observations(self, obs):
         return [{
-            **{
-                "obs_" + k: agent_obs[idx] for idx, k in enumerate(self._griddly_obs_names)
-            },
+            "griddly_obs": agent_obs,
             "global_vars": self._global_variable_obs[agent],
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),
@@ -233,16 +231,8 @@ class PowerGridEnv(gym.Env):
         else:
             obs_space = self._griddly_env.observation_space[0]
 
-        griddly_obs = {
-            "obs_" + n: gym.spaces.Box(
-                low=0, high=255,
-                shape=obs_space.shape[1:],
-                dtype=np.uint8)
-            for n in self._griddly_obs_names
-        }
-
         agent_obs_space = gym.spaces.Dict({
-            **griddly_obs,
+            "griddly_obs": obs_space,
             "global_vars": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
                 shape=[ len(self._global_variable_names)],

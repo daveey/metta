@@ -14,7 +14,7 @@
 
                 "--algo=APPO",
                 "--device=cpu",
-                "--restart_behavior=resume",
+                "--restart_behavior=restart",
                 "--env=GDY-PowerGrid",
                 "--save_every_sec=60",
                 "--experiment_summaries_interval=10",
@@ -38,9 +38,8 @@
                 "--env_rsm_family_reward=0.5",
                 "--env_max_steps=100",
                 "--load_checkpoint_kind=latest",
-                "--init_checkpoint_path=/Users/daveey/code/metta/train_dir/mac.pres7/checkpoint_p0/checkpoint_000000596_610304.pth",
 
-                "--normalize_input=True",
+                "--normalize_input=False",
                 "--aux_loss_coef=0",
                 "--agent_fc_layers=2",
                 "--agent_fc_size=512",
