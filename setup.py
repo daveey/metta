@@ -9,7 +9,25 @@ class BuildGriddlyCommand(Command):
 
     def run(self):
         subprocess.check_call(
-            ['./build_release.sh'],
+            ['./configure.sh'],
+            cwd='third_party/griddly',
+            shell=True,
+        )
+        subprocess.check_call(
+            ['conan', 'install', 'deps/conanfile.txt', '--profile', 'default',
+             '--profile', 'deps/build.profile', '-s', 'build_type=Release',
+             '--build', 'missing', '-if', 'build'],
+            cwd='third_party/griddly',
+            shell=True,
+        )
+        subprocess.check_call(
+            ['cmake', '.', '-B', 'build', '-GNinja', '-DCMAKE_BUILD_TYPE=Release',
+             '-DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake'],
+            cwd='third_party/griddly',
+            shell=True,
+        )
+        subprocess.check_call(
+            ['cmake', '--build', 'build', '--config', 'Release'],
             cwd='third_party/griddly',
             shell=True,
         )
@@ -19,7 +37,6 @@ class BuildGriddlyCommand(Command):
 
     def finalize_options(self):
         pass
-
 class DevelopCommand(develop):
     def run(self):
         self.run_command('build_griddly')
