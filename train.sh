@@ -22,12 +22,12 @@ python -m train \
     --agent_embedding_layers=3 \
     --agent_attention_size=512 \
     --agent_attention_layers=2 \
-    --rnn_num_layers=2 \
+    --rnn_num_layers=1 \
     --rnn_size=512 \
     --rnn_type=gru \
     --recurrence=32 \
     --rollout=256 \
-    --batch_size=65536 \
+    --batch_size=16384 \
     --decorrelate_experience_max_seconds=150  \
     --value_loss_coeff=0.976 \
     --exploration_loss=symmetric_kl \

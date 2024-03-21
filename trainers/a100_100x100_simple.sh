@@ -13,10 +13,5 @@
     --env_altar:cost=100 \
     --env_reward_prestige_weight=0 \
     --env_cost:shield=0 \
-    --agent_fc_layers=4 \
-    --agent_fc_size=512 \
-    --rnn_num_layers=1 \
-    --rnn_size=512 \
-    --rnn_type=gru \
     --max_policy_lag=20000 \
     "$@"
