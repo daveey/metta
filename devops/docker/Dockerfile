@@ -13,7 +13,7 @@ RUN apt upgrade -y libopenblas-dev
 # Install Vulkan SDK
 RUN wget https://sdk.lunarg.com/sdk/download/1.3.224.1/linux/vulkansdk-linux-x86_64-1.3.224.1.tar.gz
 RUN tar -zxvf vulkansdk-linux-x86_64-1.3.224.1.tar.gz
-RUN cd 1.3.268.0/ && yes | ./vulkansdk
+RUN cd 1.3.224.1/ && yes | ./vulkansdk
 
 # Configure screen
 RUN echo "defscrollback 10000" >> /root/.screenrc && \
