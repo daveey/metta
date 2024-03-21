@@ -1,6 +1,4 @@
-set -e
 
-pip install -r requirements.txt
 
 cd third_party/griddly
 ./build_release.sh && pip install -e python

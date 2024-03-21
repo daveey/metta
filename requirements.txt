@@ -1,4 +1,1 @@
-awscli
-jmespath
-matplotlib
-pytest
+

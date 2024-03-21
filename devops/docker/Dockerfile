@@ -31,9 +31,8 @@ RUN echo "defscrollback 10000" >> /root/.screenrc && \
 RUN conda install -c conda-forge libstdcxx-ng
 RUN pip install conan==1.59.0
 
-WORKDIR /workspace/
-
 # Checkout metta and submodules
+WORKDIR /workspace/
 RUN git clone --recursive https://github.com/daveey/metta.git metta
 WORKDIR /workspace/metta
 RUN ./sandbox/setup.sh
