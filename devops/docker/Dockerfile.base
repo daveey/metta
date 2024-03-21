@@ -31,3 +31,5 @@ RUN echo "defscrollback 10000" >> /root/.screenrc && \
 RUN conda install -c conda-forge libstdcxx-ng
 RUN pip install conan==1.59.0
 
+# install off-screen vulkan
+RUN apt-get install mesa-vulkan-drivers
