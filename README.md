@@ -38,27 +38,39 @@ conda activate metta
 pip install -e .
 ```
 
-
-# Evaluate a baseline model
-
-### Setup HuggingFace Access
+### (Optional) Setup HuggingFace Access
 
 1. Create a HuggingFace account
 2. Create a token in your account settings
 3. Run `huggingface-cli login` and paste the token
 
+# Running a Simulation
+
 ### Download a baseline model
 
 ```
-python -m sample_factory.huggingface.load_from_hub -r daveey/metta -d ./train_dir/
+./devops/load_model.sh baseline
 ```
 
 ### Run the evaluation
 
 ```
-./evals/a20_40x40_rich.sh --experiment=metta --no_render
+./evals/a20_40x40_rich.sh --experiment=baseline --no_render
 ```
 
+# Training a Model
+
+### Run the training
+
+```
+ ./trainers/a5_25x25_simple.sh --experiment=my_experiment
+```
+
+
+### Run the training from a baseline model
+```
+./trainers/a5_25x25_simple.sh --experiment=my_experiment --init_checkpoint_path=./train_dir/baseline/$(ls train_dir/baseline/checkpoint_p0 | tail -n1)
+```
 
 ### Troubleshooting
 #### conan installation
