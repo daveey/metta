@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y ninja-build git sudo wget vim screen
 RUN apt-get install -y vulkan-tools libvulkan-dev vulkan-validationlayers-dev spirv-tools
 RUN apt-get install -y xdg-utils python3-opencv
 RUN apt upgrade -y libopenblas-dev
+RUN apt-get install -y git-lfs
+RUN git lfs install
 
 # Install Vulkan SDK
 RUN sudo apt-get install -y pkg-config libxcb1-dev libx11-dev
@@ -32,7 +34,5 @@ RUN git clone --recursive https://github.com/daveey/metta.git metta
 WORKDIR /workspace/metta
 RUN ./sandbox/setup.sh
 
-RUN apt-get install -y git-lfs
-RUN git lfs install
 
 # ENV VULKAN_SDK=/workspace/1.3.224.1/x86_64
