@@ -2,7 +2,7 @@
 
 label=$1
 machine=$(
-    ./vast/search.sh \
+    ./devops/vast/search.sh \
     | tail -n1 \
     | awk '{print $1}')
 
