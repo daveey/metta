@@ -11,21 +11,28 @@ RUN apt-get install -y xdg-utils python3-opencv
 RUN apt upgrade -y libopenblas-dev
 
 # Install Vulkan SDK
+RUN sudo apt-get install -y pkg-config libxcb1-dev libx11-dev
+RUN sudo apt-get install -y wayland-protocols libwayland-dev libxrandr-dev
 RUN wget https://sdk.lunarg.com/sdk/download/1.3.224.1/linux/vulkansdk-linux-x86_64-1.3.224.1.tar.gz
 RUN tar -zxvf vulkansdk-linux-x86_64-1.3.224.1.tar.gz
-RUN cd 1.3.224.1/ && yes | ./vulkansdk
+WORKDIR /workspace/1.3.224.1
+RUN yes | ./vulkansdk
 
 # Configure screen
 RUN echo "defscrollback 10000" >> /root/.screenrc && \
     echo "termcapinfo xterm* ti@:te@" >> /root/.screenrc
 
+# Install conan and libstd to build griddly
 RUN conda install -c conda-forge libstdcxx-ng
 RUN pip install conan==1.59.0
 
+# Checkout metta and submodules
 RUN git clone --recursive https://github.com/daveey/metta.git metta
 
 WORKDIR /workspace/metta
 RUN ./sandbox/setup.sh
 
+RUN apt-get install -y git-lfs
+RUN git lfs install
 
 # ENV VULKAN_SDK=/workspace/1.3.224.1/x86_64
