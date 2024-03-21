@@ -1,4 +1,4 @@
-FROM daveey/meta-base:latest
+FROM daveey/metta-base
 
 # Checkout metta and submodules
 WORKDIR /workspace/
