@@ -1,5 +1,37 @@
 # Installation
 
+
+### Install the Vulkan SDK
+
+<details>
+<summary>Mac</summary>
+
+[Download Vulkan SDK for Mac](https://sdk.lunarg.com/sdk/download/1.3.224.1/mac/vulkansdk-macos-1.3.224.1.dmg)
+
+</details>
+
+<details>
+<summary>Windows</summary>
+
+[Download Vulkan SDK for Windows](https://sdk.lunarg.com/sdk/download/1.3.224.1/windows/VulkanSDK-1.3.224.1-Installer.exe)
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+```bash
+mkdir ~/vulkan
+cd ~/vulkan
+wget https://sdk.lunarg.com/sdk/download/1.3.224.1/linux/vulkansdk-linux-x86_64-1.3.224.1.tar.gz
+tar -zxvf vulkansdk-linux-x86_64-1.3.224.1.tar.gz
+cd 1.3.224.1
+yes | ./vulkansdk
+echo 'source ~/1.3.224.1/setup-env.sh' >> ~/.bashrc
+```
+</details>
+
+### Install the requirements
 ```
 conda create -n metta python=3.11.7
 conda activate metta
