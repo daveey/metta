@@ -6,7 +6,7 @@ if [[ -z "$label" ]]; then
   exit 1
 fi
 
-./vast/wait_for_ready.sh $label
+./devops/vast/wait_for_ready.sh $label
 
 get_info=$(vastai show instances --raw)
 host=$(echo $get_info | jq -r ".[] | select(.label==\"$label\") | .ssh_host")
