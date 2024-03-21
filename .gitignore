@@ -3,3 +3,4 @@ __pycache__
 wandb
 train_dir
 replays
+*.egg-info
