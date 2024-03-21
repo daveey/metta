@@ -495,29 +495,29 @@
           Dst:
             Object: [ _empty ]
 
-    - Name: jump
-      InputMapping:
-        Relative: true
-        Inputs:
-          1:
-            VectorToDest: [ 0, -1 ]
-            Description: "jump forward"
-      Behaviours:
-        - Src:
-            Object: agent
-            Preconditions:
-              - gte: [ agent:energy, conf:cost:jump ]
-              - eq: [ agent:frozen, 0 ]
-            Commands:
-              - sub: [ agent:energy, conf:cost:jump ]
-              - incr: stats:action:jump
-              - add: [ stats:energy:used:jump, conf:cost:jump ]
-              - mov: _dest
-              - exec:
-                  Action: move
-                  ActionId: 1
-          Dst:
-            Object: [ _empty ]
+    # - Name: jump
+    #   InputMapping:
+    #     Relative: true
+    #     Inputs:
+    #       1:
+    #         VectorToDest: [ 0, -1 ]
+    #         Description: "jump forward"
+    #   Behaviours:
+    #     - Src:
+    #         Object: agent
+    #         Preconditions:
+    #           - gte: [ agent:energy, conf:cost:jump ]
+    #           - eq: [ agent:frozen, 0 ]
+    #         Commands:
+    #           - sub: [ agent:energy, conf:cost:jump ]
+    #           - incr: stats:action:jump
+    #           - add: [ stats:energy:used:jump, conf:cost:jump ]
+    #           - mov: _dest
+    #           - exec:
+    #               Action: move
+    #               ActionId: 1
+    #       Dst:
+    #         Object: [ _empty ]
 
     - Name: use
       InputMapping:

@@ -28,11 +28,11 @@ RUN echo "defscrollback 10000" >> /root/.screenrc && \
 RUN conda install -c conda-forge libstdcxx-ng
 RUN pip install conan==1.59.0
 
+WORKDIR /workspace/
+
 # Checkout metta and submodules
 RUN git clone --recursive https://github.com/daveey/metta.git metta
-
 WORKDIR /workspace/metta
 RUN ./sandbox/setup.sh
-
 
 # ENV VULKAN_SDK=/workspace/1.3.224.1/x86_64
