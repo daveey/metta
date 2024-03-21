@@ -38,6 +38,28 @@ conda activate metta
 pip install -e .
 ```
 
+
+# Evaluate a baseline model
+
+### Setup HuggingFace Access
+
+1. Create a HuggingFace account
+2. Create a token in your account settings
+3. Run `huggingface-cli login` and paste the token
+
+### Download a baseline model
+
+```
+python -m sample_factory.huggingface.load_from_hub -r daveey/metta -d ./train_dir/
+```
+
+### Run the evaluation
+
+```
+./evals/a20_40x40_rich.sh --experiment=metta --no_render
+```
+
+
 ### Troubleshooting
 #### conan installation
 In case of an an "Invalid setting" error when running `pip install`, e.g., :
