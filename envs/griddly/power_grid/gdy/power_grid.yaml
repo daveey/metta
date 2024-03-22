@@ -41,9 +41,6 @@
       - Name: stats:action:use:generator
         InitialValue: 0
         PerPlayer: true
-      - Name: stats:action:use:generator:cursed
-        InitialValue: 0
-        PerPlayer: true
       - Name: stats:resource:collected
         InitialValue: 0
         PerPlayer: true
@@ -315,8 +312,6 @@
           InitialValue: 0
         - Name: generator:resource
           InitialValue: 1
-        - Name: generator:cursed
-          InitialValue: 0
       Observers:
         GlobalSpriteObserver:
           - Image: oryx/oryx_fantasy/ore-0.png
@@ -495,29 +490,29 @@
           Dst:
             Object: [ _empty ]
 
-    # - Name: jump
-    #   InputMapping:
-    #     Relative: true
-    #     Inputs:
-    #       1:
-    #         VectorToDest: [ 0, -1 ]
-    #         Description: "jump forward"
-    #   Behaviours:
-    #     - Src:
-    #         Object: agent
-    #         Preconditions:
-    #           - gte: [ agent:energy, conf:cost:jump ]
-    #           - eq: [ agent:frozen, 0 ]
-    #         Commands:
-    #           - sub: [ agent:energy, conf:cost:jump ]
-    #           - incr: stats:action:jump
-    #           - add: [ stats:energy:used:jump, conf:cost:jump ]
-    #           - mov: _dest
-    #           - exec:
-    #               Action: move
-    #               ActionId: 1
-    #       Dst:
-    #         Object: [ _empty ]
+    - Name: jump
+      InputMapping:
+        Relative: true
+        Inputs:
+          1:
+            VectorToDest: [ 0, -1 ]
+            Description: "jump forward"
+      Behaviours:
+        - Src:
+            Object: agent
+            Preconditions:
+              - gte: [ agent:energy, conf:cost:jump ]
+              - eq: [ agent:frozen, 0 ]
+            Commands:
+              - sub: [ agent:energy, conf:cost:jump ]
+              - incr: stats:action:jump
+              - add: [ stats:energy:used:jump, conf:cost:jump ]
+              - mov: _dest
+              - exec:
+                  Action: move
+                  ActionId: 1
+          Dst:
+            Object: [ _empty ]
 
     - Name: use
       InputMapping:
@@ -552,12 +547,7 @@
                       eq: [ dst.generator:resource, 3 ]
                   OnTrue:
                       - incr: agent:inv:3
-              - if:
-                  Conditions:
-                      eq: [ dst.generator:cursed, 1 ]
-                  OnTrue:
-                      - sub: [ agent:energy, 50 ]
-                      - incr: [ stats:action:use:generator:cursed ]
+
           Dst:
             Object: generator
             Commands:
@@ -966,19 +956,11 @@
         Inputs:
           1:
             VectorToDest: [ 0, 0 ]
-            MetaData:
-              cursed: 0
-          2:
-            VectorToDest: [ 0, 0 ]
-            MetaData:
-              cursed: 1
       Behaviours:
         - Src:
             Object: generator
           Dst:
             Object: generator
-            Commands:
-              - set: [ generator:cursed, meta.cursed ]
 
     - Name: generator:reset
       InputMapping:
