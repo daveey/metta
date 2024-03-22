@@ -32,7 +32,7 @@ RUN conda install -c conda-forge libstdcxx-ng
 RUN pip install conan==1.59.0
 
 # install off-screen vulkan
-RUN apt-get install mesa-vulkan-drivers
+RUN apt-get install -y mesa-vulkan-drivers
 
 # fix bash history
 RUN echo "unset HISTIGNORE" >> ~/.bashrc
