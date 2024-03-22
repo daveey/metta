@@ -17,11 +17,6 @@ scp_cmd="scp -P $port $HOME/.netrc root@$host:/root/.netrc"
 echo $scp_cmd
 $scp_cmd
 
-ssh_cmd="ssh -p $port root@$host touch /root/.no_auto_tmux"
-echo $ssh_cmd
-$ssh_cmd
-
-
 ssh_cmd="ssh -p $port root@$host"
 echo $ssh_cmd
 $ssh_cmd

@@ -33,3 +33,7 @@ RUN pip install conan==1.59.0
 
 # install off-screen vulkan
 RUN apt-get install mesa-vulkan-drivers
+
+# fix bash history
+RUN echo "unset HISTIGNORE" >> ~/.bashrc
+RUN touch /root/.no_auto_tmux
