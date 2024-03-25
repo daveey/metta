@@ -17,22 +17,26 @@ def launch_task(args):
     if not wandb_key:
         raise ValueError('WANDB_API_KEY not found in .netrc file')
 
-    # Set up the environment variable override for the wandb key
+    setup_cmds = [
+        'git pull',
+    ]
+    train_cmd = [
+        './trainers/a100_100x100_simple.sh',
+        f'--experiment={args.experiment}',
+        '--batch_size=4096',
+        '--num_workers=64',
+    ]
+    if args.init_model is not None:
+        setup_cmds.append(f'./devops/load_model.sh {args.init_model}',)
+        train_cmd.append(f'--init_checkpoint_path=train_dir/{args.init_model}/latest.pth')
+
     overrides = {
         'containerOverrides': [
             {
                 'name': 'metta',
                 'command': ["; ".join([
-                    'git pull',
-                    f'./devops/load_model.sh {args.init_model}',
-
-                    " ".join([
-                        './trainers/a100_100x100_simple.sh',
-                        f'--experiment={args.experiment}',
-                        '--batch_size=4096',
-                        '--num_workers=8',
-                        f'--init_checkpoint_path=train_dir/{args.init_model}/latest.pth',
-                    ])
+                    *setup_cmds,
+                    " ".join(train_cmd),
                 ])],
                 'environment': [
                     {
@@ -54,8 +58,15 @@ def launch_task(args):
         overrides=overrides
     )
 
-    if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-        print('Task submitted.')
+    if response['ResponseMetadata']['HTTPStatusCode'] == 200 and response['tasks']:
+        task_id = response['tasks'][0]['taskArn']
+        print(f'Task submitted: {task_id}')
+        print(
+            "https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/" +
+            args.cluster +
+            "/tasks/" +
+            task_id.split('/')[-1] +
+            "/?selectedContainer=metta")
     else:
         logging.error('Failed to submit: %s', response)
 
@@ -64,6 +75,7 @@ if __name__ == "__main__":
     parser.add_argument('--cluster', default="metta", help='The name of the ECS cluster.')
     parser.add_argument('--task-def', default="metta-trainer", help='The family or ARN of the task definition.')
     parser.add_argument('--experiment', required=True, help='The experiment to run.')
+    parser.add_argument('--init_model', default=None, help='The experiment to run.')
     args = parser.parse_args()
 
     launch_task(args)

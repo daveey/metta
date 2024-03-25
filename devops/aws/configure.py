@@ -5,7 +5,6 @@ import logging
 def register_task_definition(args):
     ecs = boto3.client('ecs')
 
-    vcpu = int(args.cpu * 1024)
     memory = int(args.memory * 1024)
 
     task_definition = {
@@ -24,7 +23,7 @@ def register_task_definition(args):
                     "/bin/sleep 10000"
                 ],
                 "linuxParameters": {
-                    "sharedMemorySize": 4294967296
+                    "sharedMemorySize": memory * 1024 * 1024
                 },
                 "resourceRequirements": [
                     {
@@ -49,16 +48,16 @@ def register_task_definition(args):
                         "hardLimit": 64000
                     }
                 ],
-                # "logConfiguration": {
-                #     "logDriver": "awslogs",
-                #     "options": {
-                #         "awslogs-create-group": "true",
-                #         "awslogs-group": "/ecs/metta-trainer",
-                #         "awslogs-region": "us-east-1",
-                #         "awslogs-stream-prefix": "ecs"
-                #     },
-                #     "secretOptions": []
-                # },
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-create-group": "true",
+                        "awslogs-group": "/ecs/metta-trainer",
+                        "awslogs-region": "us-east-1",
+                        "awslogs-stream-prefix": "ecs"
+                    },
+                    "secretOptions": []
+                },
                 "systemControls": []
             }
         ],
@@ -84,7 +83,6 @@ def register_task_definition(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Register an ECS task definition.')
     parser.add_argument('--task-name', default="metta-train", help='The name of the task definition.')
-    parser.add_argument('--cpu', type=float, default=0.9, help='The number of cpu units to use.')
     parser.add_argument('--memory', type=float, default=29.7, help='The amount of memory to use.')
     args = parser.parse_args()
 
