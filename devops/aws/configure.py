@@ -49,16 +49,16 @@ def register_task_definition(args):
                         "hardLimit": 64000
                     }
                 ],
-                "logConfiguration": {
-                    "logDriver": "awslogs",
-                    "options": {
-                        "awslogs-create-group": "true",
-                        "awslogs-group": "/ecs/metta-trainer",
-                        "awslogs-region": "us-east-1",
-                        "awslogs-stream-prefix": "ecs"
-                    },
-                    "secretOptions": []
-                },
+                # "logConfiguration": {
+                #     "logDriver": "awslogs",
+                #     "options": {
+                #         "awslogs-create-group": "true",
+                #         "awslogs-group": "/ecs/metta-trainer",
+                #         "awslogs-region": "us-east-1",
+                #         "awslogs-stream-prefix": "ecs"
+                #     },
+                #     "secretOptions": []
+                # },
                 "systemControls": []
             }
         ],
