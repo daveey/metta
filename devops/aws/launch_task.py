@@ -24,7 +24,7 @@ def launch_task(args):
         './trainers/a100_100x100_simple.sh',
         f'--experiment={args.experiment}',
         '--batch_size=4096',
-        '--num_workers=64',
+        '--num_workers=80',
     ]
     if args.init_model is not None:
         setup_cmds.append(f'./devops/load_model.sh {args.init_model}',)
