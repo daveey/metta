@@ -1,7 +1,7 @@
 import boto3
 import argparse
 
-def get_public_ips(cluster):
+def get_container_instances(cluster):
     ecs = boto3.client('ecs')
     ec2 = boto3.client('ec2')
 
@@ -14,15 +14,16 @@ def get_public_ips(cluster):
     ec2_instance_ids = [ci['ec2InstanceId'] for ci in response['containerInstances']]
 
     # Describe the EC2 instances to get the public IPs
-    response = ec2.describe_instances(InstanceIds=ec2_instance_ids)
-    public_ips = [instance['PublicIpAddress'] for reservation in response['Reservations'] for instance in reservation['Instances']]
+    return ec2.describe_instances(InstanceIds=ec2_instance_ids)
 
-    return public_ips
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Get the public IPs of all the container instances in an ECS cluster.')
     parser.add_argument('--cluster', required=True, help='The name of the ECS cluster.')
     args = parser.parse_args()
 
-    public_ips = get_public_ips(args.cluster)
-    print(public_ips)
+    res = get_container_instances(args.cluster)
+    for reservation in res['Reservations']:
+        for instance in reservation['Instances']:
+            ip = instance['PublicIpAddress']
+            print(f"alias tsh='ssh -i ~/.ssh/aws.pem ec2-user@{ip}'")
