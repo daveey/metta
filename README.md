@@ -32,6 +32,12 @@ echo 'source ~/1.3.224.1/setup-env.sh' >> ~/.bashrc
 </details>
 
 ### Install the requirements
+Metta uses griddly and sample factory repos as submodules. To fetch the latest versions of these projects use the following commands:
+```
+git submodule init
+git submodule update
+```
+Start installing the requiruments:
 ```
 conda create -n metta python=3.11.7
 conda activate metta
@@ -47,8 +53,10 @@ pip install -e .
 # Running a Simulation
 
 ### Download a baseline model
+To download the model files, install git-lfs first, then run the following commands:
 
 ```
+git lfs install
 ./devops/load_model.sh baseline
 ```
 
