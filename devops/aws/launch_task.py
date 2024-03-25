@@ -24,11 +24,12 @@ def launch_task(args):
         './trainers/a100_100x100_simple.sh',
         f'--experiment={args.experiment}',
         '--batch_size=4096',
-        '--num_workers=80',
     ]
     if args.init_model is not None:
         setup_cmds.append(f'./devops/load_model.sh {args.init_model}',)
         train_cmd.append(f'--init_checkpoint_path=train_dir/{args.init_model}/latest.pth')
+    if args.num_workers is not None:
+        train_cmd.append(f'--num_workers={args.num_workers}')
 
     overrides = {
         'containerOverrides': [
@@ -76,6 +77,7 @@ if __name__ == "__main__":
     parser.add_argument('--task-def', default="metta-trainer", help='The family or ARN of the task definition.')
     parser.add_argument('--experiment', required=True, help='The experiment to run.')
     parser.add_argument('--init_model', default=None, help='The experiment to run.')
+    parser.add_argument('--num_workers', default=None, type=int, help='Number of rollout workers')
     args = parser.parse_args()
 
     launch_task(args)
