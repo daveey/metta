@@ -1,5 +1,18 @@
-# Installation
+# Metta Learning
 
+**Resources**
+* **References**: 
+* **Discord**: https://discord.gg/mQzrgwqmwy
+* **Talk**: 
+
+## What is Metta Learning?
+<p align="middle">
+<img src="https://github.com/debbly/metta-learning-assets/blob/main/gifs/example_video.gif?raw=true" width="360" alt="Metta learning example video">
+</p>
+
+Metta Learning is... 
+
+## Installation
 
 ### Install the Vulkan SDK
 
