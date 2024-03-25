@@ -54,6 +54,7 @@ setup(
         "jmespath",
         "matplotlib",
         "pytest",
+        "conan==1.59.0",
     ],
     entry_points={
         'console_scripts': [
