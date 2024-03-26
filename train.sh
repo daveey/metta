@@ -7,6 +7,8 @@ python -m train \
     --algo=APPO \
     --env=GDY-PowerGrid \
     --with_wandb=True \
+    --wandb_user=platypus \
+    --wandb_project=sample_factory \
     --env_num_agents=5 \
     --env_width=20:40 \
     --env_height=20:40 \

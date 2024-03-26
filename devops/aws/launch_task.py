@@ -19,10 +19,13 @@ def launch_task(args):
 
     setup_cmds = [
         'git pull',
+        'ln -s /mnt/efs/train_dir train_dir',
     ]
     train_cmd = [
         './trainers/a100_100x100_simple.sh',
         f'--experiment={args.experiment}',
+        f'--wandb_project={args.wandb_project}',
+        f'--wandb_user={args.wandb_user}',
         '--batch_size=4096',
     ]
     if args.init_model is not None:
@@ -43,7 +46,7 @@ def launch_task(args):
                     {
                         'name': 'WANDB_API_KEY',
                         'value': wandb_key
-                    }
+                    },
                 ]
             }
         ]
@@ -56,7 +59,22 @@ def launch_task(args):
         cluster=args.cluster,
         taskDefinition=task_definition,
         launchType='EC2',
-        overrides=overrides
+        overrides=overrides,
+        # networkConfiguration = {
+        #     'awsvpcConfiguration': {
+        #         'subnets': [
+        #             'subnet-07d3d46baf6dc2016',
+        #             'subnet-08e4e4c89aaa460da',
+        #             'subnet-015146d729b05250d',
+        #             'subnet-013868c597718f825',
+        #             'subnet-0a4eeb61451368b33',
+        #             'subnet-0e882abc5155fdc12'],
+        #         'securityGroups': [
+        #             'sg-037e6e08491e40608', # defqult
+        #             'sg-04abcd27b35bda23b' # metta-ecs-sg
+        #         ],
+        #     }
+        # },
     )
 
     if response['ResponseMetadata']['HTTPStatusCode'] == 200 and response['tasks']:
@@ -78,6 +96,8 @@ if __name__ == "__main__":
     parser.add_argument('--experiment', required=True, help='The experiment to run.')
     parser.add_argument('--init_model', default=None, help='The experiment to run.')
     parser.add_argument('--num_workers', default=None, type=int, help='Number of rollout workers')
+    parser.add_argument('--wandb_user', default='metta', help='The wandb entity to use.')
+    parser.add_argument('--wandb_project', default='metta', help='The wandb project to use.')
     args = parser.parse_args()
 
     launch_task(args)

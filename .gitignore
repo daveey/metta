@@ -1,6 +1,9 @@
 *.pyc
 __pycache__
-wandb
+/wandb
 train_dir
 replays
 *.egg-info
+/build/
+.DS_Store
+.task
