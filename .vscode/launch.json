@@ -118,6 +118,22 @@
                 "-k",
                 "test_8x8",
             ],
-        }
+        },
+        {
+            "name": "Run Evals",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "evals.evals",
+            "args": [
+                "--experiment=baseline.v0.0.1",
+                "--baseline=baseline.v0.0.1.cp",
+                "--device=cpu",
+                "--serial=True",
+                "--train_dir=./train_dir/",
+                "--eval_env_frameskip=1",
+                "--max_num_episodes=1",
+                "--env_max_steps=100",
+            ],
+        },
     ]
 }

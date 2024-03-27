@@ -395,8 +395,8 @@
         - Name: agent:inv:3
           InitialValue: 0
 
-        - Name: agent:comm:1
-          InitialValue: 0
+        # - Name: agent:comm:1
+        #   InitialValue: 0
 
       Observers:
         GlobalSpriteObserver:

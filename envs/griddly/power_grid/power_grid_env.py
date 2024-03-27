@@ -37,6 +37,7 @@ class PowerGridEnv(gym.Env):
 
         self._max_level_energy = None
         self._max_level_energy_per_agent = None
+        self._max_level_reward_per_agent = None
         self._episode_rewards = None
         self._prestige_reward_weight = None
         self._prestige_steps = None
@@ -130,7 +131,7 @@ class PowerGridEnv(gym.Env):
         rewards = self._reward_sharing.compute_shared_rewards(rewards)
 
         # normalize by total available energy
-        rewards /= self._max_level_energy_per_agent
+        rewards /= self._max_level_reward_per_agent
 
         if terminated or truncated:
             self._add_episode_stats(info)
@@ -195,15 +196,17 @@ class PowerGridEnv(gym.Env):
             agent_stats["prestige_reward"] = self._episode_prestige_rewards[agent]
             agent_stats["level_max_energy"] = self._max_level_energy
             agent_stats["level_max_energy_per_agent"] = self._max_level_energy_per_agent
+            agent_stats["level_max_reward_per_agent"] = self._max_level_reward_per_agent
             infos["episode_extra_stats"].append(agent_stats)
 
     def _compute_max_energy(self):
         # compute the max possible energy for the level
-        charger_energy, generator_cooldown, agent_regen = map(
+        charger_energy, generator_cooldown, agent_init, agent_regen = map(
             lambda x: float(x[0]),
             self._griddly_env.game.get_global_variable([
                 "conf:charger:energy",
                 "conf:generator:cooldown",
+                "conf:agent:energy:initial",
                 "conf:agent:energy:regen"]
             ).values())
 
@@ -213,8 +216,11 @@ class PowerGridEnv(gym.Env):
             self._griddly_env.game.get_state()["Objects"])))
         max_resources = num_generators * (1 + num_steps // generator_cooldown)
         max_charger_energy = float(charger_energy) * max_resources
-        self._max_level_energy = max_charger_energy + self._num_agents * agent_regen * num_steps
+        max_agent_energy = float(agent_init) + agent_regen * num_steps
+        self._max_level_energy = max_charger_energy + self._num_agents * max_agent_energy
         self._max_level_energy_per_agent = self._max_level_energy / self._num_agents
+        # if the agents use all their energy for the altar, we get a 3x reward
+        self._max_level_reward_per_agent = self._max_level_energy_per_agent * 3
 
     def _augment_observations(self, obs):
         return [{

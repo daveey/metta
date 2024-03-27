@@ -24,8 +24,6 @@ def launch_task(args):
     train_cmd = [
         './trainers/a100_100x100_simple.sh',
         f'--experiment={args.experiment}',
-        f'--wandb_project={args.wandb_project}',
-        f'--wandb_user={args.wandb_user}',
         '--batch_size=4096',
     ]
     if args.init_model is not None:
@@ -96,8 +94,6 @@ if __name__ == "__main__":
     parser.add_argument('--experiment', required=True, help='The experiment to run.')
     parser.add_argument('--init_model', default=None, help='The experiment to run.')
     parser.add_argument('--num_workers', default=None, type=int, help='Number of rollout workers')
-    parser.add_argument('--wandb_user', default='metta', help='The wandb entity to use.')
-    parser.add_argument('--wandb_project', default='metta', help='The wandb project to use.')
     args = parser.parse_args()
 
     launch_task(args)
