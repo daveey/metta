@@ -33,7 +33,7 @@ class GriddlyEncoder(Encoder):
         # Precompute position encodings and padding
         self._features_padding = torch.zeros(
             1, # batch
-            self._griddly_max_features - obs_space["griddly_obs"].shape[0],
+            self._griddly_max_features - obs_space["griddly_obs"].shape[0] - 2, # position encodings
             *self._grid_shape)
 
         position_encodings = self._create_position_encodings()
@@ -42,22 +42,16 @@ class GriddlyEncoder(Encoder):
             self._features_padding], dim=1)
         self._cached_pos_and_padding = None
 
-        self._num_object_features = self._griddly_max_features + 2 # position encodings
-
-        # Object embedding network
-        self.object_embedding = nn.Sequential(
-            layer_init(nn.Linear(self._num_object_features, cfg.agent_embedding_size)),
-            nonlinearity(cfg),
-            *[
-                nn.Sequential(
-                layer_init(nn.Linear(cfg.agent_embedding_size, cfg.agent_embedding_size)),
-                nonlinearity(cfg)
-              ) for _ in range(cfg.agent_embedding_layers)]
+        self.attention = nn.MultiheadAttention(
+            embed_dim=self._griddly_max_features,
+            num_heads=cfg.agent_num_attention_heads,
+            dropout=cfg.agent_attention_dropout,
+            batch_first=True
         )
 
         # Additional features size calculation
         all_embeddings_size = (
-            cfg.agent_embedding_size * np.prod(self._grid_shape) +
+            self._griddly_max_features * np.prod(self._grid_shape) +
             obs_space["global_vars"].shape[0] +
             obs_space["last_action"].shape[0] +
             obs_space["last_reward"].shape[0]
@@ -93,10 +87,11 @@ class GriddlyEncoder(Encoder):
         griddly_obs = torch.cat([pos_and_padding, griddly_obs], dim=1)
 
         # create one big batch of objects (batch_size * grid_size, num_features)
-        object_obs = griddly_obs.permute(0, 2, 3, 1).reshape(-1, self._num_object_features)
+        object_obs = griddly_obs.permute(0, 2, 3, 1).reshape(-1, self._griddly_max_features)
 
         # Object embedding
-        object_embeddings = self.object_embedding(object_obs).view(batch_size, -1)
+        attn_output, _ = self.attention(object_obs, object_obs, object_obs)
+        objects = attn_output.reshape(batch_size, -1)
 
         # Additional features
         additional_features = torch.cat([
@@ -105,7 +100,7 @@ class GriddlyEncoder(Encoder):
             obs_dict["last_reward"].view(batch_size, -1)
         ], dim=1)
 
-        all_obs = torch.cat([object_embeddings, additional_features], dim=1)
+        all_obs = torch.cat([objects, additional_features], dim=1)
         # Final encoding
         x = self.encoder_head(all_obs)
         return x.view(-1, self.encoder_head_out_size)
@@ -123,10 +118,11 @@ def register_custom_components():
 
 
 def add_args(parser):
-    parser.add_argument("--agent_max_features", default=50, type=int, help="Max number of griddly features")
+    parser.add_argument("--agent_max_features", default=32, type=int, help="Max number of griddly features")
     parser.add_argument("--agent_fc_layers", default=4, type=int, help="Number of encoder fc layers")
     parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
     parser.add_argument("--agent_embedding_size", default=512, type=int, help="Size of each feature embedding")
-    parser.add_argument("--agent_embedding_layers", default=3, type=int, help="Size of each feature embedding")
-    parser.add_argument("--agent_attention_size", default=512, type=int, help="Inner size of the attention layer")
+    parser.add_argument("--agent_embedding_layers", default=1, type=int, help="Size of each feature embedding")
     parser.add_argument("--agent_attention_layers", default=3, type=int, help="Number of attention layers")
+    parser.add_argument("--agent_num_attention_heads", default=8, type=int, help="Number of attention heads")
+    parser.add_argument("--agent_attention_dropout", default=0.05, type=float, help="Attention dropout")

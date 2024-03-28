@@ -56,6 +56,7 @@ setup(
         "matplotlib",
         "pytest",
         "rich",
+        "scipy",
         "tabulate",
     ],
     entry_points={
