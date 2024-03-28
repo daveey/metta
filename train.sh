@@ -21,8 +21,7 @@ python -m train \
     --agent_fc_size=512 \
     --agent_embedding_size=64 \
     --agent_embedding_layers=3 \
-    --agent_attention_size=512 \
-    --agent_attention_layers=2 \
+    --agent_num_attention_heads=4 \
     --rnn_num_layers=1 \
     --rnn_size=512 \
     --rnn_type=gru \

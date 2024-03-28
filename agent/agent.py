@@ -123,6 +123,5 @@ def add_args(parser):
     parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
     parser.add_argument("--agent_embedding_size", default=512, type=int, help="Size of each feature embedding")
     parser.add_argument("--agent_embedding_layers", default=1, type=int, help="Size of each feature embedding")
-    parser.add_argument("--agent_attention_layers", default=3, type=int, help="Number of attention layers")
     parser.add_argument("--agent_num_attention_heads", default=8, type=int, help="Number of attention heads")
     parser.add_argument("--agent_attention_dropout", default=0.05, type=float, help="Attention dropout")
