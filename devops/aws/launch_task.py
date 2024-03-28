@@ -4,7 +4,7 @@ import netrc
 import os
 import logging
 
-def launch_task(args):
+def launch_task(args, task_args):
     ecs = boto3.client('ecs')
 
     # Get the latest version of the task definition
@@ -25,13 +25,18 @@ def launch_task(args):
         './trainers/a100_100x100_simple.sh',
         f'--experiment={args.experiment}',
         '--batch_size=4096',
+        *task_args,
     ]
+    if args.git_branch is not None:
+        setup_cmds.append(f'git checkout {args.git_branch}')
     if args.init_model is not None:
         setup_cmds.append(f'./devops/load_model.sh {args.init_model}',)
         train_cmd.append(f'--init_checkpoint_path=train_dir/{args.init_model}/latest.pth')
     if args.num_workers is not None:
         train_cmd.append(f'--num_workers={args.num_workers}')
 
+    print("Setup commands:", "\n".join(setup_cmds))
+    print("Train command:", " ".join(train_cmd))
     overrides = {
         'containerOverrides': [
             {
@@ -56,6 +61,7 @@ def launch_task(args):
     response = ecs.run_task(
         cluster=args.cluster,
         taskDefinition=task_definition,
+        startedBy=args.experiment,
         launchType='EC2',
         overrides=overrides,
         # networkConfiguration = {
@@ -87,6 +93,33 @@ def launch_task(args):
     else:
         logging.error('Failed to submit: %s', response)
 
+    def submit_batch_job(args, setup_cmds, train_cmd, wandb_key):
+        batch = boto3.client('batch')
+
+        job_name = f"{args.experiment}"
+        job_queue = args.cluster
+        job_definition = "my_job_definition"  # replace with your job definition
+
+        response = batch.submit_job(
+            jobName=job_name,
+            jobQueue=job_queue,
+            jobDefinition=job_definition,
+            containerOverrides={
+                'command': ["; ".join([
+                    *setup_cmds,
+                    " ".join(train_cmd),
+                ])],
+                'environment': [
+                    {
+                        'name': 'WANDB_API_KEY',
+                        'value': wandb_key
+                    },
+                ]
+            }
+        )
+
+        print(f"Submitted job {job_name} to queue {job_queue} with job ID {response['jobId']}")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Launch an ECS task with a wandb key.')
     parser.add_argument('--cluster', default="metta", help='The name of the ECS cluster.')
@@ -94,6 +127,9 @@ if __name__ == "__main__":
     parser.add_argument('--experiment', required=True, help='The experiment to run.')
     parser.add_argument('--init_model', default=None, help='The experiment to run.')
     parser.add_argument('--num_workers', default=None, type=int, help='Number of rollout workers')
-    args = parser.parse_args()
+    parser.add_argument('--git_branch', default=None, help='The git branch to use for the task.')
 
-    launch_task(args)
+    args, task_args = parser.parse_known_args()
+
+
+    launch_task(args, task_args)
