@@ -51,7 +51,7 @@ class GriddlyEncoder(Encoder):
 
         # Additional features size calculation
         all_embeddings_size = (
-            self._griddly_max_features * np.prod(self._grid_shape) +
+            self._griddly_max_features +
             obs_space["global_vars"].shape[0] +
             obs_space["last_action"].shape[0] +
             obs_space["last_reward"].shape[0]
@@ -87,11 +87,11 @@ class GriddlyEncoder(Encoder):
         griddly_obs = torch.cat([pos_and_padding, griddly_obs], dim=1)
 
         # create one big batch of objects (batch_size * grid_size, num_features)
-        object_obs = griddly_obs.permute(0, 2, 3, 1).reshape(-1, self._griddly_max_features)
+        object_obs = griddly_obs.permute(0, 2, 3, 1).reshape(batch_size, -1, self._griddly_max_features)
 
         # Object embedding
         attn_output, _ = self.attention(object_obs, object_obs, object_obs)
-        objects = attn_output.reshape(batch_size, -1)
+        objects = attn_output.mean(dim=1)
 
         # Additional features
         additional_features = torch.cat([
