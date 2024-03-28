@@ -48,10 +48,13 @@ class GriddlyEncoder(Encoder):
             dropout=cfg.agent_attention_dropout,
             batch_first=True
         )
+        self._attention_out_size = self._griddly_max_features
+        if cfg.agent_attention_combo == "cat":
+            self._attention_out_size *= np.prod(self._grid_shape)
 
         # Additional features size calculation
         all_embeddings_size = (
-            self._griddly_max_features +
+            self._attention_out_size +
             obs_space["global_vars"].shape[0] +
             obs_space["last_action"].shape[0] +
             obs_space["last_reward"].shape[0]
@@ -87,11 +90,20 @@ class GriddlyEncoder(Encoder):
         griddly_obs = torch.cat([pos_and_padding, griddly_obs], dim=1)
 
         # create one big batch of objects (batch_size * grid_size, num_features)
-        object_obs = griddly_obs.permute(0, 2, 3, 1).reshape(batch_size, -1, self._griddly_max_features)
+        object_obs = griddly_obs.permute(0, 2, 3, 1).view(batch_size, -1, self._griddly_max_features)
 
         # Object embedding
         attn_output, _ = self.attention(object_obs, object_obs, object_obs)
-        objects = attn_output.mean(dim=1)
+
+        if self.cfg.agent_attention_combo == "mean":
+            objects = attn_output.mean(dim=1)
+        elif self.cfg.agent_attention_combo == "max":
+            objects = attn_output.max(dim=1).values
+        elif self.cfg.agent_attention_combo == "sum":
+            objects = attn_output.sum(dim=1)
+        elif self.cfg.agent_attention_combo == "cat":
+            objects = attn_output.reshape(batch_size, -1)
+
 
         # Additional features
         additional_features = torch.cat([
@@ -125,3 +137,7 @@ def add_args(parser):
     parser.add_argument("--agent_embedding_layers", default=1, type=int, help="Size of each feature embedding")
     parser.add_argument("--agent_num_attention_heads", default=8, type=int, help="Number of attention heads")
     parser.add_argument("--agent_attention_dropout", default=0.05, type=float, help="Attention dropout")
+    parser.add_argument(
+        "--agent_attention_combo",
+        choices=["mean", "max", "sum", "cat"], default="cat",
+        help="How to combine attention outputs")
