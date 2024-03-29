@@ -68,6 +68,7 @@ def container_config(args):
     ]
     train_cmd = [
         './train.sh',
+        '--config=prod_training',
         f'--experiment={args.experiment}',
         *task_args,
     ]
