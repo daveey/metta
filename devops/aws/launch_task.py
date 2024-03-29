@@ -1,146 +1,131 @@
 import boto3
 import argparse
-from colorama import init, Fore, Style
+import netrc
+import os
+import logging
 
-def get_batch_job_queues():
-    batch = boto3.client('batch')
-    response = batch.describe_job_queues()
-    return [queue['jobQueueName'] for queue in response['jobQueues']]
-
-def get_batch_jobs(job_queue, max_jobs):
-    batch = boto3.client('batch')
-
-    running_jobs = []
-    other_jobs = []
-
-    # Get running jobs
-    response = batch.list_jobs(jobQueue=job_queue, jobStatus='RUNNING', maxResults=max_jobs)
-    running_jobs.extend(response['jobSummaryList'])
-
-    # Get jobs in other states
-    response = batch.list_jobs(jobQueue=job_queue, maxResults=max_jobs)
-    other_jobs.extend(response['jobSummaryList'])
-
-    job_details = []
-
-    for job in running_jobs + other_jobs:
-        job_id = job['jobId']
-        job_name = job['jobName']
-        job_status = job['status']
-        job_link = f"https://console.aws.amazon.com/batch/home?region=us-east-1#jobs/detail/{job_id}"
-
-        # Get the EC2 instance ID and public IP
-        job_desc = batch.describe_jobs(jobs=[job_id])
-        container = job_desc['jobs'][0]['container']
-        instance_id = container.get('ec2InstanceId')
-
-        public_ip = ''
-        if instance_id:
-            ec2 = boto3.client('ec2')
-            instances = ec2.describe_instances(InstanceIds=[instance_id])
-            if 'PublicIpAddress' in instances['Reservations'][0]['Instances'][0]:
-                public_ip = instances['Reservations'][0]['Instances'][0]['PublicIpAddress']
-
-        job_details.append({
-            'name': job_name,
-            'status': job_status,
-            'link': job_link,
-            'public_ip': public_ip
-        })
-
-    return job_details
-
-def get_ecs_clusters():
-    ecs = boto3.client('ecs')
-    response = ecs.list_clusters()
-    return response['clusterArns']
-
-def get_ecs_tasks(clusters, max_tasks):
+def submit_ecs_task(args):
     ecs = boto3.client('ecs')
 
-    task_details = []
-    for cluster in clusters:
-        response = ecs.list_tasks(cluster=cluster, maxResults=max_tasks)
-        task_arns = response['taskArns']
+    # Get the latest version of the task definition
+    response = ecs.describe_task_definition(taskDefinition="metta-trainer")
+    task_definition = response['taskDefinition']['taskDefinitionArn']
 
-        for task_arn in task_arns:
-            task_desc = ecs.describe_tasks(cluster=cluster, tasks=[task_arn])
-            task = task_desc['tasks'][0]
-            task_id = task['taskArn'].split('/')[-1]
-            task_name = task['overrides']['containerOverrides'][0]['name']
-            task_status = task['lastStatus']
-            task_link = f"https://console.aws.amazon.com/ecs/home?region=us-east-1#/clusters/{cluster}/tasks/{task_id}/details"
+    print(f"launching task using {task_definition}")
 
-            # Get the EC2 instance ID and public IP
-            container_instance_arn = task['containerInstanceArn']
-            container_instance_desc = ecs.describe_container_instances(cluster=cluster, containerInstances=[container_instance_arn])
-            ec2_instance_id = container_instance_desc['containerInstances'][0]['ec2InstanceId']
+    # Launch the task
+    response = ecs.run_task(
+        cluster=args.cluster,
+        taskDefinition=task_definition,
+        startedBy=args.experiment,
+        launchType='EC2',
+        overrides={
+            'containerOverrides': [{
+                "name": "metta",
+                **container_config(args)
+            }]
+        }
+    )
 
-            ec2 = boto3.client('ec2')
-            instances = ec2.describe_instances(InstanceIds=[ec2_instance_id])
-            public_ip = ''
-            if 'PublicIpAddress' in instances['Reservations'][0]['Instances'][0]:
-                public_ip = instances['Reservations'][0]['Instances'][0]['PublicIpAddress']
-
-            task_details.append({
-                'name': task_name,
-                'status': task_status,
-                'link': task_link,
-                'public_ip': public_ip
-            })
-
-    return task_details
-
-def print_row(key, value, use_color):
-    if use_color:
-        print(f"  {Fore.BLUE}{key}:{Style.RESET_ALL} {value}")
+    if response['ResponseMetadata']['HTTPStatusCode'] == 200 and response['tasks']:
+        task_id = response['tasks'][0]['taskArn']
+        print(f'Task submitted: {task_id}')
+        print(
+            "https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/" +
+            args.cluster +
+            "/tasks/" +
+            task_id.split('/')[-1] +
+            "/?selectedContainer=metta")
     else:
-        print(f"  {key}: {value}")
+        logging.error('Failed to submit: %s', response)
 
-def print_status(jobs_by_queue, tasks, use_color):
-    for job_queue, jobs in jobs_by_queue.items():
-        if use_color:
-            print(f"{Fore.CYAN}AWS Batch Jobs - Queue: {job_queue}{Style.RESET_ALL}")
-        else:
-            print(f"AWS Batch Jobs - Queue: {job_queue}")
+def submit_batch_job(args):
+    batch = boto3.client('batch')
 
-        for job in jobs:
-            status_color = Fore.GREEN if job['status'] == 'SUCCEEDED' else Fore.YELLOW if job['status'] == 'RUNNING' else Fore.RED
-            print_row("Name", job['name'], use_color)
-            print_row("Status", f"{status_color}{job['status']}{Style.RESET_ALL}" if use_color else job['status'], use_color)
-            print_row("Link", job['link'], use_color)
-            print_row("Public IP", job['public_ip'], use_color)
-            print()
+    job_name = args.experiment.replace('.', '_')
+    job_queue = "metta-batch-jq"
+    job_definition = "metta-batch-train-jd"
 
-    if tasks:
-        if use_color:
-            print(f"{Fore.CYAN}ECS Tasks{Style.RESET_ALL}")
-        else:
-            print("ECS Tasks")
+    response = batch.submit_job(
+        jobName=job_name,
+        jobQueue=job_queue,
+        jobDefinition=job_definition,
+        containerOverrides=container_config(args)
+    )
 
-        for task in tasks:
-            status_color = Fore.GREEN if task['status'] == 'RUNNING' else Fore.RED
-            print_row("Name", task['name'], use_color)
-            print_row("Status", f"{status_color}{task['status']}{Style.RESET_ALL}" if use_color else task['status'], use_color)
-            print_row("Link", task['link'], use_color)
-            print_row("Public IP", task['public_ip'], use_color)
-            print()
+    print(f"Submitted job {job_name} to queue {job_queue} with job ID {response['jobId']}")
+    print(f"https://us-east-1.console.aws.amazon.com/batch/v2/home?region=us-east-1#/jobs/detail/{response['jobId']}")
+
+def container_config(args):
+    # Get the wandb key from the .netrc file
+    netrc_info = netrc.netrc(os.path.expanduser('~/.netrc'))
+    wandb_key = netrc_info.authenticators('api.wandb.ai')[2]
+    if not wandb_key:
+        raise ValueError('WANDB_API_KEY not found in .netrc file')
+
+    # Get the hugging face key from the cache file
+    hugging_face_key_file = os.path.expanduser("~/.cache/huggingface/token")
+    with open(hugging_face_key_file, 'r') as file:
+        hugging_face_key = file.read().strip()
+
+    setup_cmds = [
+        'git pull',
+        'git submodule update',
+        'ln -s /mnt/efs/train_dir train_dir',
+    ]
+    train_cmd = [
+        './train.sh',
+        '--config=prod_training',
+        f'--experiment={args.experiment}',
+        *task_args,
+    ]
+    if args.git_branch is not None:
+        setup_cmds.append(f'git checkout {args.git_branch}')
+    if args.init_model is not None:
+        setup_cmds.append(f'./devops/load_model.sh {args.init_model}',)
+        train_cmd.append(f'--init_checkpoint_path=train_dir/{args.init_model}/latest.pth')
+
+    print("\n".join([
+            "Setup:",
+            "-"*10,
+            "\n".join(setup_cmds),
+            "-"*10,
+            "Command:",
+            "-"*10,
+            " ".join(train_cmd),
+        ]))
+
+    return {
+        'command': ["bash", "-c", "; ".join([
+            *setup_cmds,
+            " ".join(train_cmd),
+        ])],
+        'environment': [
+            {
+                'name': 'WANDB_API_KEY',
+                'value': wandb_key
+            },
+            {
+                'name': 'TRANSFORMERS_TOKEN',
+                'value': hugging_face_key
+            },
+            {
+                'name': 'COLOR_LOGGING',
+                'value': 'false'
+            },
+        ]
+    }
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Get the status of AWS Batch jobs and ECS tasks.')
-    parser.add_argument('--max-jobs', type=int, default=10, help='The maximum number of jobs to display.')
-    parser.add_argument('--ecs', action='store_true', help='Include ECS tasks in the status dump.')
-    parser.add_argument('--no-color', action='store_true', help='Disable color output.')
-    args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Launch an ECS task with a wandb key.')
+    parser.add_argument('--cluster', default="metta", help='The name of the ECS cluster.')
+    parser.add_argument('--experiment', required=True, help='The experiment to run.')
+    parser.add_argument('--init_model', default=None, help='The experiment to run.')
+    parser.add_argument('--git_branch', default=None, help='The git branch to use for the task.')
+    parser.add_argument('--batch', default=True, help='Submit as a batch job.')
+    args, task_args = parser.parse_known_args()
 
-    init()  # Initialize colorama
-
-    job_queues = get_batch_job_queues()
-    jobs_by_queue = {queue: get_batch_jobs(queue, args.max_jobs) for queue in job_queues}
-
-    ecs_tasks = []
-    if args.ecs:
-        ecs_clusters = get_ecs_clusters()
-        ecs_tasks = get_ecs_tasks(ecs_clusters, args.max_jobs)
-
-    print_status(jobs_by_queue, ecs_tasks, not args.no_color)
+    if args.batch:
+        submit_batch_job(args)
+    else:
+        submit_ecs_task(args)
