@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-experiment = $1
+experiment=$1
 
 for config in env_a5_25x25 env_a20_40x40 env_a100_100x100; do
     python -m framework.sample_factory.evaluate \
