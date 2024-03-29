@@ -191,6 +191,8 @@ class PowerGridLevelGenerator():
         vals = self.cfg.get(
             "env_" + key,
             self.GAME_CONFIG.get(key, self.LEVEL_CONFIG.get(key)))
+        if isinstance(vals, (int, float)):
+            return vals
         if len(vals) == 1:
             return vals[0]
         elif len(vals) == 2:

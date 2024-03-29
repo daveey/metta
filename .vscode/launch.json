@@ -53,7 +53,8 @@
             "request": "launch",
             "module": "framework.sample_factory.evaluate",
             "args": [
-                "--experiment=mac.pres10",
+                "--experiment=baseline.v0.0.1",
+                "--agent=object_embedding_agent",
                 // "--experiment=pred.10.0",
                 // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
