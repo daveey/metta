@@ -7,31 +7,52 @@ def get_batch_job_queues():
     response = batch.describe_job_queues()
     return [queue['jobQueueName'] for queue in response['jobQueues']]
 
-def get_batch_jobs(job_queue, job_status, max_jobs):
+def get_batch_jobs(job_queue, max_jobs):
     batch = boto3.client('batch')
-    kwargs = {'jobQueue': job_queue, 'maxResults': max_jobs}
-    if job_status:
-        kwargs['jobStatus'] = job_status
-    response = batch.list_jobs(**kwargs)
-    jobs = response['jobSummaryList']
+    ecs = boto3.client('ecs')
+
+    running_jobs = []
+    other_jobs = []
+
+    # Get running jobs
+    response = batch.list_jobs(jobQueue=job_queue, jobStatus='RUNNING', maxResults=max_jobs)
+    running_jobs.extend(response['jobSummaryList'])
+
+    # Get jobs in other states
+    states = ['SUBMITTED', 'PENDING', 'RUNNABLE', 'STARTING', 'SUCCEEDED', 'FAILED']
+    for state in states:
+        response = batch.list_jobs(jobQueue=job_queue, jobStatus=state, maxResults=max_jobs)
+        other_jobs.extend(response['jobSummaryList'])
 
     job_details = []
-    for job in jobs:
+
+    for job in other_jobs + running_jobs:
         job_id = job['jobId']
         job_name = job['jobName']
         job_status = job['status']
         job_link = f"https://console.aws.amazon.com/batch/home?region=us-east-1#jobs/detail/{job_id}"
 
-        # Get the EC2 instance ID and public IP
+        # Get the ECS task ID and cluster
         job_desc = batch.describe_jobs(jobs=[job_id])
         container = job_desc['jobs'][0]['container']
-        instance_id = container.get('ec2InstanceId')
+        task_arn = container.get('taskArn')
+        cluster_arn = container.get('containerInstanceArn')
 
         public_ip = ''
-        if instance_id:
-            ec2 = boto3.client('ec2')
-            instances = ec2.describe_instances(InstanceIds=[instance_id])
-            public_ip = instances['Reservations'][0]['Instances'][0].get('PublicIpAddress', '')
+        if task_arn and cluster_arn:
+            # Extract the cluster name from the cluster ARN
+            cluster_name = cluster_arn.split('/')[1]
+
+            task_desc = ecs.describe_tasks(cluster=cluster_name, tasks=[task_arn])
+            if task_desc['tasks']:
+                container_instance_arn = task_desc['tasks'][0]['containerInstanceArn']
+                container_instance_desc = ecs.describe_container_instances(cluster=cluster_name, containerInstances=[container_instance_arn])
+                ec2_instance_id = container_instance_desc['containerInstances'][0]['ec2InstanceId']
+
+                ec2 = boto3.client('ec2')
+                instances = ec2.describe_instances(InstanceIds=[ec2_instance_id])
+                if 'PublicIpAddress' in instances['Reservations'][0]['Instances'][0]:
+                    public_ip = instances['Reservations'][0]['Instances'][0]['PublicIpAddress']
 
         job_details.append({
             'name': job_name,
@@ -70,7 +91,9 @@ def get_ecs_tasks(clusters, max_tasks):
 
             ec2 = boto3.client('ec2')
             instances = ec2.describe_instances(InstanceIds=[ec2_instance_id])
-            public_ip = instances['Reservations'][0]['Instances'][0].get('PublicIpAddress', '')
+            public_ip = ''
+            if 'PublicIpAddress' in instances['Reservations'][0]['Instances'][0]:
+                public_ip = instances['Reservations'][0]['Instances'][0]['PublicIpAddress']
 
             task_details.append({
                 'name': task_name,
@@ -118,19 +141,15 @@ def print_status(jobs_by_queue, tasks, use_color):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Get the status of AWS Batch jobs and ECS tasks.')
-    parser.add_argument('--max-jobs', type=int, default=10, help='The maximum number of jobs to display.')
+    parser.add_argument('--max-jobs', type=int, default=5, help='The maximum number of jobs to display.')
     parser.add_argument('--ecs', action='store_true', help='Include ECS tasks in the status dump.')
     parser.add_argument('--no-color', action='store_true', help='Disable color output.')
-    parser.add_argument('--running', action='store_true', help='Show only running jobs.')
-    parser.add_argument('--failed', action='store_true', help='Show only failed jobs.')
     args = parser.parse_args()
 
     init()  # Initialize colorama
 
-    job_status = 'RUNNING' if args.running else 'FAILED' if args.failed else None
-
     job_queues = get_batch_job_queues()
-    jobs_by_queue = {queue: get_batch_jobs(queue, job_status, args.max_jobs) for queue in job_queues}
+    jobs_by_queue = {queue: get_batch_jobs(queue, args.max_jobs) for queue in job_queues}
 
     ecs_tasks = []
     if args.ecs:
