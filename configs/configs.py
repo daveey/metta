@@ -55,6 +55,7 @@ obj_embed_agent = [
     "--agent_fc_layers=3",
     "--agent_fc_size=512",
     "--agent_embedding_size=64",
+    "--agent_embedding_layers=3",
 ]
 
 obj_attn_agent = [
@@ -87,7 +88,6 @@ training = [
     "--max_policy_lag=2000",
     "--nonlinearity=elu",
     "--load_checkpoint_kind=latest",
-
 ]
 
 prod_training = [
