@@ -23,6 +23,13 @@ def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optiona
         env_id=env_config.env_id if env_config else 0,
     )
 
+def dedupe_args(args):
+    deduped_args = {}
+    for arg in args:
+        key, value = arg.split('=')
+        deduped_args[key] = value
+    return [f"{key}={value}" for key, value in deduped_args.items()]
+
 def parse_args(argv=None, evaluation=False):
     # Process the --configs argument first
     parser = argparse.ArgumentParser()
@@ -50,6 +57,7 @@ def parse_args(argv=None, evaluation=False):
     power_grid_level_generator.add_env_args(sf_parser)
     agent.add_args(sf_parser)
 
+    sf_args = dedupe_args(sf_args)
     cfg = parse_full_cfg(sf_parser, sf_args)
     return cfg
 

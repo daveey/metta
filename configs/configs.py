@@ -78,7 +78,7 @@ sandbox_agent = [
 training = [
     "--normalize_input=False",
     "--aux_loss_coef=0",
-    "--recurrence=32",
+    "--recurrence=256",
     "--rollout=256",
     "--value_loss_coeff=0.976",
     "--exploration_loss=symmetric_kl",
@@ -102,9 +102,9 @@ prod_training = [
 sandbox_training = [
     *training,
     "--save_every_sec=60",
-    "--num_workers=2",
+    "--num_workers=8",
     "--decorrelate_experience_max_seconds=0",
-    "--batch_size=32",
+    "--batch_size=1024",
 ]
 
 # Evaluation
