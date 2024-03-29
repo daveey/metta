@@ -118,6 +118,5 @@ class ObjectEmeddingAgent(SampleFactoryAgent):
         parser.add_argument("--agent_max_features", default=50, type=int, help="Max number of griddly features")
         parser.add_argument("--agent_fc_layers", default=4, type=int, help="Number of encoder fc layers")
         parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
-        parser.add_argument("--agent_embedding_size", default=512, type=int, help="Size of each feature embedding")
+        parser.add_argument("--agent_embedding_size", default=64, type=int, help="Size of each feature embedding")
         parser.add_argument("--agent_embedding_layers", default=3, type=int, help="Size of each feature embedding")
-        parser.add_argument("--agent_attention_layers", default=3, type=int, help="Number of attention layers")

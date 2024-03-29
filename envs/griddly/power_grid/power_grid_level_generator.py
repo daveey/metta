@@ -41,9 +41,12 @@ class PowerGridLevelGenerator():
     }
 
     LEVEL_CONFIG = {
+        "num_agents": [5, 5],
         "tile_size": [32, 32],
         "width": [10, 20],
         "height": [10, 20],
+        "max_steps": [1000, 1000],
+
         "wall_density": [0.1, 0.3],
         "milestone_density": [0, 0.1],
         "num_altars": [1, 20],
@@ -54,10 +57,8 @@ class PowerGridLevelGenerator():
         "rsm_num_families": [0, 0],
         "rsm_family_reward": [0, 0],
 
-        "reward_rank_steps": [10, 500],
-        "reward_prestige_weight": [10, 50],
-        "max_steps": [1000, 1000],
-        "num_agents": [5, 5],
+        "reward_rank_steps": [1000, 1000],
+        "reward_prestige_weight": [0, 0],
     }
 
     def __init__(self, cfg):
