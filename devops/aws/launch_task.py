@@ -54,6 +54,7 @@ def submit_batch_job(args):
     )
 
     print(f"Submitted job {job_name} to queue {job_queue} with job ID {response['jobId']}")
+    print(f"https://us-east-1.console.aws.amazon.com/batch/v2/home?region=us-east-1#/jobs/detail/{response['jobId']}")
 
 def container_config(args):
     # Get the wandb key from the .netrc file
@@ -97,6 +98,10 @@ def container_config(args):
             {
                 'name': 'WANDB_API_KEY',
                 'value': wandb_key
+            },
+            {
+                'name': 'COLOR_LOGGING',
+                'value': 'false'
             },
         ]
     }
