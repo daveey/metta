@@ -87,6 +87,8 @@ training = [
     "--max_policy_lag=2000",
     "--nonlinearity=elu",
     "--load_checkpoint_kind=latest",
+
+    *obj_embed_agent
 ]
 
 prod_training = [

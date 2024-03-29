@@ -8,7 +8,7 @@ def submit_ecs_task(args):
     ecs = boto3.client('ecs')
 
     # Get the latest version of the task definition
-    response = ecs.describe_task_definition(taskDefinition=args.task_def)
+    response = ecs.describe_task_definition(taskDefinition="metta-trainer")
     task_definition = response['taskDefinition']['taskDefinitionArn']
 
     print(f"launching task using {task_definition}")
@@ -67,9 +67,8 @@ def container_config(args):
         'ln -s /mnt/efs/train_dir train_dir',
     ]
     train_cmd = [
-        './trainers/a100_100x100_simple.sh',
+        './train.sh',
         f'--experiment={args.experiment}',
-        '--batch_size=4096',
         *task_args,
     ]
     if args.git_branch is not None:
@@ -77,8 +76,6 @@ def container_config(args):
     if args.init_model is not None:
         setup_cmds.append(f'./devops/load_model.sh {args.init_model}',)
         train_cmd.append(f'--init_checkpoint_path=train_dir/{args.init_model}/latest.pth')
-    if args.num_workers is not None:
-        train_cmd.append(f'--num_workers={args.num_workers}')
 
     print("\n".join([
             "Setup:",
@@ -106,14 +103,11 @@ def container_config(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Launch an ECS task with a wandb key.')
     parser.add_argument('--cluster', default="metta", help='The name of the ECS cluster.')
-    parser.add_argument('--task-def', default="metta-trainer", help='The family or ARN of the task definition.')
     parser.add_argument('--experiment', required=True, help='The experiment to run.')
     parser.add_argument('--init_model', default=None, help='The experiment to run.')
-    parser.add_argument('--num_workers', default=None, type=int, help='Number of rollout workers')
     parser.add_argument('--git_branch', default=None, help='The git branch to use for the task.')
     parser.add_argument('--batch', default=True, help='Submit as a batch job.')
     args, task_args = parser.parse_known_args()
-
 
     if args.batch:
         submit_batch_job(args)
