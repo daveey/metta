@@ -65,6 +65,7 @@ def container_config(args):
 
     setup_cmds = [
         'git pull',
+        'git submodule update',
         'ln -s /mnt/efs/train_dir train_dir',
     ]
     train_cmd = [
