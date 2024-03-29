@@ -1,22 +1,21 @@
 
 import argparse
+import imp
 import itertools
 import re
 import sys
 from cv2 import exp
 
-from sample_factory.enjoy import enjoy
 import pandas as pd
 from rich.console import Console
 from rich.table import Table
 from scipy import stats
 import numpy as np
 from sympy import N
-import train as train
 import os
+from framework.sample_factory.sample_factory import evaluate
 
 EVALUATION_ARGS = [
-    "--env=GDY-PowerGrid",
     "--no_render",
 ]
 
@@ -33,9 +32,7 @@ def run_eval(sf_args, eval_config: dict):
     argv = sf_args + EVALUATION_ARGS + [
         f"--{k}={v}" for k, v in eval_config.items()
     ]
-    cfg = train.parse_custom_args(argv, evaluation=True)
-    results = enjoy(cfg)
-    return results[1]
+    return evaluate(argv)
 
 def run_baseline_eval(df, sf_args, eval_config: dict, baseline: str, num_trials=5):
     print(f"Running baseline evaluation with config: {eval_config} and baseline: {baseline}")
@@ -62,12 +59,8 @@ def run_baseline_eval(df, sf_args, eval_config: dict, baseline: str, num_trials=
     return df
 
 def main():
-    train.register_custom_components()
     argp = argparse.ArgumentParser()
     argp.add_argument("--num_trials", default=5, type=int)
-    argp.add_argument("--train_dir", type=str, required=True)
-    argp.add_argument("--experiment", type=str, required=True)
-    argp.add_argument("--baseline", default=None, type=str)
 
     args, sf_args = argp.parse_known_args()
     sf_args.append(f"--train_dir={args.train_dir}")
@@ -78,8 +71,7 @@ def main():
     flag_combinations = list(itertools.product(*flags.values()))
     flag_combinations = [dict(zip(flags.keys(), combination)) for combination in flag_combinations]
 
-    if args.baseline is None:
-        args.baseline = args.experiment
+    args.baseline = args.experiment
 
     data_frame = pd.DataFrame(columns=list(flags.keys()))
     for eval_config in flag_combinations:

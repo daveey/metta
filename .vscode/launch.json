@@ -8,13 +8,13 @@
             "name": "Train Griddly",
             "type": "debugpy",
             "request": "launch",
-            "module": "train",
+            "module": "framework.sample_factory.train",
             "args": [
                 "--experiment=mac.pres10",
-
-                "--algo=APPO",
-                "--device=cpu",
+                "--agent=object_attn_agent",
                 "--restart_behavior=restart",
+
+                "--device=cpu",
                 "--env=GDY-PowerGrid",
                 "--save_every_sec=60",
                 "--experiment_summaries_interval=10",
@@ -51,12 +51,12 @@
             "name": "Evaluate",
             "type": "debugpy",
             "request": "launch",
-            "module": "enjoy",
+            "module": "framework.sample_factory.evaluate",
             "args": [
+                "--experiment=mac.pres10",
                 // "--experiment=pred.10.0",
                 // "--experiment=g.mac",
                 // "--experiment=pred.200.0",
-                "--experiment=m1.energy",
 
                 "--device=cpu",
                 "--serial=True",
@@ -77,7 +77,7 @@
                 "--env_wall_density=0.11",
                 "--env_milestone_density=0.01",
                 "--env_reward_rank_steps=10",
-                "--load_checkpoint_kind=best",
+                "--load_checkpoint_kind=latest",
             ],
         },
         {
@@ -125,10 +125,8 @@
             "request": "launch",
             "module": "evals.evals",
             "args": [
-                "--experiment=baseline.v0.0.1",
-                "--baseline=baseline.v0.0.1.cp",
+                "--experiment=mac.pres10",
                 "--device=cpu",
-                "--serial=True",
                 "--train_dir=./train_dir/",
                 "--eval_env_frameskip=1",
                 "--max_num_episodes=1",

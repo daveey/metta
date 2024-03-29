@@ -3,9 +3,8 @@
 pkill -9 wandb
 pkill -9 python
 git pull
-python -m train \
+python -m framework.sample_factory_framework.train \
     --algo=APPO \
-    --env=GDY-PowerGrid \
     --with_wandb=True \
     --wandb_user=platypus \
     --wandb_project=sample_factory \

@@ -1,8 +1,7 @@
 #!/bin/bash -e
 
-python -m enjoy \
+python -m framework.sample_factory_framework.evaluate \
     --seed=0 \
-    --env=GDY-PowerGrid \
     --device=cpu \
     --train_dir=./train_dir/ \
     --max_num_episodes=1 \

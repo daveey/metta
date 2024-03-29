@@ -56,6 +56,8 @@ class PowerGridLevelGenerator():
 
         "reward_rank_steps": [10, 500],
         "reward_prestige_weight": [10, 50],
+        "max_steps": [1000, 1000],
+        "num_agents": [5, 5],
     }
 
     def __init__(self, cfg):
@@ -67,8 +69,8 @@ class PowerGridLevelGenerator():
         if isinstance(self.cfg, argparse.Namespace):
             self.cfg = vars(self.cfg)
 
-        self.num_agents = self.cfg["env_num_agents"]
-        self.max_steps = self.cfg["env_max_steps"]
+        self.num_agents = int(self.sample_cfg("num_agents"))
+        self.max_steps = int(self.sample_cfg("max_steps"))
         with open("./envs/griddly/power_grid/gdy/power_grid.yaml", encoding="utf-8") as file:
             self.game_config = yaml.safe_load(file)
 
