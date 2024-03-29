@@ -85,7 +85,7 @@ training = [
     "--exploration_loss_coeff=0.002",
     "--policy_initialization=orthogonal",
     "--learning_rate=0.0001",
-    "--max_policy_lag=2000",
+    "--max_policy_lag=50",
     "--nonlinearity=elu",
     "--load_checkpoint_kind=latest",
 ]

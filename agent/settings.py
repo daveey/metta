@@ -5,7 +5,6 @@ base = {
    "exploration_loss_coeff": 0.002,
    "policy_initialization": "orthogonal",
    "learning_rate": "0.0000195",
-   "max_policy_lag": "2000",
    "nonlinearity": "elu",
    "batch_size": 16384,
    "decorrelate_experience_max_seconds": 150,
