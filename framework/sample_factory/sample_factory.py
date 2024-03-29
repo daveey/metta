@@ -25,10 +25,14 @@ def make_env_func(full_env_name, cfg=None, env_config=None, render_mode: Optiona
 
 def dedupe_args(args):
     deduped_args = {}
+    flags = []
     for arg in args:
-        key, value = arg.split('=')
-        deduped_args[key] = value
-    return [f"{key}={value}" for key, value in deduped_args.items()]
+        if "=" in arg:
+            key, value = arg.split('=')
+            deduped_args[key] = value
+        else:
+            flags.append(arg)
+    return [f"{key}={value}" for key, value in deduped_args.items()] + flags
 
 def parse_args(argv=None, evaluation=False):
     # Process the --configs argument first
