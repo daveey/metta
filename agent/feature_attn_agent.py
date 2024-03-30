@@ -141,9 +141,9 @@ class FeatureAttnAgentEncoder(Encoder):
 
         # Add positions to the griddly features
         griddly_features = torch.cat([
-            self._position_encodings.unsqueeze(0).expand(batch_size, -1, -1, -1).to(device),
-            griddly_obs
-        ], dim=1)
+            griddly_obs,
+            self._position_encodings.unsqueeze(0).expand(batch_size, -1, -1, -1).to(device)
+        ], dim=-1)
         griddly_features = griddly_features.permute(0, 2, 3, 1).reshape(batch_size, -1, griddly_features.size(1))
 
         # Gather non-griddly feature values
