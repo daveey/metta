@@ -51,6 +51,7 @@ rnn = [
 
 obj_embed_agent = [
     *rnn,
+    "--normalize_input=True",
     "--agent=object_embedding_agent",
     "--agent_fc_layers=3",
     "--agent_fc_size=512",
@@ -60,6 +61,7 @@ obj_embed_agent = [
 
 obj_attn_agent = [
     *rnn,
+    "--normalize_input=True",
     "--agent=object_attn_agent",
     "--agent_attention_combo=mean",
     "--agent_fc_layers=3",
@@ -68,6 +70,7 @@ obj_attn_agent = [
 
 feature_attn_agent = [
     *rnn,
+    "--normalize_input=False",
     "--agent=feature_attn_agent",
     "--agent_fc_size=512",
 ]
@@ -82,7 +85,6 @@ sandbox_agent = [
 # Training
 
 training = [
-    "--normalize_input=True",
     "--aux_loss_coef=0",
     "--recurrence=256",
     "--rollout=256",

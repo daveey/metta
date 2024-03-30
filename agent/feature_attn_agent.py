@@ -67,6 +67,7 @@ class FeatureAttnAgentEncoder(Encoder):
         y = torch.linspace(-1, 1, self._grid_shape[1])
         pos_x, pos_y = torch.meshgrid(x, y, indexing='xy')
         position_encodings = torch.stack((pos_x, pos_y), dim=-1)
+        position_encodings = position_encodings.unsqueeze(0).expand(len(self._feature_names), -1, -1, -1)
         return position_encodings
 
     def _create_feature_encodings(self, obs_space):
@@ -141,20 +142,27 @@ class FeatureAttnAgentEncoder(Encoder):
 
         # Add positions to the griddly features
         griddly_features = torch.cat([
-            griddly_obs,
-            self._position_encodings.unsqueeze(0).expand(batch_size, -1, -1, -1).to(device)
+            griddly_obs.unsqueeze(-1),
+            self._position_encodings.unsqueeze(0).expand(batch_size, -1, -1, -1, -1).to(device)
         ], dim=-1)
-        griddly_features = griddly_features.permute(0, 2, 3, 1).reshape(batch_size, -1, griddly_features.size(1))
+        griddly_features = griddly_features.permute(0, 1, 4, 2, 3).reshape(batch_size, -1, griddly_features.size(2) * griddly_features.size(3))
 
         # Gather non-griddly feature values
         non_griddly_values = torch.cat([value.view(batch_size, -1) for key, value in obs_dict.items() if key != "griddly_obs"], dim=1)
         non_griddly_features = torch.cat([torch.zeros(batch_size, non_griddly_values.size(1), 2, device=device), non_griddly_values.unsqueeze(2)], dim=2)
 
+        # Reshape non-griddly features to match the size of griddly features in dimension 1
+        non_griddly_features = non_griddly_features.view(batch_size, -1, 3)
+        non_griddly_features = non_griddly_features.repeat(1, griddly_features.size(1) // non_griddly_features.size(1) + 1, 1)[:, :griddly_features.size(1), :]
+
         # Concatenate griddly and non-griddly features
-        all_features = torch.cat([griddly_features, non_griddly_features], dim=1)
+        all_features = torch.cat([griddly_features, non_griddly_features], dim=-1)
+
+        # Reshape feature encodings to match the size of all_features in dimension 2
+        feature_encodings = self._feature_encodings.unsqueeze(0).expand(batch_size, -1, -1).repeat(1, 1, all_features.size(1) // self._feature_encodings.size(0) + 1)[:, :, :all_features.size(1)].to(device)
 
         # Add feature encodings
-        all_features = torch.cat([all_features, self._feature_encodings.unsqueeze(0).expand(batch_size, -1, -1).to(device)], dim=2)
+        all_features = torch.cat([all_features, feature_encodings], dim=-1)
 
         # Filter out non-zero values and normalize
         non_zero_mask = all_features[:, :, -2] != 0
