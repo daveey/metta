@@ -66,6 +66,12 @@ obj_attn_agent = [
     "--agent_fc_size=512",
 ]
 
+feature_attn_agent = [
+    *rnn,
+    "--agent=feature_attn_agent",
+    "--agent_fc_size=512",
+]
+
 sandbox_agent = [
     *obj_embed_agent,
     "--agent_fc_layers=1",
