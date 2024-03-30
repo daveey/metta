@@ -76,7 +76,7 @@ sandbox_agent = [
 # Training
 
 training = [
-    "--normalize_input=False",
+    "--normalize_input=True",
     "--aux_loss_coef=0",
     "--recurrence=256",
     "--rollout=256",
