@@ -54,11 +54,14 @@ def get_batch_jobs(job_queue, max_jobs):
                 if 'PublicIpAddress' in instances['Reservations'][0]['Instances'][0]:
                     public_ip = instances['Reservations'][0]['Instances'][0]['PublicIpAddress']
 
+        stop_command = f"aws batch terminate-job --reason man_stop --job-id {job_id}" if job_status == 'RUNNING' else ''
+
         job_details.append({
             'name': job_name,
             'status': job_status,
             'link': job_link,
-            'public_ip': public_ip
+            'public_ip': public_ip,
+            'stop_command': stop_command
         })
 
     return job_details
@@ -95,11 +98,14 @@ def get_ecs_tasks(clusters, max_tasks):
             if 'PublicIpAddress' in instances['Reservations'][0]['Instances'][0]:
                 public_ip = instances['Reservations'][0]['Instances'][0]['PublicIpAddress']
 
+            stop_command = f"aws ecs stop-task --cluster {cluster} --task {task_arn}" if task_status == 'RUNNING' else ''
+
             task_details.append({
                 'name': task_name,
                 'status': task_status,
                 'link': task_link,
-                'public_ip': public_ip
+                'public_ip': public_ip,
+                'stop_command': stop_command
             })
 
     return task_details
@@ -123,6 +129,7 @@ def print_status(jobs_by_queue, tasks, use_color):
             print_row("Status", f"{status_color}{job['status']}{Style.RESET_ALL}" if use_color else job['status'], use_color)
             print_row("Link", job['link'], use_color)
             print_row("Public IP", job['public_ip'], use_color)
+            print_row("Stop Command", job['stop_command'], use_color)
             print()
 
     if tasks:
@@ -137,6 +144,7 @@ def print_status(jobs_by_queue, tasks, use_color):
             print_row("Status", f"{status_color}{task['status']}{Style.RESET_ALL}" if use_color else task['status'], use_color)
             print_row("Link", task['link'], use_color)
             print_row("Public IP", task['public_ip'], use_color)
+            print_row("Stop Command", task['stop_command'], use_color)
             print()
 
 if __name__ == "__main__":
