@@ -70,7 +70,7 @@ obj_attn_agent = [
 
 feature_attn_agent = [
     *rnn,
-    "--normalize_input=False",
+    "--normalize_input=True",
     "--agent=feature_attn_agent",
     "--agent_fc_size=512",
 ]
