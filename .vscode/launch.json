@@ -15,7 +15,7 @@
 
                 "--config=env_a5_25x25",
                 "--config=sandbox_training",
-                "--config=feature_attn_agent",
+                "--config=feature_agent",
 
                 // common setting
                 "--serial=True",
