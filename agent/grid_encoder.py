@@ -8,7 +8,7 @@ class GridEncoder(Encoder):
         super().__init__(cfg)
 
         self._grid_obs_as_dict = False
-        if cfg.agent_grid_obs_as_dict:
+        if self._grid_obs_as_dict:
             grid_obs_spaces = [
                 v for k, v in obs_space.items() if v.shape == (1, 11, 11)
             ]
