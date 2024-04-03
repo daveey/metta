@@ -10,33 +10,16 @@ import torch
 from sample_factory.model.encoder import Encoder
 from sample_factory.model.decoder import MlpDecoder
 from sample_factory.model.model_utils import nonlinearity
+from agent.grid_encoder import GridEncoder
 from agent.util import layer_init
 
 from agent.sample_factory_agent import SampleFactoryAgent
 
 
-class ObjectEmeddingAgentEncoder(Encoder):
+class ObjectEmeddingAgentEncoder(GridEncoder):
 
     def __init__(self, cfg, obs_space):
-        super().__init__(cfg)
-
-        self._grid_obs_as_dict = cfg.env_grid_obs_as_dict
-        if cfg.agent_grid_obs_as_dict:
-            grid_obs_spaces = [
-                v for k, v in obs_space.items() if v.shape == (1, 11, 11)
-            ]
-            self._grid_features = [
-                k for k, v in obs_space.items() if v.shape == (1, 11, 11)
-            ]
-            self._num_grid_features = len(self._grid_features)
-            self._grid_shape = grid_obs_spaces[0].shape[1:]
-        else:
-            grid_obs_space = obs_space["grid_obs"]
-            self._grid_features = ["grid_obs"]
-            self._num_grid_features = grid_obs_space.shape[0]
-            self._grid_shape = grid_obs_space.shape[1:3]
-
-        self._griddly_max_features = cfg.agent_max_features
+        super().__init__(cfg, obs_space)
 
         # Precompute position encodings and padding
         self._features_padding = torch.zeros(
@@ -81,21 +64,8 @@ class ObjectEmeddingAgentEncoder(Encoder):
         )
         self.encoder_head_out_size = cfg.agent_fc_size
 
-    # generate position encodings, shaped (1, 2, width, height)
-    def _create_position_encodings(self):
-        x = torch.linspace(-1, 1, self._grid_shape[0])
-        y = torch.linspace(-1, 1, self._grid_shape[1])
-        pos_x, pos_y = torch.meshgrid(x, y, indexing='xy')
-        position_encodings = torch.stack((pos_x, pos_y), dim=-1)
-        return position_encodings.unsqueeze(0).permute(0, 3, 1, 2)
-
     def forward(self, obs_dict):
-        if self._grid_obs_as_dict:
-            grid_obs = [ obs_dict[k] for k in self._grid_features ]
-            grid_obs = torch.cat(grid_obs, dim=1)
-        else:
-            grid_obs = obs_dict["grid_obs"]
-
+        grid_obs = self._grid_obs(obs_dict)
         batch_size = grid_obs.size(0)
 
         # Pad features to fixed size
@@ -125,6 +95,7 @@ class ObjectEmeddingAgentEncoder(Encoder):
     def get_out_size(self) -> int:
         return self.encoder_head_out_size
 
+
 class ObjectEmeddingAgentDecoder(MlpDecoder):
     pass
 
@@ -141,4 +112,3 @@ class ObjectEmeddingAgent(SampleFactoryAgent):
         parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
         parser.add_argument("--agent_embedding_size", default=64, type=int, help="Size of each feature embedding")
         parser.add_argument("--agent_embedding_layers", default=3, type=int, help="Size of each feature embedding")
-        parser.add_argument("--agent_grid_obs_as_dict", default=0, type=int, help="Use dict observations")

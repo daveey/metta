@@ -11,13 +11,12 @@
             "module": "framework.sample_factory.train",
             "args": [
                 "--experiment=mac.pres10",
-                "--restart_behavior=restart",
+                "--restart_behavior=resume",
 
                 "--config=env_a5_25x25",
                 "--config=sandbox_training",
                 "--config=obj_embed_agent",
-                "--env_grid_obs_as_tensor=1",
-                "--env_extra_variables=3",
+                "--env_extra_variables=1",
 
                 // common setting
                 "--serial=True",

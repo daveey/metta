@@ -25,8 +25,6 @@ class PowerGridEnv(gym.Env):
         super().__init__()
         self._level_generator = level_generator
         self._render_mode = render_mode
-        self._grid_obs_as_dict = self._level_generator.cfg["env_grid_obs_as_dict"]
-        self._grid_obs_as_tensor = self._level_generator.cfg["env_grid_obs_as_tensor"]
 
         self._make_env()
 
@@ -225,19 +223,8 @@ class PowerGridEnv(gym.Env):
         self._max_level_reward_per_agent = self._max_level_energy_per_agent * 3
 
     def _augment_observations(self, obs):
-        def grid_obs(agent_obs):
-            gobs = {}
-            if self._grid_obs_as_dict:
-                gobs = {
-                    name: agent_obs[idx]
-                    for idx, name in enumerate(self._griddly_feature_names)
-                }
-            if self._grid_obs_as_tensor:
-                gobs["grid_obs"] = agent_obs
-            return gobs
-
         return [{
-            **grid_obs(agent_obs),
+            "grid_obs": agent_obs,
             "global_vars": self._global_variable_obs[agent],
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),
@@ -250,23 +237,8 @@ class PowerGridEnv(gym.Env):
         else:
             obs_space = self._griddly_env.observation_space[0]
 
-        features = self._griddly_feature_names
-        grid_obs_space = {}
-        if self._grid_obs_as_dict:
-            grid_obs_space.update({
-                feature: gym.spaces.Box(
-                    low=-np.inf, high=np.inf,
-                    shape=[ 1 ] + list(obs_space.shape[1:]),
-                    dtype=np.float32)
-                for feature in features
-            })
-        if self._grid_obs_as_tensor:
-            grid_obs_space.update({
-                "grid_obs": obs_space
-            })
-
         agent_obs_space = gym.spaces.Dict({
-            **grid_obs_space,
+            "grid_obs": obs_space,
             "global_vars": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
                 shape=[ len(self._global_variable_names)],
