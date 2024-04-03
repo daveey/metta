@@ -64,6 +64,3 @@ class FeatureAgent(SampleFactoryAgent):
         parser.add_argument("--agent_feature_embedding_size", default=32, type=int, help="Max number of griddly features")
         parser.add_argument("--agent_num_fc_layers", default=4, type=int, help="Number of encoder fc layers")
         parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
-        parser.add_argument("--agent_num_attention_heads", default=1, type=int, help="Number of attention heads")
-        parser.add_argument("--agent_num_attn_layers", default=4, type=int, help="Number of transformer layers")
-        parser.add_argument("--agent_attention_dropout", default=0.05, type=float, help="Attention dropout")
