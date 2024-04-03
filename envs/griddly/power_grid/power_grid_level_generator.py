@@ -88,10 +88,19 @@ class PowerGridLevelGenerator():
             jmespath.search('Environment.Variables[?Name==`{}`][]'.format(var_name), game_config)[0]["InitialValue"] = value
 
         def _update_object_variable(game_config, object_name, var_name, value):
-            jmespath.search('Objects[?Name==`{}`][].Variables[?Name==`{}`][]'.format(
-                object_name, var_name), game_config)[0]["InitialValue"] = value
+            jmespath.search(
+                f'Objects[?Name==`{object_name}`][].Variables[?Name==`{var_name}`][]',
+                game_config)[0]["InitialValue"] = value
 
         game_config = deepcopy(self.game_config)
+
+        for i in range(self.cfg["env_extra_variables"]):
+            jmespath.search(
+                f'Objects[?Name==`agent`][].Variables', game_config)[0].append({
+                    "Name": f"agent:extra_property:{i}",
+                    "InitialValue": 0
+                })
+
         game_config["Environment"]["Player"]["Count"] = self.num_agents
         game_config["Environment"]["Observers"]["GlobalSpriteObserver"]["TileSize"] = int(self.sample_cfg("tile_size"))
         game_config["Environment"]["Levels"] = [self.make_level_string()]
@@ -218,3 +227,4 @@ def add_env_args(parser: argparse.ArgumentParser) -> None:
 
     p.add_argument("--env_grid_obs_as_dict", default=0, type=int, help="Whether to return grid observations as a dictionary")
     p.add_argument("--env_grid_obs_as_tensor", default=1, type=int, help="Whether to return grid observations as a tensor")
+    p.add_argument("--env_extra_variables", default=0, type=int, help="Add extra variables to test obs")

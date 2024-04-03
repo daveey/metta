@@ -1,3 +1,14 @@
+# Metta AI
+
+Metta AI is an open-source research project that investigates the emergence of cooperation and alignment in multi-agent AI systems. By creating a model organism for complex multi-agent gridworld environments, the project aims to study the impact of social dynamics, such as kinship and mate selection, on the learning and cooperative behaviors of AI agents.
+
+The project introduces a novel reward-sharing mechanism that mimics familial bonds and mate selection, allowing researchers to observe the evolution of complex social behaviors and cooperation among AI agents. The highly performant, open-ended game rules provide a rich environment for studying these behaviors and their potential implications for AI alignment.
+
+Metta AI explores the hypothesis that emotional bonds and social dynamics, akin to love in biological systems, may play a crucial role in the development of cooperative AGI and AI alignment. By investigating this concept in a controlled multi-agent setting, the project seeks to contribute to the broader discussion on the path towards safe and beneficial AGI.
+
+AI researchers will find Metta AI to be a valuable platform for studying the emergence of cooperation, social dynamics, and their potential impact on AI alignment. The project's modular design and open-source nature make it easy for researchers to adapt and extend the platform to investigate their own hypotheses in this domain.
+
+
 # Installation
 
 
