@@ -17,6 +17,8 @@
                 "--config=sandbox_training",
                 "--config=obj_embed_agent",
                 "--env_extra_variables=1",
+                "--normalize_input=False",
+                "--agent_shuffle_features=True",
 
                 // common setting
                 "--serial=True",

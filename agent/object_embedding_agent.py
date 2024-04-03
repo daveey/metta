@@ -21,22 +21,9 @@ class ObjectEmeddingAgentEncoder(GridEncoder):
     def __init__(self, cfg, obs_space):
         super().__init__(cfg, obs_space)
 
-        # Precompute position encodings and padding
-        self._features_padding = torch.zeros(
-            1, # batch
-            self._griddly_max_features - self._num_grid_features - 2, # +2 for position encodings
-            *self._grid_shape)
-
-        position_encodings = self._create_position_encodings()
-        self._position_and_padding = torch.cat([
-            position_encodings,
-            self._features_padding], dim=1)
-
-        self._num_object_features = self._griddly_max_features
-
         # Object embedding network
         self.object_embedding = nn.Sequential(
-            layer_init(nn.Linear(self._num_object_features, cfg.agent_embedding_size)),
+            layer_init(nn.Linear(self._num_grid_features, cfg.agent_embedding_size)),
             nonlinearity(cfg),
             *[
                 nn.Sequential(
@@ -68,14 +55,8 @@ class ObjectEmeddingAgentEncoder(GridEncoder):
         grid_obs = self._grid_obs(obs_dict)
         batch_size = grid_obs.size(0)
 
-        # Pad features to fixed size
-        pos_and_padding = self._position_and_padding.expand(batch_size, -1, -1, -1)
-        pos_and_padding = pos_and_padding.to(grid_obs.device)
-
-        grid_obs = torch.cat([pos_and_padding, grid_obs], dim=1)
-
         # create one big batch of objects (batch_size * grid_size, num_features)
-        object_obs = grid_obs.permute(0, 2, 3, 1).reshape(-1, self._num_object_features)
+        object_obs = grid_obs.permute(0, 2, 3, 1).reshape(-1, self._num_grid_features)
 
         # Object embedding
         object_embeddings = self.object_embedding(object_obs).view(batch_size, -1)
@@ -95,6 +76,9 @@ class ObjectEmeddingAgentEncoder(GridEncoder):
     def get_out_size(self) -> int:
         return self.encoder_head_out_size
 
+    @classmethod
+    def add_args(cls, parser):
+        GridEncoder.add_args(parser)
 
 class ObjectEmeddingAgentDecoder(MlpDecoder):
     pass
@@ -107,6 +91,7 @@ class ObjectEmeddingAgent(SampleFactoryAgent):
         return ObjectEmeddingAgentDecoder
 
     def add_args(self, parser):
+        ObjectEmeddingAgentEncoder.add_args(parser)
         parser.add_argument("--agent_max_features", default=50, type=int, help="Max number of griddly features")
         parser.add_argument("--agent_fc_layers", default=4, type=int, help="Number of encoder fc layers")
         parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
