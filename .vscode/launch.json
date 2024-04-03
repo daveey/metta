@@ -16,6 +16,7 @@
                 "--config=env_a5_25x25",
                 "--config=sandbox_training",
                 "--config=obj_embed_agent",
+                "--env_grid_obs_as_dict=0",
 
                 // common setting
                 "--serial=True",

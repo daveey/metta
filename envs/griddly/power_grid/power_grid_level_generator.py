@@ -216,3 +216,4 @@ def add_env_args(parser: argparse.ArgumentParser) -> None:
             action=args_parsing.PossiblyNumericRange2Number,
             str2numeric_cast_fn=float)
 
+    p.add_argument("--env_grid_obs_as_dict", default=0, type=int, help="Whether to return grid observations as a dictionary")

@@ -20,19 +20,28 @@ class ObjectEmeddingAgentEncoder(Encoder):
     def __init__(self, cfg, obs_space):
         super().__init__(cfg)
 
-        self._grid_obs_space = [
-            v for k, v in obs_space.items() if v.shape == (1, 11, 11)
-        ]
-        self._grid_features = [
-            k for k, v in obs_space.items() if v.shape == (1, 11, 11)
-        ]
-        self._grid_shape = self._grid_obs_space[0].shape[1:]
+        self._grid_obs_as_dict = cfg.env_grid_obs_as_dict
+        if cfg.env_grid_obs_as_dict:
+            grid_obs_spaces = [
+                v for k, v in obs_space.items() if v.shape == (1, 11, 11)
+            ]
+            self._grid_features = [
+                k for k, v in obs_space.items() if v.shape == (1, 11, 11)
+            ]
+            self._num_grid_features = len(self._grid_features)
+            self._grid_shape = grid_obs_spaces[0].shape[1:]
+        else:
+            grid_obs_space = obs_space["grid_obs"]
+            self._grid_features = ["grid_obs"]
+            self._num_grid_features = grid_obs_space.shape[0]
+            self._grid_shape = grid_obs_space.shape[1:3]
+
         self._griddly_max_features = cfg.agent_max_features
 
         # Precompute position encodings and padding
         self._features_padding = torch.zeros(
             1, # batch
-            self._griddly_max_features - len(self._grid_features) - 2, # +2 for position encodings
+            self._griddly_max_features - self._num_grid_features - 2, # +2 for position encodings
             *self._grid_shape)
 
         position_encodings = self._create_position_encodings()
@@ -81,8 +90,12 @@ class ObjectEmeddingAgentEncoder(Encoder):
         return position_encodings.unsqueeze(0).permute(0, 3, 1, 2)
 
     def forward(self, obs_dict):
-        grid_obs = [ obs_dict[k] for k in self._grid_features ]
-        grid_obs = torch.cat(grid_obs, dim=1)
+        if self._grid_obs_as_dict:
+            grid_obs = [ obs_dict[k] for k in self._grid_features ]
+            grid_obs = torch.cat(grid_obs, dim=1)
+        else:
+            grid_obs = obs_dict["grid_obs"]
+
         batch_size = grid_obs.size(0)
 
         # Pad features to fixed size
