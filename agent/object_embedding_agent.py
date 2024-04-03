@@ -21,7 +21,7 @@ class ObjectEmeddingAgentEncoder(Encoder):
         super().__init__(cfg)
 
         self._grid_obs_as_dict = cfg.env_grid_obs_as_dict
-        if cfg.env_grid_obs_as_dict:
+        if cfg.agent_grid_obs_as_dict:
             grid_obs_spaces = [
                 v for k, v in obs_space.items() if v.shape == (1, 11, 11)
             ]
@@ -141,3 +141,4 @@ class ObjectEmeddingAgent(SampleFactoryAgent):
         parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
         parser.add_argument("--agent_embedding_size", default=64, type=int, help="Size of each feature embedding")
         parser.add_argument("--agent_embedding_layers", default=3, type=int, help="Size of each feature embedding")
+        parser.add_argument("--agent_grid_obs_as_dict", default=0, type=int, help="Use dict observations")
