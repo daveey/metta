@@ -15,16 +15,18 @@ def get_batch_jobs(job_queue, max_jobs):
     other_jobs = []
 
     # Get running jobs
-    response = batch.list_jobs(jobQueue=job_queue, jobStatus='RUNNING', maxResults=max_jobs)
+    response = batch.list_jobs(jobQueue=job_queue, jobStatus='RUNNING')
     running_jobs.extend(response['jobSummaryList'])
 
     # Get jobs in other states
     states = ['SUBMITTED', 'PENDING', 'RUNNABLE', 'STARTING', 'SUCCEEDED', 'FAILED']
     for state in states:
-        response = batch.list_jobs(jobQueue=job_queue, jobStatus=state, maxResults=max_jobs)
+        response = batch.list_jobs(jobQueue=job_queue, jobStatus=state)
         other_jobs.extend(response['jobSummaryList'])
-
     job_details = []
+
+    other_jobs = sorted(other_jobs, key=lambda job: job['createdAt'])
+    other_jobs = other_jobs[-max_jobs:]
 
     for job in other_jobs + running_jobs:
         job_id = job['jobId']
@@ -149,7 +151,7 @@ def print_status(jobs_by_queue, tasks, use_color):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Get the status of AWS Batch jobs and ECS tasks.')
-    parser.add_argument('--max-jobs', type=int, default=5, help='The maximum number of jobs to display.')
+    parser.add_argument('--max-jobs', type=int, default=10, help='The maximum number of jobs to display.')
     parser.add_argument('--ecs', action='store_true', help='Include ECS tasks in the status dump.')
     parser.add_argument('--no-color', action='store_true', help='Disable color output.')
     args = parser.parse_args()
