@@ -16,7 +16,7 @@
                 "--config=env_a5_25x25",
                 "--config=sandbox_training",
                 "--config=obj_embed_agent",
-                "--env_extra_variables=4",
+                "--env_extra_variables=0",
                 // "--normalize_input=False",
                 // "--agent_shuffle_features=True",
 
