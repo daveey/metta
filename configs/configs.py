@@ -112,6 +112,7 @@ prod_training = [
     "--wandb_project=sample_factory",
     "--batch_size=16384",
     "--decorrelate_experience_max_seconds=150",
+    "--train_for_env_steps=9999999999999"
 ]
 
 sandbox_training = [
