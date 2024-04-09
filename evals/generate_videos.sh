@@ -15,4 +15,4 @@ for config in env_a5_25x25 env_a20_40x40 env_a100_100x100; do
         "$@"
 done
 
-ln -s train_dir/$experiment/env_a20_40x40.mp4 ./train_dir/$experiment/replay.mp4
+cd train_dir/$experiment/ && ln -s env_a20_40x40.mp4 replay.mp4

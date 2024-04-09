@@ -40,6 +40,10 @@ def get_batch_jobs(job_queue, max_jobs):
         task_arn = container.get('taskArn')
         cluster_arn = container.get('containerInstanceArn')
 
+        # Get the number of retries
+        attempts = job_desc['jobs'][0].get('attempts', [])
+        num_retries = len(attempts) - 1 if attempts else 0
+
         public_ip = ''
         if task_arn and cluster_arn:
             # Extract the cluster name from the cluster ARN
@@ -61,6 +65,7 @@ def get_batch_jobs(job_queue, max_jobs):
         job_details.append({
             'name': job_name,
             'status': job_status,
+            'retries': num_retries,
             'link': job_link,
             'public_ip': public_ip,
             'stop_command': stop_command
@@ -105,6 +110,7 @@ def get_ecs_tasks(clusters, max_tasks):
             task_details.append({
                 'name': task_name,
                 'status': task_status,
+                'retries': 0,
                 'link': task_link,
                 'public_ip': public_ip,
                 'stop_command': stop_command
@@ -128,7 +134,7 @@ def print_status(jobs_by_queue, tasks, use_color):
         for job in jobs:
             status_color = Fore.GREEN if job['status'] == 'SUCCEEDED' else Fore.YELLOW if job['status'] == 'RUNNING' else Fore.RED
             print_row("Name", job['name'], use_color)
-            print_row("Status", f"{status_color}{job['status']}{Style.RESET_ALL}" if use_color else job['status'], use_color)
+            print_row("Status", f"{status_color}{job['status']}{Style.RESET_ALL} ({job['retries']})" if use_color else job['status'], use_color)
             print_row("Link", job['link'], use_color)
             print_row("Public IP", job['public_ip'], use_color)
             print_row("Stop Command", job['stop_command'], use_color)
