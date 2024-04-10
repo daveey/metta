@@ -132,7 +132,16 @@ def print_status(jobs_by_queue, tasks, use_color):
             print(f"AWS Batch Jobs - Queue: {job_queue}")
 
         for job in jobs:
-            status_color = Fore.GREEN if job['status'] == 'SUCCEEDED' else Fore.YELLOW if job['status'] == 'RUNNING' else Fore.RED
+            status_color = {
+                'SUBMITTED': Fore.YELLOW,
+                'PENDING': Fore.YELLOW,
+                'RUNNABLE': Fore.YELLOW,
+                'STARTING': Fore.YELLOW,
+                'RUNNING': Fore.GREEN,
+                'SUCCEEDED': Fore.GREEN,
+                'FAILED': Fore.RED
+            }.get(job['status'], Fore.YELLOW)
+
             print_row("Name", job['name'], use_color)
             print_row("Status", f"{status_color}{job['status']}{Style.RESET_ALL} ({job['retries']})" if use_color else job['status'], use_color)
             print_row("Link", job['link'], use_color)

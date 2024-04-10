@@ -26,7 +26,6 @@ class ObjectEmeddingAgentEncoder(GridEncoder):
             nonlinearity=nonlinearity(cfg),
             layer_norm=cfg.agent_embedding_norm,
             use_skip=cfg.agent_embedding_skip,
-            fixup=cfg.agent_embedding_fixup
         )
 
         # Additional features size calculation
@@ -45,7 +44,6 @@ class ObjectEmeddingAgentEncoder(GridEncoder):
             nonlinearity=nonlinearity(cfg),
             layer_norm=cfg.agent_fc_norm,
             use_skip=cfg.agent_fc_skip,
-            fixup=cfg.agent_fc_fixup
         )
 
         self.encoder_head_out_size = cfg.agent_fc_size
@@ -97,12 +95,10 @@ class ObjectEmeddingAgent(SampleFactoryAgent):
         parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
         parser.add_argument("--agent_fc_norm", default=False, type=bool, help="Use layer norms")
         parser.add_argument("--agent_fc_skip", default=False, type=bool, help="Use skip connections")
-        parser.add_argument("--agent_fc_fixup", default=False, type=bool, help="Use fixup scaling")
 
 
         parser.add_argument("--agent_embedding_size", default=64, type=int, help="Size of each feature embedding")
         parser.add_argument("--agent_embedding_layers", default=3, type=int, help="Size of each feature embedding")
         parser.add_argument("--agent_embedding_norm", default=False, type=bool, help="Use layer norms")
         parser.add_argument("--agent_embedding_skip", default=False, type=bool, help="Use skip connections")
-        parser.add_argument("--agent_embedding_fixup", default=False, type=bool, help="Use fixup scaling")
 
