@@ -86,6 +86,8 @@ sandbox_agent = [
     *obj_embed_agent,
     "--agent_fc_layers=1",
     "--agent_fc_size=512",
+    "--agent_embedding_size=64",
+    "--agent_embedding_layers=1",
 ]
 
 

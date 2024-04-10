@@ -7,14 +7,11 @@ import numpy as np
 from torch import nn
 import torch
 
-from sample_factory.model.encoder import Encoder
 from sample_factory.model.decoder import MlpDecoder
 from sample_factory.model.model_utils import nonlinearity
 from agent.grid_encoder import GridEncoder
-from agent.util import layer_init
-
+from .util import layer_init, make_nn_stack
 from agent.sample_factory_agent import SampleFactoryAgent
-
 
 class ObjectEmeddingAgentEncoder(GridEncoder):
 
@@ -22,14 +19,14 @@ class ObjectEmeddingAgentEncoder(GridEncoder):
         super().__init__(cfg, obs_space)
 
         # Object embedding network
-        self.object_embedding = nn.Sequential(
-            layer_init(nn.Linear(self._num_grid_features, cfg.agent_embedding_size)),
-            nonlinearity(cfg),
-            *[
-                nn.Sequential(
-                layer_init(nn.Linear(cfg.agent_embedding_size, cfg.agent_embedding_size)),
-                nonlinearity(cfg)
-              ) for _ in range(cfg.agent_embedding_layers)]
+        self.object_embedding = make_nn_stack(
+            input_size=self._num_grid_features,
+            output_size=cfg.agent_embedding_size,
+            hidden_sizes=[cfg.agent_embedding_size] * cfg.agent_embedding_layers,
+            nonlinearity=nonlinearity(cfg),
+            layer_norm=cfg.agent_embedding_norm,
+            use_skip=cfg.agent_embedding_skip,
+            fixup=cfg.agent_embedding_fixup
         )
 
         # Additional features size calculation
@@ -41,14 +38,16 @@ class ObjectEmeddingAgentEncoder(GridEncoder):
         )
 
         # Encoder head
-        self.encoder_head = nn.Sequential(
-            layer_init(nn.Linear(all_embeddings_size, cfg.agent_fc_size)),
-            nonlinearity(cfg),
-            *[nn.Sequential(
-                layer_init(nn.Linear(cfg.agent_fc_size, cfg.agent_fc_size)),
-                nonlinearity(cfg)
-              ) for _ in range(cfg.agent_fc_layers)]
+        self.encoder_head = make_nn_stack(
+            input_size=all_embeddings_size,
+            output_size=cfg.agent_fc_size,
+            hidden_sizes=[cfg.agent_fc_size] * cfg.agent_fc_layers,
+            nonlinearity=nonlinearity(cfg),
+            layer_norm=cfg.agent_fc_norm,
+            use_skip=cfg.agent_fc_skip,
+            fixup=cfg.agent_fc_fixup
         )
+
         self.encoder_head_out_size = cfg.agent_fc_size
 
     def forward(self, obs_dict):
@@ -93,7 +92,17 @@ class ObjectEmeddingAgent(SampleFactoryAgent):
     def add_args(self, parser):
         ObjectEmeddingAgentEncoder.add_args(parser)
         parser.add_argument("--agent_max_features", default=50, type=int, help="Max number of griddly features")
+
         parser.add_argument("--agent_fc_layers", default=4, type=int, help="Number of encoder fc layers")
         parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
+        parser.add_argument("--agent_fc_norm", default=False, type=bool, help="Use layer norms")
+        parser.add_argument("--agent_fc_skip", default=False, type=bool, help="Use skip connections")
+        parser.add_argument("--agent_fc_fixup", default=False, type=bool, help="Use fixup scaling")
+
+
         parser.add_argument("--agent_embedding_size", default=64, type=int, help="Size of each feature embedding")
         parser.add_argument("--agent_embedding_layers", default=3, type=int, help="Size of each feature embedding")
+        parser.add_argument("--agent_embedding_norm", default=False, type=bool, help="Use layer norms")
+        parser.add_argument("--agent_embedding_skip", default=False, type=bool, help="Use skip connections")
+        parser.add_argument("--agent_embedding_fixup", default=False, type=bool, help="Use fixup scaling")
+

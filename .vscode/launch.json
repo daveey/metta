@@ -11,12 +11,16 @@
             "module": "framework.sample_factory.train",
             "args": [
                 "--experiment=mac.pres10",
-                "--restart_behavior=resume",
+                "--restart_behavior=restart",
 
                 "--config=env_a5_25x25",
                 "--config=sandbox_training",
-                "--config=obj_embed_agent",
-                "--env_extra_variables=0",
+                "--config=sandbox_agent",
+                "--nonlinearity=mish",
+                "--agent_embedding_layers=0",
+                "--agent_fc_skip=True",
+                "--agent_fc_fixup=True",
+                // "--env_extra_variables=0",
                 // "--normalize_input=False",
                 // "--agent_shuffle_features=True",
 
