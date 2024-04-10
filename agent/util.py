@@ -67,7 +67,7 @@ class SkipConnectionStack(nn.Module):
         skip_connections = []
         for i, layer in enumerate(self.layers):
             if isinstance(layer, nn.Linear):
-                if i > 0:
+                if len(skip_connections) > 1:
                     x = x + skip_connections[-1]
                 skip_connections.append(x)
             x = layer(x)
