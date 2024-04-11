@@ -41,9 +41,12 @@ class PowerGridLevelGenerator():
     }
 
     LEVEL_CONFIG = {
+        "num_agents": [5, 5],
         "tile_size": [32, 32],
         "width": [10, 20],
         "height": [10, 20],
+        "max_steps": [1000, 1000],
+
         "wall_density": [0.1, 0.3],
         "milestone_density": [0, 0.1],
         "num_altars": [1, 20],
@@ -54,8 +57,8 @@ class PowerGridLevelGenerator():
         "rsm_num_families": [0, 0],
         "rsm_family_reward": [0, 0],
 
-        "reward_rank_steps": [10, 500],
-        "reward_prestige_weight": [10, 50],
+        "reward_rank_steps": [1000, 1000],
+        "reward_prestige_weight": [0, 0],
     }
 
     def __init__(self, cfg):
@@ -67,8 +70,8 @@ class PowerGridLevelGenerator():
         if isinstance(self.cfg, argparse.Namespace):
             self.cfg = vars(self.cfg)
 
-        self.num_agents = self.cfg["env_num_agents"]
-        self.max_steps = self.cfg["env_max_steps"]
+        self.num_agents = int(self.sample_cfg("num_agents"))
+        self.max_steps = int(self.sample_cfg("max_steps"))
         with open("./envs/griddly/power_grid/gdy/power_grid.yaml", encoding="utf-8") as file:
             self.game_config = yaml.safe_load(file)
 
@@ -85,10 +88,19 @@ class PowerGridLevelGenerator():
             jmespath.search('Environment.Variables[?Name==`{}`][]'.format(var_name), game_config)[0]["InitialValue"] = value
 
         def _update_object_variable(game_config, object_name, var_name, value):
-            jmespath.search('Objects[?Name==`{}`][].Variables[?Name==`{}`][]'.format(
-                object_name, var_name), game_config)[0]["InitialValue"] = value
+            jmespath.search(
+                f'Objects[?Name==`{object_name}`][].Variables[?Name==`{var_name}`][]',
+                game_config)[0]["InitialValue"] = value
 
         game_config = deepcopy(self.game_config)
+
+        for i in range(self.cfg["env_extra_variables"]):
+            jmespath.search(
+                f'Objects[?Name==`agent`][].Variables', game_config)[0].append({
+                    "Name": f"agent:extra_property:{i}",
+                    "InitialValue": 0
+                })
+
         game_config["Environment"]["Player"]["Count"] = self.num_agents
         game_config["Environment"]["Observers"]["GlobalSpriteObserver"]["TileSize"] = int(self.sample_cfg("tile_size"))
         game_config["Environment"]["Levels"] = [self.make_level_string()]
@@ -189,6 +201,8 @@ class PowerGridLevelGenerator():
         vals = self.cfg.get(
             "env_" + key,
             self.GAME_CONFIG.get(key, self.LEVEL_CONFIG.get(key)))
+        if isinstance(vals, (int, float)):
+            return vals
         if len(vals) == 1:
             return vals[0]
         elif len(vals) == 2:
@@ -211,3 +225,4 @@ def add_env_args(parser: argparse.ArgumentParser) -> None:
             action=args_parsing.PossiblyNumericRange2Number,
             str2numeric_cast_fn=float)
 
+    p.add_argument("--env_extra_variables", default=0, type=int, help="Add extra variables to test obs")
