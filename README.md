@@ -34,6 +34,8 @@ Design and implement a comprehensive suite of intelligence evaluations for gridw
 ##### 5. DevOps and Tooling
 Develop tools and infrastructure for efficient management, tracking, and deployment of experiments, such as cloud cluster management, experiment tracking and visualization, and continuous integration and deployment pipelines.
 
+This readme provides only a brief overview of research explorations. Visit the [research roadmap](https://github.com/daveey/metta/blob/master/roadmap.md) for more details.
+
 ## Installation
 
 ### Install the Vulkan SDK
