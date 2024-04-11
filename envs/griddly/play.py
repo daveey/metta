@@ -5,7 +5,6 @@ import gymnasium
 
 from sample_factory.enjoy import enjoy
 
-import train as train
 from gymnasium.utils.play import play
 from griddly import GymWrapperFactory
 from sample_factory.cfg.arguments import parse_full_cfg, parse_sf_args

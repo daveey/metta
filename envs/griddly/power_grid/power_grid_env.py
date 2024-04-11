@@ -37,6 +37,7 @@ class PowerGridEnv(gym.Env):
 
         self._max_level_energy = None
         self._max_level_energy_per_agent = None
+        self._max_level_reward_per_agent = None
         self._episode_rewards = None
         self._prestige_reward_weight = None
         self._prestige_steps = None
@@ -62,7 +63,7 @@ class PowerGridEnv(gym.Env):
         self._episode_rewards = np.array([0] * self._num_agents, dtype=np.float32)
         self._prestige_steps = int(self._level_generator.sample_cfg("reward_rank_steps"))
         self._prestige_reward_weight = self._level_generator.sample_cfg("reward_prestige_weight")
-        self._griddly_obs_names = self._griddly_env.game.get_object_names() \
+        self._griddly_feature_names = self._griddly_env.game.get_object_names() \
             + self._griddly_env.game.get_object_variable_names()
         # compute the index of the agent id in the observation
         self._agent_id_obs_idx = len(self._griddly_env.object_names) \
@@ -130,7 +131,7 @@ class PowerGridEnv(gym.Env):
         rewards = self._reward_sharing.compute_shared_rewards(rewards)
 
         # normalize by total available energy
-        rewards /= self._max_level_energy_per_agent
+        rewards /= self._max_level_reward_per_agent
 
         if terminated or truncated:
             self._add_episode_stats(info)
@@ -195,15 +196,17 @@ class PowerGridEnv(gym.Env):
             agent_stats["prestige_reward"] = self._episode_prestige_rewards[agent]
             agent_stats["level_max_energy"] = self._max_level_energy
             agent_stats["level_max_energy_per_agent"] = self._max_level_energy_per_agent
+            agent_stats["level_max_reward_per_agent"] = self._max_level_reward_per_agent
             infos["episode_extra_stats"].append(agent_stats)
 
     def _compute_max_energy(self):
         # compute the max possible energy for the level
-        charger_energy, generator_cooldown, agent_regen = map(
+        charger_energy, generator_cooldown, agent_init, agent_regen = map(
             lambda x: float(x[0]),
             self._griddly_env.game.get_global_variable([
                 "conf:charger:energy",
                 "conf:generator:cooldown",
+                "conf:agent:energy:initial",
                 "conf:agent:energy:regen"]
             ).values())
 
@@ -213,17 +216,18 @@ class PowerGridEnv(gym.Env):
             self._griddly_env.game.get_state()["Objects"])))
         max_resources = num_generators * (1 + num_steps // generator_cooldown)
         max_charger_energy = float(charger_energy) * max_resources
-        self._max_level_energy = max_charger_energy + self._num_agents * agent_regen * num_steps
+        max_agent_energy = float(agent_init) + agent_regen * num_steps
+        self._max_level_energy = max_charger_energy + self._num_agents * max_agent_energy
         self._max_level_energy_per_agent = self._max_level_energy / self._num_agents
+        # if the agents use all their energy for the altar, we get a 3x reward
+        self._max_level_reward_per_agent = self._max_level_energy_per_agent * 3
 
     def _augment_observations(self, obs):
         return [{
-            "griddly_obs": agent_obs,
+            "grid_obs": agent_obs,
             "global_vars": self._global_variable_obs[agent],
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),
-            "kinship": self._reward_sharing.obs(
-                agent, agent_obs[self._agent_id_obs_idx])
         } for agent, agent_obs in enumerate(obs)]
 
     @property
@@ -234,7 +238,7 @@ class PowerGridEnv(gym.Env):
             obs_space = self._griddly_env.observation_space[0]
 
         agent_obs_space = gym.spaces.Dict({
-            "griddly_obs": obs_space,
+            "grid_obs": obs_space,
             "global_vars": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
                 shape=[ len(self._global_variable_names)],
@@ -246,10 +250,6 @@ class PowerGridEnv(gym.Env):
             "last_reward": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
                 shape=[1],
-                dtype=np.float32),
-            "kinship": gym.spaces.Box(
-                low=-np.inf, high=np.inf,
-                shape=[ 1 ] + list(obs_space.shape[1:]),
                 dtype=np.float32),
             })
         if self._num_agents == 1:

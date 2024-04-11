@@ -6,7 +6,7 @@ WORKDIR /workspace
 RUN ln -snf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime && echo America/Los_Angeles > /etc/timezone
 
 RUN apt-get update && apt-get install -y ninja-build git sudo wget vim screen spirv-tools
-RUN apt-get install -y xdg-utils python3-opencv
+RUN apt-get install -y xdg-utils python3-opencv curl
 RUN apt-get install -y ffmpeg libx264-dev
 RUN apt upgrade -y libopenblas-dev
 RUN apt-get install -y git-lfs

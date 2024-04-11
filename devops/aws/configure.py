@@ -25,6 +25,10 @@ def register_task_definition(args):
                 "linuxParameters": {
                     "sharedMemorySize": memory * 1024 * 1024
                 },
+                'mountPoints': [{
+                    'sourceVolume': 'efs',
+                    'containerPath': '/mnt/efs'
+                }],
                 "resourceRequirements": [
                     {
                         "type": "GPU",
@@ -33,7 +37,6 @@ def register_task_definition(args):
                 ],
                 "environment": [],
                 "environmentFiles": [],
-                "mountPoints": [],
                 "volumesFrom": [],
                 "workingDirectory": "/workspace/metta",
                 "ulimits": [
@@ -62,7 +65,7 @@ def register_task_definition(args):
             }
         ],
         "executionRoleArn": "arn:aws:iam::767406518141:role/ecsTaskExecutionRole",
-        "networkMode": "host",
+        'networkMode': 'host',
         "requiresCompatibilities": [
             "EC2"
         ],
@@ -70,7 +73,13 @@ def register_task_definition(args):
         "runtimePlatform": {
             "cpuArchitecture": "X86_64",
             "operatingSystemFamily": "LINUX"
-        }
+        },
+        'volumes': [{
+            'name': 'efs',
+            'host': {
+                'sourcePath': '/mnt/efs',
+            }
+        }]
     }
 
     response = ecs.register_task_definition(**task_definition)

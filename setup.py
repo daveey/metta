@@ -51,9 +51,13 @@ setup(
     packages=find_packages(),
     install_requires=[
         "boto3",
+        "conan==1.59.0",
         "jmespath",
         "matplotlib",
         "pytest",
+        "rich",
+        "scipy",
+        "tabulate",
     ],
     entry_points={
         'console_scripts': [
