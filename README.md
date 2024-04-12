@@ -22,16 +22,16 @@ Some areas of research interest:
 #### 1. Environment Development
 Develop rich and diverse gridworld environments with complex dynamics, such as resource systems, agent diversity, procedural terrain generation, support for various environment types, population dynamics, and kinship schemes.
 
-##### 2. Agent Architecture Research
+#### 2. Agent Architecture Research
 Incorporate techniques like dense learning signals, surprise minimization, exploration strategies, and blending reinforcement and imitation learning.
 
-##### 3. Scalable Training Infrastructure
+#### 3. Scalable Training Infrastructure
 Investigate scalable training approaches, including distributed reinforcement learning, student-teacher architectures, and blending reinforcement learning with imitation learning, to enable efficient training of large-scale multi-agent systems.
 
-##### 4. Intelligence Evaluations for Gridworld Agents
+#### 4. Intelligence Evaluations for Gridworld Agents
 Design and implement a comprehensive suite of intelligence evaluations for gridworld agents, covering navigation tasks, maze solving, in-context learning, cooperation, and competition scenarios.
 
-##### 5. DevOps and Tooling
+#### 5. DevOps and Tooling
 Develop tools and infrastructure for efficient management, tracking, and deployment of experiments, such as cloud cluster management, experiment tracking and visualization, and continuous integration and deployment pipelines.
 
 This readme provides only a brief overview of research explorations. Visit the [research roadmap](https://github.com/daveey/metta/blob/master/roadmap.md) for more details.
