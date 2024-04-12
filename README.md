@@ -20,10 +20,10 @@ The project's modular design and open-source nature make it easy for researchers
 Some areas of research interest:
 
 #### 1. Environment Development
-Develope rich and diverse gridworld environments with complex dynamics, such as resource systems, agent diversity, procedural terrain generation, support for various environment types, population dynamics, and kinship schemes.
+Develop rich and diverse gridworld environments with complex dynamics, such as resource systems, agent diversity, procedural terrain generation, support for various environment types, population dynamics, and kinship schemes.
 
 ##### 2. Agent Architecture Research
-Incorporate techniques like dense learning signals, exploration strategies, and blending reinforcement and imitation learning.
+Incorporate techniques like dense learning signals, surprise minimization, exploration strategies, and blending reinforcement and imitation learning.
 
 ##### 3. Scalable Training Infrastructure
 Investigate scalable training approaches, including distributed reinforcement learning, student-teacher architectures, and blending reinforcement learning with imitation learning, to enable efficient training of large-scale multi-agent systems.
