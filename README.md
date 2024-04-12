@@ -1,16 +1,42 @@
 # Metta AI
+A reinforcement learning codebase focusing on the emergence of cooperation and alignment in multi-agent AI systems.
 
-Metta AI is an open-source research project that investigates the emergence of cooperation and alignment in multi-agent AI systems. By creating a model organism for complex multi-agent gridworld environments, the project aims to study the impact of social dynamics, such as kinship and mate selection, on the learning and cooperative behaviors of AI agents.
+* **Discord**: https://discord.gg/mQzrgwqmwy
+* **Talk**: https://foresight.org/summary/david-bloomin-metta-learning-love-is-all-you-need/
 
-The project introduces a novel reward-sharing mechanism that mimics familial bonds and mate selection, allowing researchers to observe the evolution of complex social behaviors and cooperation among AI agents. The highly performant, open-ended game rules provide a rich environment for studying these behaviors and their potential implications for AI alignment.
+## What is Metta Learning?
+<p align="middle">
+<img src="https://github.com/debbly/metta-learning-assets/blob/main/gifs/example_video.gif?raw=true" width="360" alt="Metta learning example video">
+</p>
 
-Metta AI explores the hypothesis that emotional bonds and social dynamics, akin to love in biological systems, may play a crucial role in the development of cooperative AGI and AI alignment. By investigating this concept in a controlled multi-agent setting, the project seeks to contribute to the broader discussion on the path towards safe and beneficial AGI.
+Metta AI is an open-source research project investigating the emergence of cooperation and alignment in multi-agent AI systems. By creating a model organism for complex multi-agent gridworld environments, the project aims to study the impact of social dynamics, such as kinship and mate selection, on learning and cooperative behaviors of AI agents.
 
-AI researchers will find Metta AI to be a valuable platform for studying the emergence of cooperation, social dynamics, and their potential impact on AI alignment. The project's modular design and open-source nature make it easy for researchers to adapt and extend the platform to investigate their own hypotheses in this domain.
+Metta AI explores the hypothesis that social dynamics, akin to love in biological systems, play a crucial role in the development of cooperative AGI and AI alignment. The project introduces a novel reward-sharing mechanism mimicking familial bonds and mate selection, allowing researchers to observe the evolution of complex social behaviors and cooperation among AI agents. By investigating this concept in a controlled multi-agent setting, the project seeks to contribute to the broader discussion on the path towards safe and beneficial AGI.
 
 
-# Installation
+## Research Explorations
+The project's modular design and open-source nature make it easy for researchers to adapt and extend the platform to investigate their own hypotheses in this domain. The highly performant, open-ended game rules provide a rich environment for studying these behaviors and their potential implications for AI alignment.
 
+Some areas of research interest:
+
+#### 1. Environment Development
+Develope rich and diverse gridworld environments with complex dynamics, such as resource systems, agent diversity, procedural terrain generation, support for various environment types, population dynamics, and kinship schemes.
+
+##### 2. Agent Architecture Research
+Incorporate techniques like dense learning signals, exploration strategies, and blending reinforcement and imitation learning.
+
+##### 3. Scalable Training Infrastructure
+Investigate scalable training approaches, including distributed reinforcement learning, student-teacher architectures, and blending reinforcement learning with imitation learning, to enable efficient training of large-scale multi-agent systems.
+
+##### 4. Intelligence Evaluations for Gridworld Agents
+Design and implement a comprehensive suite of intelligence evaluations for gridworld agents, covering navigation tasks, maze solving, in-context learning, cooperation, and competition scenarios.
+
+##### 5. DevOps and Tooling
+Develop tools and infrastructure for efficient management, tracking, and deployment of experiments, such as cloud cluster management, experiment tracking and visualization, and continuous integration and deployment pipelines.
+
+This readme provides only a brief overview of research explorations. Visit the [research roadmap](https://github.com/daveey/metta/blob/master/roadmap.md) for more details.
+
+## Installation
 
 ### Install the Vulkan SDK
 
@@ -104,4 +130,3 @@ Follow these steps (tested on MacOS):
 1. open ~/.conan/settings.yml
 2. Inside the file, go to `apple-clang` -> `version` and add missing value ("15" in the example above) is in the `version` list
 3. For more information: https://docs.conan.io/en/1.16/faq/troubleshooting.html
-
