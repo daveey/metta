@@ -2,12 +2,6 @@
 	"folders": [
 		{
 			"path": "."
-		},
-		{
-			"path": "../sample-factory"
-		},
-		{
-			"path": "../Griddly"
 		}
 	],
 	"settings": {

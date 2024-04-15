@@ -1,13 +1,17 @@
 
 
+import json
 from numpy import pad
 from sample_factory.model.encoder import Encoder
 import torch
+from omegaconf import OmegaConf
 
 class GridEncoder(Encoder):
     def __init__(self, cfg, obs_space):
         super().__init__(cfg)
-        self._shuffle_features = cfg.agent_shuffle_features
+        self._cfg = OmegaConf.create(json.loads(cfg.agent_cfg))
+
+        self._shuffle_features = self._cfg.get("shuffle_features", False)
 
         self._grid_obs_as_dict = False
         if self._grid_obs_as_dict:
@@ -25,16 +29,16 @@ class GridEncoder(Encoder):
             self._num_grid_features = grid_obs_space.shape[0]
             self._grid_shape = grid_obs_space.shape[1:3]
 
-        if cfg.agent_add_position:
+        if self._cfg.get("add_position", False):
             self._num_grid_features += 2
             self._position_encodings = self._create_position_encodings()
 
-        if cfg.agent_num_grid_features > self._num_grid_features:
+        if self._cfg.get("num_grid_features"):
             self._features_padding = torch.zeros(
                 1, # batch
-                cfg.agent_num_grid_features - self._num_grid_features,
+                self._cfg.get("num_grid_features") - self._num_grid_features,
                 *self._grid_shape)
-            self._num_grid_features = cfg.agent_num_grid_features
+            self._num_grid_features = self._cfg.get("num_grid_features")
 
     def _grid_obs(self, obs_dict):
         if self._grid_obs_as_dict:
@@ -70,14 +74,3 @@ class GridEncoder(Encoder):
         pos_x, pos_y = torch.meshgrid(x, y, indexing='xy')
         position_encodings = torch.stack((pos_x, pos_y), dim=-1)
         return position_encodings.unsqueeze(0).permute(0, 3, 1, 2)
-
-    @classmethod
-    def add_args(cls, parser):
-        parser.add_argument("--agent_shuffle_features", default=False,
-                            type=bool,
-                            help="Shuffle the features before encoding")
-        parser.add_argument("--agent_num_grid_features",
-                            default=50, type=int,
-                            help="Max number of griddly features")
-        parser.add_argument("--agent_add_position", default=True, type=bool,
-                            help="Add position encodings to the grid features")

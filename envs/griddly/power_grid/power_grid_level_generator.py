@@ -2,6 +2,7 @@ import argparse
 from copy import deepcopy
 from typing import List
 
+from chex import dataclass
 import gymnasium as gym
 import numpy as np
 import yaml
@@ -94,7 +95,7 @@ class PowerGridLevelGenerator():
 
         game_config = deepcopy(self.game_config)
 
-        for i in range(self.cfg["env_extra_variables"]):
+        for i in range(self.cfg.get("extra_variables", 0)):
             jmespath.search(
                 f'Objects[?Name==`agent`][].Variables', game_config)[0].append({
                     "Name": f"agent:extra_property:{i}",
@@ -209,20 +210,3 @@ class PowerGridLevelGenerator():
             return np.random.uniform(vals[0], vals[1])
         raise ValueError(f"Length of values list should be at most 2. Got: {len(vals)}")
 
-def add_env_args(parser: argparse.ArgumentParser) -> None:
-    p = parser
-    for k, v in PowerGridLevelGenerator.GAME_CONFIG.items():
-        p.add_argument(f"--env_{k}",
-            default=[v[0], v[1]],
-            help=f'{k}. Can be either a single float OR a low:high range (e.g., "0.2:0.5") from which a value is uniformly drawn',
-            action=args_parsing.PossiblyNumericRange2Number,
-            str2numeric_cast_fn=float)
-
-    for k, v in PowerGridLevelGenerator.LEVEL_CONFIG.items():
-        p.add_argument(f"--env_{k}",
-            default=[v[0], v[1]],
-            help=f'{k}. Can be either a single float OR a low:high range (e.g., "0.2:0.5") from which a value is uniformly drawn',
-            action=args_parsing.PossiblyNumericRange2Number,
-            str2numeric_cast_fn=float)
-
-    p.add_argument("--env_extra_variables", default=0, type=int, help="Add extra variables to test obs")

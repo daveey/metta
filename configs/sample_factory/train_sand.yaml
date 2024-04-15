@@ -1,0 +1,7 @@
+defaults:
+  - train
+
+batch_size: 1024
+decorrelate_experience_max_seconds: 0
+num_workers: 0
+save_every_sec: 30

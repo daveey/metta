@@ -8,30 +8,35 @@
             "name": "Train Griddly",
             "type": "debugpy",
             "request": "launch",
-            "module": "framework.sample_factory.train",
+            "module": "tools.train",
             "args": [
-                "--experiment=mac.pres10",
-                "--restart_behavior=restart",
+                "+sample_factory=train_sand",
+                "+sample_factory.serial=True",
+                "+sample_factory.device=cpu",
 
-                "--config=env_a5_25x25",
-                "--config=sandbox_training",
-                "--config=sandbox_agent",
-                "--agent_embedding_layers=0",
-                "--agent_fc_skip=True",
+
+
+                // "--experiment=mac.pres10",
+                // "--restart_behavior=restart",
+
+                // "--config=sandbox_agent",
+                // "--agent_embedding_layers=0",
+                // "--agent_fc_skip=True",
+                // "--serial=True",
+
                 // "--agent_embedding_skip=True",
-                "--agent_fc_layers=3",
+                // "--agent_fc_layers=3",
                 // "--env_extra_variables=0",
                 // "--normalize_input=False",
                 // "--agent_shuffle_features=True",
 
                 // common setting
-                "--serial=True",
                 // "--async_rl=False",
                 // "--batch_size=1792",
                 // "--with_wandb=True",
 
                 // sandbox settings
-                "--device=cpu",
+                // "--device=cpu",
 
                 // "--train_for_env_steps=1000"
 

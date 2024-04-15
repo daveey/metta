@@ -1,9 +1,12 @@
 from __future__ import annotations
+import json
 from venv import logger
+from chex import dataclass
 from cv2 import log
 
 
 import numpy as np
+from omegaconf import OmegaConf
 from torch import nn
 import torch
 
@@ -13,24 +16,39 @@ from agent.grid_encoder import GridEncoder
 from .util import layer_init, make_nn_stack
 from agent.sample_factory_agent import SampleFactoryAgent
 
+@dataclass
+class ObjectEmeddingAgentEncoderCfg:
+    max_features: int = 50
+    fc_layers: int = 4
+    fc_size: int = 512
+    fc_norm: bool = False
+    fc_skip: bool = False
+    embedding_size: int = 64
+    embedding_layers: int = 3
+    embedding_norm: bool = False
+    embedding_skip: bool = False
+
 class ObjectEmeddingAgentEncoder(GridEncoder):
 
     def __init__(self, cfg, obs_space):
         super().__init__(cfg, obs_space)
 
+        self._cfg = OmegaConf.create(json.loads(cfg.agent_cfg))
+
+
         # Object embedding network
         self.object_embedding = make_nn_stack(
             input_size=self._num_grid_features,
-            output_size=cfg.agent_embedding_size,
-            hidden_sizes=[cfg.agent_embedding_size] * cfg.agent_embedding_layers,
+            output_size=self._cfg.embedding_size,
+            hidden_sizes=[self._cfg.embedding_size] * self._cfg.embedding_layers,
             nonlinearity=nonlinearity(cfg),
-            layer_norm=cfg.agent_embedding_norm,
-            use_skip=cfg.agent_embedding_skip,
+            layer_norm=self._cfg.embedding_norm,
+            use_skip=self._cfg.embedding_skip,
         )
 
         # Additional features size calculation
         all_embeddings_size = (
-            cfg.agent_embedding_size * np.prod(self._grid_shape) +
+            self._cfg.embedding_size * np.prod(self._grid_shape) +
             obs_space["global_vars"].shape[0] +
             obs_space["last_action"].shape[0] +
             obs_space["last_reward"].shape[0]
@@ -39,14 +57,14 @@ class ObjectEmeddingAgentEncoder(GridEncoder):
         # Encoder head
         self.encoder_head = make_nn_stack(
             input_size=all_embeddings_size,
-            output_size=cfg.agent_fc_size,
-            hidden_sizes=[cfg.agent_fc_size] * cfg.agent_fc_layers,
+            output_size=self._cfg.fc_size,
+            hidden_sizes=[self._cfg.fc_size] * self._cfg.fc_layers,
             nonlinearity=nonlinearity(cfg),
-            layer_norm=cfg.agent_fc_norm,
-            use_skip=cfg.agent_fc_skip,
+            layer_norm=self._cfg.fc_norm,
+            use_skip=self._cfg.fc_skip,
         )
 
-        self.encoder_head_out_size = cfg.agent_fc_size
+        self.encoder_head_out_size = self._cfg.fc_size
 
     def forward(self, obs_dict):
         grid_obs = self._grid_obs(obs_dict)
@@ -86,19 +104,4 @@ class ObjectEmeddingAgent(SampleFactoryAgent):
 
     def decoder_cls(self):
         return ObjectEmeddingAgentDecoder
-
-    def add_args(self, parser):
-        ObjectEmeddingAgentEncoder.add_args(parser)
-        parser.add_argument("--agent_max_features", default=50, type=int, help="Max number of griddly features")
-
-        parser.add_argument("--agent_fc_layers", default=4, type=int, help="Number of encoder fc layers")
-        parser.add_argument("--agent_fc_size", default=512, type=int, help="Size of the FC layer")
-        parser.add_argument("--agent_fc_norm", default=False, type=bool, help="Use layer norms")
-        parser.add_argument("--agent_fc_skip", default=False, type=bool, help="Use skip connections")
-
-
-        parser.add_argument("--agent_embedding_size", default=64, type=int, help="Size of each feature embedding")
-        parser.add_argument("--agent_embedding_layers", default=3, type=int, help="Size of each feature embedding")
-        parser.add_argument("--agent_embedding_norm", default=False, type=bool, help="Use layer norms")
-        parser.add_argument("--agent_embedding_skip", default=False, type=bool, help="Use skip connections")
 

@@ -5,6 +5,9 @@ from agent.object_embedding_agent import ObjectEmeddingAgent, ObjectEmeddingAgen
 
 
 class AgentFactory():
+    def __init__(self, cfg):
+        self.cfg = cfg
+
     def create_agent(self, agent_spec_id):
         if agent_spec_id == "feature_attn_agent":
             return FeatureAttnAgent()

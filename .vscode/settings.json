@@ -32,6 +32,9 @@
       "**/*.egg-info": true,
       "**/__pycache__": true,
       "replays": true,
+      "train_dir": true,
+      "outputs": true,
+      ".pytest_cache": true,
     }
 
 }
