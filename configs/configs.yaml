@@ -2,6 +2,3 @@ defaults:
   - /sample_factory/train
   - /agent/object_embedding_agent
   - /env/a20_40x40
-
-wandb:
-  with_wandb: False

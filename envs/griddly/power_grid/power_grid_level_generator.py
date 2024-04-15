@@ -200,7 +200,7 @@ class PowerGridLevelGenerator():
 
     def sample_cfg(self, key):
         vals = self.cfg.get(
-            "env_" + key,
+            key,
             self.GAME_CONFIG.get(key, self.LEVEL_CONFIG.get(key)))
         if isinstance(vals, (int, float)):
             return vals

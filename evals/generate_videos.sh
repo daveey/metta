@@ -3,15 +3,13 @@
 experiment=$1
 shift
 
-for config in env_a5_25x25 env_a20_40x40 env_a100_100x100; do
-    python -m tool \
-        --seed=0 \
-        --config=evaluation \
-        --config=$config \
-        --save_video \
-        --video_name="${config}.mp4" \
-        --fps=8 \
-        --experiment=$experiment \
+for envcfg in a5_25x25 a20_40x40 a100_100x100; do
+    echo "Generating video for $envcfg"
+    python -m tools.evaluate \
+        +env=$envcfg \
+        +sample_factory=video \
+        +sample_factory.video_name="${envcfg}.mp4" \
+        +sample_factory.experiment=$experiment \
         "$@"
 done
 

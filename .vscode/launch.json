@@ -13,10 +13,7 @@
                 "+sample_factory=train_sand",
                 "+sample_factory.serial=True",
                 "+sample_factory.device=cpu",
-
-
-
-                // "--experiment=mac.pres10",
+                "+sample_factory.experiment=mac.pres10",
                 // "--restart_behavior=restart",
 
                 // "--config=sandbox_agent",
@@ -24,9 +21,6 @@
                 // "--agent_fc_skip=True",
                 // "--serial=True",
 
-                // "--agent_embedding_skip=True",
-                // "--agent_fc_layers=3",
-                // "--env_extra_variables=0",
                 // "--normalize_input=False",
                 // "--agent_shuffle_features=True",
 
