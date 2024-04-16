@@ -39,20 +39,16 @@ class GridEncoder(Encoder):
             self._num_grid_features = self._cfg.get("num_grid_features")
 
         self._shuffle_features = self._cfg.get("shuffle_features", False)
-        if self._shuffle_features:
-            self._generate_shuffle_features()
-
-    def _generate_shuffle_features(self):
-        self._shuffle_features_table = torch.stack([
-            torch.randperm(self._num_grid_features)
-            for _ in range(self._cfg.get("shuffle_features_size"))
-        ])
-
+        self._shuffle_features_table = None
 
     def _grid_obs(self, obs_dict):
-        if self._shuffle_features and torch.rand(1) < 0.00001:
-            self._generate_shuffle_features()
-            print("Shuffle features table regenerated")
+        if self._shuffle_features and (
+            self._shuffle_features_table is None or torch.rand(1) < 0.00001):
+
+            self._shuffle_features_table = torch.stack([
+                torch.randperm(self._num_grid_features)
+                for _ in range(self._cfg.get("shuffle_features_size"))
+            ]).to(obs_dict["rollout_info"].device())
 
         if self._grid_obs_as_dict:
             grid_obs = [ obs_dict[k] for k in self._grid_features ]

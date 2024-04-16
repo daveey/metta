@@ -52,6 +52,7 @@ setup(
     install_requires=[
         "boto3",
         "conan==1.59.0",
+        "hydra-core",
         "jmespath",
         "matplotlib",
         "pytest",
