@@ -100,7 +100,13 @@ git lfs install
 ### Run the evaluation
 
 ```
-./evals/a20_40x40_rich.sh --experiment=baseline --no_render
+python -m tools.evaluate  +sample_factory=eval +sample_factory.experiment=baseline
+```
+
+### Render a video of the evaluation
+
+```
+python -m tools.evaluate  +sample_factory=video +sample_factory.experiment=baseline
 ```
 
 # Training a Model
@@ -108,13 +114,19 @@ git lfs install
 ### Run the training
 
 ```
- ./trainers/a5_25x25_simple.sh --experiment=my_experiment
+python -m tools.train +sample_factory.experiment=my_experiment
+```
+
+### Run the training on the CPU (no GPU)
+
+```
+python -m tools.train +sample_factory.device=cpu +sample_factory.experiment=my_experiment
 ```
 
 
 ### Run the training from a baseline model
 ```
-./trainers/a5_25x25_simple.sh --experiment=my_experiment --init_checkpoint_path=./train_dir/baseline/$(ls train_dir/baseline/checkpoint_p0 | tail -n1)
+python -m tools.train +sample_factory.experiment=my_experiment +sample_factory.init_checkpoint_path=./train_dir/baseline/$(ls train_dir/baseline/checkpoint_p0 | tail -n1)
 ```
 
 ### Troubleshooting

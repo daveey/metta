@@ -11,11 +11,9 @@
             "module": "tools.train",
             "args": [
                 "+sample_factory=train_sand",
-                "+sample_factory.serial=True",
+                "+agent=shuffle_agent",
                 "+sample_factory.device=cpu",
                 "+sample_factory.experiment=mac.pres10",
-                "+agent.shuffle_features=True",
-                "+agent.shuffle_features_size=1000",
                 // "--restart_behavior=restart",
 
                 // "--config=sandbox_agent",
