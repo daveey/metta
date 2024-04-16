@@ -1,0 +1,8 @@
+architecture: object_embedding_agent
+
+defaults:
+  - object_embedding
+
+shuffle_features: True
+shuffle_features_size: 1000
+shuffle_features_update_prob: 0.000001

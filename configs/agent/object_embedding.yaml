@@ -1,0 +1,20 @@
+architecture: object_embedding_agent
+
+defaults:
+  - rnn/gru
+
+
+num_grid_features: 50
+add_position: True
+
+embedding_size: 64
+embedding_layers: 3
+embedding_norm: False
+embedding_skip: False
+
+fc_layers: 3
+fc_size: 512
+fc_norm: False
+fc_skip: False
+
+
