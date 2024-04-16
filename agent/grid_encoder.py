@@ -64,7 +64,7 @@ class GridEncoder(Encoder):
 
         # shuffle the grid_obs to make sure the order of the features is not important
         if self._shuffle_features:
-            if self._shuffle_features_table is None or torch.rand(1) < 0.0001:
+            if self._shuffle_features_table is None or torch.rand(1) < self._cfg.get("shuffle_features_update_prob", 0.00001):
                 self._shuffle_features_table = torch.stack([
                     torch.randperm(self._num_grid_features)
                     for _ in range(self._cfg.get("shuffle_features_size"))
