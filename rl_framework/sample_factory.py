@@ -16,7 +16,6 @@ from rl_framework.rl_framework import RLFramework, EnvFactory, AgentFactory
 def make_env_func(full_env_name, sf_cfg, sf_env_config, render_mode):
     env_cfg = OmegaConf.create(json.loads(sf_cfg.env_cfg))
     env_factory = EnvFactory(env_cfg)
-    register_env(env_factory.gym_env_name(), make_env_func)
     return env_factory.make_env(render_mode=render_mode)
 
 class SampleFactoryFramework(RLFramework):

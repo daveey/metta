@@ -14,6 +14,8 @@
                 "+sample_factory.serial=True",
                 "+sample_factory.device=cpu",
                 "+sample_factory.experiment=mac.pres10",
+                "+agent.shuffle_features=True",
+                "+agent.shuffle_features_size=1000",
                 // "--restart_behavior=restart",
 
                 // "--config=sandbox_agent",
@@ -40,23 +42,10 @@
             "name": "Evaluate",
             "type": "debugpy",
             "request": "launch",
-            "module": "framework.sample_factory.evaluate",
+            "module": "tools.evaluate",
             "args": [
-                "--experiment=baseline.v0.0.1",
-                // "--experiment=mac.pres10",
-                // "--experiment=pred.10.0",
-                // "--experiment=g.mac",
-                // "--experiment=pred.200.0",
-
-                // "--scenario=a5_25x25_simple",
-                // "--scenario=a20_40x40_simple",
-                "--config=env_a5_25x25",
-                "--config=evaluation",
-
-                // "--no_render",
-                // "--save_video",
-                // "--video_name=griddly",
-
+                "+sample_factory.experiment=mac.pres10",
+                "+env=a20_40x40"
             ],
         },
         {

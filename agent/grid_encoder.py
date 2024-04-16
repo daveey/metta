@@ -11,8 +11,6 @@ class GridEncoder(Encoder):
         super().__init__(cfg)
         self._cfg = OmegaConf.create(json.loads(cfg.agent_cfg))
 
-        self._shuffle_features = self._cfg.get("shuffle_features", False)
-
         self._grid_obs_as_dict = False
         if self._grid_obs_as_dict:
             grid_obs_spaces = [
@@ -40,7 +38,22 @@ class GridEncoder(Encoder):
                 *self._grid_shape)
             self._num_grid_features = self._cfg.get("num_grid_features")
 
+        self._shuffle_features = self._cfg.get("shuffle_features", False)
+        if self._shuffle_features:
+            self._generate_shuffle_features()
+
+    def _generate_shuffle_features(self):
+        self._shuffle_features_table = torch.stack([
+            torch.randperm(self._num_grid_features)
+            for _ in range(self._cfg.get("shuffle_features_size"))
+        ])
+
+
     def _grid_obs(self, obs_dict):
+        if self._shuffle_features and torch.rand(1) < 0.00001:
+            self._generate_shuffle_features()
+            print("Shuffle features table regenerated")
+
         if self._grid_obs_as_dict:
             grid_obs = [ obs_dict[k] for k in self._grid_features ]
             grid_obs = torch.cat(grid_obs, dim=1)
@@ -55,15 +68,20 @@ class GridEncoder(Encoder):
             padding = padding.to(grid_obs.device)
             grid_obs = torch.cat([grid_obs, padding], dim=1)
 
-        # shuffle the grid_obs to make sure the order of the features is not important
-        if self._shuffle_features:
-            grid_obs = grid_obs[:, torch.randperm(grid_obs.size(1)), :, :]
-
         # Add position encodings
         if self._position_encodings is not None:
             pos = self._position_encodings.expand(batch_size, -1, -1, -1)
             pos = pos.to(grid_obs.device)
             grid_obs = torch.cat([pos, grid_obs], dim=1)
+
+        # shuffle the grid_obs to make sure the order of the features is not important
+        if self._shuffle_features:
+            idxs = torch.fmod(
+                torch.sum(obs_dict["rollout_info"] *
+                torch.tensor([1, 100, 1]), dim=1),
+                len(self._shuffle_features_table)).int()
+            perms = self._shuffle_features_table[idxs]
+            grid_obs = grid_obs[torch.arange(batch_size).unsqueeze(1), perms, :, :]
 
         return grid_obs
 

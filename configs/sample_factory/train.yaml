@@ -9,3 +9,4 @@ learning_rate: 0.0001
 max_policy_lag: 50
 nonlinearity: elu
 load_checkpoint_kind: latest
+normalize_input: False

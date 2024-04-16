@@ -58,6 +58,8 @@ setup(
         "rich",
         "scipy",
         "tabulate",
+        "tensordict",
+        "torchrl",
     ],
     entry_points={
         'console_scripts': [

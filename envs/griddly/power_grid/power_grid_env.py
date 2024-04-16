@@ -8,6 +8,7 @@ from typing import List
 import gymnasium as gym
 import numpy as np
 from pygame import init
+from torch import rand
 import yaml
 from envs.reward_sharing import FamillyAllocator, FamillySparseAllocator, RewardAllocator
 from griddly.gym import GymWrapper
@@ -45,6 +46,9 @@ class PowerGridEnv(gym.Env):
         self._last_actions = None
         self._last_rewards = None
         self._reward_sharing = None
+
+        self._env_id = random.randint(0, 1000000)
+        self._num_resets = 0
 
     def _validate_griddly(self):
         obj_order = self._griddly_env.game.get_object_names()
@@ -85,6 +89,7 @@ class PowerGridEnv(gym.Env):
         if self._num_agents == 1:
             obs = [obs]
 
+        self._num_resets += 1
         self._step = 0
         self._last_actions = np.zeros((self._num_agents, 2), dtype=np.int32)
         self._last_rewards = np.zeros(self._num_agents, dtype=np.float32)
@@ -228,6 +233,7 @@ class PowerGridEnv(gym.Env):
             "global_vars": self._global_variable_obs[agent],
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),
+            "rollout_info": np.array([self._env_id, self._num_resets, agent])
         } for agent, agent_obs in enumerate(obs)]
 
     @property
@@ -251,6 +257,10 @@ class PowerGridEnv(gym.Env):
                 low=-np.inf, high=np.inf,
                 shape=[1],
                 dtype=np.float32),
+            "rollout_info": gym.spaces.Box(
+                low=0, high=np.inf,
+                shape=[3],
+                dtype=np.int32),
             })
         if self._num_agents == 1:
             return agent_obs_space
