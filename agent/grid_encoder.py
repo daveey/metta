@@ -74,7 +74,7 @@ class GridEncoder(Encoder):
         if self._shuffle_features:
             idxs = torch.fmod(
                 torch.sum(obs_dict["rollout_info"] *
-                torch.tensor([1, 100, 1]), dim=1),
+                torch.tensor([1, 100, 1]).to(grid_obs.device()), dim=1),
                 len(self._shuffle_features_table)).int()
             perms = self._shuffle_features_table[idxs]
             grid_obs = grid_obs[torch.arange(batch_size).unsqueeze(1), perms, :, :]
