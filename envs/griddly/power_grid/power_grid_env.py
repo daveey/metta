@@ -202,6 +202,7 @@ class PowerGridEnv(gym.Env):
             agent_stats["level_max_energy"] = self._max_level_energy
             agent_stats["level_max_energy_per_agent"] = self._max_level_energy_per_agent
             agent_stats["level_max_reward_per_agent"] = self._max_level_reward_per_agent
+            agent_stats = {key.replace(':', '_'): value for key, value in agent_stats.items()}
             infos["episode_extra_stats"].append(agent_stats)
 
     def _compute_max_energy(self):
