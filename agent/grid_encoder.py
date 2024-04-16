@@ -42,9 +42,6 @@ class GridEncoder(Encoder):
         self._shuffle_features_table = None
 
     def _grid_obs(self, obs_dict):
-        if self._shuffle_features and (
-
-
         if self._grid_obs_as_dict:
             grid_obs = [ obs_dict[k] for k in self._grid_features ]
             grid_obs = torch.cat(grid_obs, dim=1)
