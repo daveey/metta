@@ -1,6 +1,0 @@
-architecture: object_embedding_agent
-
-defaults:
-  - object_embedding_agent
-
-normalize_input:: True

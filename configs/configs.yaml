@@ -1,4 +1,4 @@
 defaults:
   - /sample_factory/train
-  - /agent/object_embedding_agent
+  - /agent/object_embedding
   - /env/a20_40x40
