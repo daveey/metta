@@ -33,9 +33,6 @@ class ObjectEmeddingAgentEncoder(GridEncoder):
     def __init__(self, cfg, obs_space):
         super().__init__(cfg, obs_space)
 
-        self._cfg = OmegaConf.create(json.loads(cfg.agent_cfg))
-
-
         # Object embedding network
         self.object_embedding = make_nn_stack(
             input_size=self._num_grid_features,

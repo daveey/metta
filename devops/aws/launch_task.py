@@ -4,7 +4,7 @@ import netrc
 import os
 import logging
 
-def submit_ecs_task(args):
+def submit_ecs_task(args, task_args):
     ecs = boto3.client('ecs')
 
     # Get the latest version of the task definition
@@ -22,7 +22,7 @@ def submit_ecs_task(args):
         overrides={
             'containerOverrides': [{
                 "name": "metta",
-                **container_config(args)
+                **container_config(args, task_args)
             }]
         }
     )
@@ -39,7 +39,7 @@ def submit_ecs_task(args):
     else:
         logging.error('Failed to submit: %s', response)
 
-def submit_batch_job(args):
+def submit_batch_job(args, task_args):
     batch = boto3.client('batch')
 
     job_name = args.experiment.replace('.', '_')
@@ -50,13 +50,13 @@ def submit_batch_job(args):
         jobName=job_name,
         jobQueue=job_queue,
         jobDefinition=job_definition,
-        containerOverrides=container_config(args)
+        containerOverrides=container_config(args, task_args)
     )
 
     print(f"Submitted job {job_name} to queue {job_queue} with job ID {response['jobId']}")
     print(f"https://us-east-1.console.aws.amazon.com/batch/v2/home?region=us-east-1#/jobs/detail/{response['jobId']}")
 
-def container_config(args):
+def container_config(args, task_args):
     # Get the wandb key from the .netrc file
     netrc_info = netrc.netrc(os.path.expanduser('~/.netrc'))
     wandb_key = netrc_info.authenticators('api.wandb.ai')[2]
@@ -71,6 +71,7 @@ def container_config(args):
     setup_cmds = [
         'git pull',
         'git submodule update',
+        'pip install -e .',
         'ln -s /mnt/efs/train_dir train_dir',
     ]
     train_cmd = [
@@ -125,6 +126,6 @@ if __name__ == "__main__":
     args, task_args = parser.parse_known_args()
 
     if args.batch:
-        submit_batch_job(args)
+        submit_batch_job(args, task_args)
     else:
-        submit_ecs_task(args)
+        submit_ecs_task(args, task_args)

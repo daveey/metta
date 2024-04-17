@@ -51,6 +51,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "boto3",
+        "chex",
         "conan==1.59.0",
         "hydra-core",
         "jmespath",
