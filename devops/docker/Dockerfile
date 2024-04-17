@@ -1,5 +1,7 @@
 FROM daveey/metta-base
 
+RUN echo "Cache breaker: $(date)" > cache-breaker.txt
+
 # Checkout metta and submodules
 WORKDIR /workspace/
 RUN date
