@@ -14,6 +14,8 @@
                 "+agent=feature_dict",
                 "+sample_factory.device=cpu",
                 "+sample_factory.experiment=mac.pres10",
+
+                "+env.extra_variables=5",
                 // "--restart_behavior=restart",
 
                 // "--config=sandbox_agent",
@@ -22,7 +24,6 @@
                 // "--serial=True",
 
                 // "--normalize_input=False",
-                // "--agent_shuffle_features=True",
 
                 // common setting
                 // "--async_rl=False",

@@ -2,7 +2,9 @@ from __future__ import annotations
 import glob
 
 
+from cv2 import norm
 import numpy as np
+from sample_factory.algo.utils.running_mean_std import RunningMeanStdInPlace
 from sample_factory.model.encoder import Encoder
 from torch import nn
 import torch
@@ -32,6 +34,12 @@ class FeatureDictEncoder(Encoder):
 
         self._grid_shape = obs_space["grid_obs"].shape[1:]
         self._num_grid_features = obs_space["grid_obs"].shape[0]
+
+        self._grid_norm_dict = nn.ModuleDict({
+            k: RunningMeanStdInPlace(self._grid_shape)
+            for k in self._cfg.grid_feature_names
+        })
+        self._grid_norm = [self._grid_norm_dict[k] for k in self._cfg.grid_feature_names]
 
         # Every grid feature takes WxH + feature_id + global_emb_size
         self._grid_feature_net = make_nn_stack(
@@ -65,8 +73,13 @@ class FeatureDictEncoder(Encoder):
         self.encoder_head_out_size = self._cfg.fc_size
 
     def forward(self, obs_dict):
-        batch_size = obs_dict["grid_obs"].size(0)
-        grid_obs = obs_dict["grid_obs"].view(batch_size, -1, np.prod(self._grid_shape))
+        grid_obs = obs_dict["grid_obs"]
+        batch_size = grid_obs.size(0)
+
+        for fidx, norm in enumerate(self._grid_norm):
+            norm(obs_dict["grid_obs"][:, fidx, :, :])
+
+        grid_obs = grid_obs.view(batch_size, -1, np.prod(self._grid_shape))
 
         globals_embed = self._global_net(obs_dict["global_vars"].view(batch_size, 1, -1))
         globals_embed = globals_embed.expand(-1, grid_obs.size(1), -1)
