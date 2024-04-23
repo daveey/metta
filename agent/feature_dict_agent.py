@@ -1,23 +1,15 @@
 from __future__ import annotations
-import json
-from venv import logger
-from chex import dataclass
-from cv2 import log
 
 
-from gym import make
-from matplotlib.pyplot import grid
 import numpy as np
-from omegaconf import OmegaConf
 from sample_factory.model.encoder import Encoder
-from sample_factory.utils.typing import Config, ObsSpace
-from torch import embedding, nn
+from torch import nn
 import torch
 
 from sample_factory.model.decoder import MlpDecoder
 from sample_factory.model.model_utils import nonlinearity
 from agent.grid_encoder import GridEncoder
-from .util import layer_init, make_nn_stack
+from .util import make_nn_stack
 from agent.sample_factory_agent import SampleFactoryAgent
 
 class FeatureDictEncoder(Encoder):
