@@ -11,7 +11,7 @@
             "module": "tools.train",
             "args": [
                 "+sample_factory=train_sand",
-                "+agent=shuffle",
+                "+agent=feature_dict",
                 "+sample_factory.device=cpu",
                 "+sample_factory.experiment=mac.pres10",
                 // "--restart_behavior=restart",

@@ -7,6 +7,7 @@ from cv2 import log
 
 import numpy as np
 from omegaconf import OmegaConf
+from sample_factory.utils.typing import Config, ObsSpace
 from torch import nn
 import torch
 
@@ -28,7 +29,7 @@ class ObjectEmeddingAgentEncoderCfg:
     embedding_norm: bool = False
     embedding_skip: bool = False
 
-class ObjectEmeddingAgentEncoder(GridEncoder):
+class ObjectEmbeddingAgentEncoder(GridEncoder):
 
     def __init__(self, cfg, obs_space):
         super().__init__(cfg, obs_space)
@@ -92,13 +93,14 @@ class ObjectEmeddingAgentEncoder(GridEncoder):
     def add_args(cls, parser):
         GridEncoder.add_args(parser)
 
-class ObjectEmeddingAgentDecoder(MlpDecoder):
+class ObjectEmbeddingAgentDecoder(MlpDecoder):
     pass
 
-class ObjectEmeddingAgent(SampleFactoryAgent):
-    def encoder_cls(self):
-        return ObjectEmeddingAgentEncoder
+class ObjectEmbeddingAgent(SampleFactoryAgent):
+    def make_encoder(self, cfg: Config, obs_space: ObsSpace):
+        return ObjectEmbeddingAgentEncoder(cfg, obs_space)
 
-    def decoder_cls(self):
-        return ObjectEmeddingAgentDecoder
+    def make_decoder(self, cfg: Config, size: int):
+        return ObjectEmbeddingAgentDecoder(cfg, size)
+
 

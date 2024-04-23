@@ -1,4 +1,4 @@
-architecture: object_embedding_agent
+_target_: agent.object_embedding_agent.ObjectEmbeddingAgent
 
 defaults:
   - rnn/gru

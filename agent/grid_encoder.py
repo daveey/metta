@@ -7,11 +7,11 @@ import torch
 from omegaconf import OmegaConf
 
 class GridEncoder(Encoder):
-    def __init__(self, cfg, obs_space):
-        super().__init__(cfg)
-        self._cfg = OmegaConf.create(json.loads(cfg.agent_cfg))
+    def __init__(self, sf_cfg, agent_cfg, obs_space, grid_obs_as_dict=False):
+        super().__init__(sf_cfg)
+        self._cfg = agent_cfg
 
-        self._grid_obs_as_dict = False
+        self._grid_obs_as_dict = grid_obs_as_dict
         if self._grid_obs_as_dict:
             grid_obs_spaces = [
                 v for k, v in obs_space.items() if v.shape == (1, 11, 11)
