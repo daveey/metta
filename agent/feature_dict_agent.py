@@ -106,9 +106,10 @@ class FeatureDictEncoder(Encoder):
         self._grid_feature_ids = self._grid_feature_ids.to(grid_obs.device).to(grid_obs.device)
 
         # Normalize global features
-        with torch.no_grad():
-            for fidx, norm in enumerate(self._globals_norms):
-                norm(global_vars[:, fidx, :])
+        if self._cfg.normalize_features:
+            with torch.no_grad():
+                for fidx, norm in enumerate(self._globals_norms):
+                    norm(global_vars[:, fidx, :])
 
         # Embed every (feature_id,value), then sum them up
         global_fids = self._global_feature_ids.expand(batch_size, -1, -1)
@@ -117,9 +118,10 @@ class FeatureDictEncoder(Encoder):
         global_state = torch.sum(globals_embed, dim=1).unsqueeze(1)
 
         # Normalize grid features
-        with torch.no_grad():
-            for fidx, norm in enumerate(self._grid_norms):
-                norm(grid_obs[:, fidx, :, :])
+        if self._cfg.normalize_features:
+            with torch.no_grad():
+                for fidx, norm in enumerate(self._grid_norms):
+                    norm(grid_obs[:, fidx, :, :])
 
         # Embed every (feature_id,global_state,grid_values), then sum them up
         grid_obs = grid_obs.view(batch_size, -1, np.prod(self._grid_shape))

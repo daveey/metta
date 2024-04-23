@@ -3,6 +3,7 @@ _target_: agent.feature_dict_agent.FeatureDictAgent
 defaults:
   - rnn/gru
 
+normalize_features: False
 globals_emb_size: 8
 globals_emb_layers: 2
 globals_emb_norm: False
