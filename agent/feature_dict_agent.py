@@ -1,13 +1,16 @@
 from __future__ import annotations
 import glob
+from types import SimpleNamespace
 
 
 from cv2 import norm
 import numpy as np
 from sample_factory.algo.utils.running_mean_std import RunningMeanStdInPlace
 from sample_factory.model.encoder import Encoder
+from sample_factory.utils.normalize import ObservationNormalizer
 from torch import nn
 import torch
+import gymnasium as gym
 
 from sample_factory.model.decoder import MlpDecoder
 from sample_factory.model.model_utils import nonlinearity
@@ -25,21 +28,41 @@ class FeatureDictEncoder(Encoder):
             f"Number of grid features in config ({len(self._cfg.grid_feature_names)}) " \
             f"does not match the number of grid features in the observation space ({obs_space['grid_obs'].shape[0]})"
 
+        self._grid_shape = obs_space["grid_obs"].shape[1:]
+        self._num_grid_features = obs_space["grid_obs"].shape[0]
+
+        obs_norm_config = SimpleNamespace(
+            normalize_input=True,
+            obs_subtract_mean=0.0,
+            obs_scale=1.0,
+            normalize_input_keys=None
+        )
+
+        self._obs_norm_dict = nn.ModuleDict({
+            **{
+                k: RunningMeanStdInPlace(self._grid_shape)
+                for k in self._cfg.grid_feature_names
+            },
+            **{
+                k: RunningMeanStdInPlace((1,))
+                for k in self._cfg.global_feature_names
+            },
+        })
+        self._grid_norms = [self._obs_norm_dict[k] for k in self._cfg.grid_feature_names]
+        self._globals_norms = [self._obs_norm_dict[k] for k in self._cfg.global_feature_names]
+
+        self._global_feature_ids = []
+        for fn in self._cfg.global_feature_names:
+            self._global_feature_ids.append(hash(fn) % 100000 / 100000.0)
+        self._global_feature_ids = torch.tensor(self._global_feature_ids) \
+            .to(torch.float32).unsqueeze(0).unsqueeze(-1)
+
         self._global_net = make_nn_stack(
-            input_size=obs_space["global_vars"].shape[0],
+            input_size=2,
             output_size=self._cfg.globals_emb_size,
             hidden_sizes=[self._cfg.globals_emb_size] * (self._cfg.globals_emb_layers - 1),
             nonlinearity=nonlinearity(sf_cfg),
         )
-
-        self._grid_shape = obs_space["grid_obs"].shape[1:]
-        self._num_grid_features = obs_space["grid_obs"].shape[0]
-
-        self._grid_norm_dict = nn.ModuleDict({
-            k: RunningMeanStdInPlace(self._grid_shape)
-            for k in self._cfg.grid_feature_names
-        })
-        self._grid_norm = [self._grid_norm_dict[k] for k in self._cfg.grid_feature_names]
 
         # Every grid feature takes WxH + feature_id + global_emb_size
         self._grid_feature_net = make_nn_stack(
@@ -73,23 +96,38 @@ class FeatureDictEncoder(Encoder):
         self.encoder_head_out_size = self._cfg.fc_size
 
     def forward(self, obs_dict):
+        # obs_dict = ObservationNormalizer._clone_tensordict(obs_dict)
+
         grid_obs = obs_dict["grid_obs"]
+        global_vars = obs_dict["global_vars"].unsqueeze(-1)
         batch_size = grid_obs.size(0)
 
-        for fidx, norm in enumerate(self._grid_norm):
-            norm(obs_dict["grid_obs"][:, fidx, :, :])
+        self._global_feature_ids = self._global_feature_ids.to(grid_obs.device).to(grid_obs.device)
+        self._grid_feature_ids = self._grid_feature_ids.to(grid_obs.device).to(grid_obs.device)
 
+        # Normalize global features
+        with torch.no_grad():
+            for fidx, norm in enumerate(self._globals_norms):
+                norm(global_vars[:, fidx, :])
+
+        # Embed every (feature_id,value), then sum them up
+        global_fids = self._global_feature_ids.expand(batch_size, -1, -1)
+        global_obs = torch.cat([global_fids, global_vars], dim=1)
+        globals_embed = self._global_net(global_obs.view(-1, 2)).view(batch_size, -1, self._cfg.globals_emb_size)
+        global_state = torch.sum(globals_embed, dim=1).unsqueeze(1)
+
+        # Normalize grid features
+        with torch.no_grad():
+            for fidx, norm in enumerate(self._grid_norms):
+                norm(grid_obs[:, fidx, :, :])
+
+        # Embed every (feature_id,global_state,grid_values), then sum them up
         grid_obs = grid_obs.view(batch_size, -1, np.prod(self._grid_shape))
+        fids = self._grid_feature_ids.expand(batch_size, -1, -1)
+        global_state = global_state.expand(batch_size, fids.size(1), -1)
+        grid_obs = torch.cat([fids, global_state, grid_obs], dim=2)
 
-        globals_embed = self._global_net(obs_dict["global_vars"].view(batch_size, 1, -1))
-        globals_embed = globals_embed.expand(-1, grid_obs.size(1), -1)
-
-        fids = self._grid_feature_ids.to(grid_obs.device).expand(batch_size, -1, -1)
-
-        grid_obs = torch.cat([fids, globals_embed, grid_obs], dim=2)
-
-        grid_embed = self._grid_feature_net(grid_obs)
-
+        grid_state = self._grid_feature_net(grid_obs)
 
         # # Additional features
         # additional_features = torch.cat([
@@ -99,7 +137,7 @@ class FeatureDictEncoder(Encoder):
         # ], dim=1)
 
         # Final encoding
-        x = self.encoder_head(torch.sum(grid_embed, dim=1))
+        x = self.encoder_head(torch.sum(grid_state, dim=1))
         return x
 
     def get_out_size(self) -> int:

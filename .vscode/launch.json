@@ -15,7 +15,7 @@
                 "+sample_factory.device=cpu",
                 "+sample_factory.experiment=mac.pres10",
 
-                "+env.extra_variables=5",
+                "+env.extra_variables=2",
                 // "--restart_behavior=restart",
 
                 // "--config=sandbox_agent",

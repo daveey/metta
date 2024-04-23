@@ -37,6 +37,7 @@ class SampleFactoryFramework(RLFramework):
         env = env_factory.make_env()
         OmegaConf.set_struct(cfg, False)
         cfg.agent["grid_feature_names"] = env.gym_env._griddly_feature_names
+        cfg.agent["global_feature_names"] = env.gym_env._global_variable_names
         OmegaConf.set_struct(cfg, True)
         self.agent = hydra.utils.instantiate(cfg.agent)
 
