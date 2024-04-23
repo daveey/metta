@@ -71,7 +71,7 @@ class FeatureDictEncoder(Encoder):
         globals_embed = self._global_net(obs_dict["global_vars"].view(batch_size, 1, -1))
         globals_embed = globals_embed.expand(-1, grid_obs.size(1), -1)
 
-        fids = self._grid_feature_ids.expand(batch_size, -1, -1)
+        fids = self._grid_feature_ids.to(grid_obs.device).expand(batch_size, -1, -1)
 
         grid_obs = torch.cat([fids, globals_embed, grid_obs], dim=2)
 
