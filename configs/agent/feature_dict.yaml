@@ -3,15 +3,15 @@ _target_: agent.feature_dict_agent.FeatureDictAgent
 defaults:
   - rnn/gru
 
+globals_emb_size: 8
+globals_emb_layers: 2
+globals_emb_norm: False
+globals_emb_skip: False
 
-num_grid_features: 50
-add_position: True
-
-embedding_size: 64
-embedding_layers: 3
-embedding_norm: False
-embedding_skip: False
-projection_layers: 1
+grid_emb_size: 512
+grid_emb_layers: 4
+grid_emb_norm: False
+grid_emb_skip: False
 
 fc_layers: 3
 fc_size: 512

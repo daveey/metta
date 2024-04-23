@@ -1,4 +1,5 @@
 from __future__ import annotations
+import glob
 
 
 import numpy as np
@@ -22,38 +23,38 @@ class FeatureDictEncoder(Encoder):
             f"Number of grid features in config ({len(self._cfg.grid_feature_names)}) " \
             f"does not match the number of grid features in the observation space ({obs_space['grid_obs'].shape[0]})"
 
-        self._grid_shape = obs_space["grid_obs"].shape[1:]
-        self._num_grid_features = obs_space["grid_obs"].shape[0]
-        embedding_nets = {}
-        self._embedding_name_ebd = {}
-        for grid_feature_name in self._cfg.grid_feature_names:
-            embedding_nets[grid_feature_name] = make_nn_stack(
-                input_size=np.prod(self._grid_shape),
-                output_size=self._cfg.embedding_size,
-                hidden_sizes=[self._cfg.embedding_size] * (self._cfg.embedding_layers -1),
-                nonlinearity=nonlinearity(sf_cfg),
-            )
-            self._embedding_name_ebd[grid_feature_name] = \
-                  hash(grid_feature_name) % 100000 / 100000.0
-        self._embeddings = nn.ModuleDict(embedding_nets)
-
-        self._embedding_proj = make_nn_stack(
-            input_size=self._cfg.embedding_size + 1,
-            output_size=self._cfg.embedding_size,
-            hidden_sizes=[self._cfg.embedding_size] * (self._cfg.projection_layers - 1),
+        self._global_net = make_nn_stack(
+            input_size=obs_space["global_vars"].shape[0],
+            output_size=self._cfg.globals_emb_size,
+            hidden_sizes=[self._cfg.globals_emb_size] * (self._cfg.globals_emb_layers - 1),
             nonlinearity=nonlinearity(sf_cfg),
         )
 
-        all_embeddings_size = (
-            self._cfg.embedding_size +
-            obs_space["global_vars"].shape[0] +
-            obs_space["last_action"].shape[0] +
-            obs_space["last_reward"].shape[0]
+        self._grid_shape = obs_space["grid_obs"].shape[1:]
+        self._num_grid_features = obs_space["grid_obs"].shape[0]
+
+        # Every grid feature takes WxH + feature_id + global_emb_size
+        self._grid_feature_net = make_nn_stack(
+            input_size=1 + np.prod(self._grid_shape) + self._cfg.globals_emb_size,
+            output_size=self._cfg.grid_emb_size,
+            hidden_sizes=[self._cfg.grid_emb_size] * (self._cfg.grid_emb_layers - 1),
+            nonlinearity=nonlinearity(sf_cfg),
         )
+        self._grid_feature_ids = []
+        for grid_feature_name in self._cfg.grid_feature_names:
+            self._grid_feature_ids.append(
+                  hash(grid_feature_name) % 100000 / 100000.0)
+        self._grid_feature_ids = torch.tensor(self._grid_feature_ids).to(torch.float32)
+        self._grid_feature_ids = self._grid_feature_ids.unsqueeze(0).unsqueeze(-1)
+
+        # all_embeddings_size = (
+        #     obs_space["last_action"].shape[0] +
+        #     obs_space["last_reward"].shape[0]
+        # )
 
         # Encoder head
         self.encoder_head = make_nn_stack(
-            input_size=all_embeddings_size,
+            input_size=self._cfg.grid_emb_size,
             output_size=self._cfg.fc_size,
             hidden_sizes=[self._cfg.fc_size] * (self._cfg.fc_layers - 1),
             nonlinearity=nonlinearity(sf_cfg),
@@ -64,33 +65,29 @@ class FeatureDictEncoder(Encoder):
         self.encoder_head_out_size = self._cfg.fc_size
 
     def forward(self, obs_dict):
-        grid_obs = obs_dict["grid_obs"]
-        batch_size = grid_obs.size(0)
-        embeddings = []
-        # grid_features = grid_obs.permute(0, 2, 3, 1).view(batch_size, self._num_grid_features, np.prod(self._grid_shape))
-        for fidx, grid_feature_name in enumerate(self._cfg.grid_feature_names):
-            feature_ebd = self._embeddings[grid_feature_name](grid_obs[:, fidx, :, :].view(batch_size, -1))
-            name_ebd = torch.tensor([self._embedding_name_ebd[grid_feature_name]]).to(feature_ebd.device)
-            name_ebd =name_ebd.expand(batch_size, -1)
-            embeddings.append(torch.cat([feature_ebd, name_ebd], dim=1))
-        embeddings = torch.stack(embeddings, dim=1)
+        batch_size = obs_dict["grid_obs"].size(0)
+        grid_obs = obs_dict["grid_obs"].view(batch_size, -1, np.prod(self._grid_shape))
 
-        emb_proj = self._embedding_proj(embeddings.reshape(-1, 1 + self._cfg.embedding_size))
-        grid_embd = torch.sum(
-            emb_proj.view(batch_size, -1, self._cfg.embedding_size),
-            dim=1)
+        globals_embed = self._global_net(obs_dict["global_vars"].view(batch_size, 1, -1))
+        globals_embed = globals_embed.expand(-1, grid_obs.size(1), -1)
 
-        # Additional features
-        additional_features = torch.cat([
-            obs_dict["global_vars"],
-            obs_dict["last_action"].view(batch_size, -1),
-            obs_dict["last_reward"].view(batch_size, -1)
-        ], dim=1)
+        fids = self._grid_feature_ids.expand(batch_size, -1, -1)
 
-        all_obs = torch.cat([grid_embd, additional_features], dim=1)
+        grid_obs = torch.cat([fids, globals_embed, grid_obs], dim=2)
+
+        grid_embed = self._grid_feature_net(grid_obs)
+
+
+        # # Additional features
+        # additional_features = torch.cat([
+        #     obs_dict["global_vars"],
+        #     obs_dict["last_action"].view(batch_size, -1),
+        #     obs_dict["last_reward"].view(batch_size, -1)
+        # ], dim=1)
+
         # Final encoding
-        x = self.encoder_head(all_obs)
-        return x.view(-1, self.encoder_head_out_size)
+        x = self.encoder_head(torch.sum(grid_embed, dim=1))
+        return x
 
     def get_out_size(self) -> int:
         return self.encoder_head_out_size
