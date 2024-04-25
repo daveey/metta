@@ -50,8 +50,8 @@ class FeatureDictEncoder(Encoder):
             pos_embs = sinusoidal_position_embeddings(*self._grid_shape, self._cfg.position_embedding_dim)
             pos_embs = pos_embs.expand(self._grid_meta_embs.size(0), *self._grid_shape, -1)
             self._grid_meta_embs = torch.cat([
-                self._grid_meta_embs.unsqueeze(1).unsqueeze(1).expand(-1, *self._grid_shape, -1),
-                pos_embs.expand(self._grid_meta_embs.size(0), -1 -1, -1)
+                self._grid_meta_embs.unsqueeze(1).unsqueeze(1).expand_as(pos_embs),
+                pos_embs
             ], dim=-1)
             grid_obs_size = 1 + self._grid_meta_embs.size(-1)
 
