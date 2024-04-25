@@ -131,7 +131,10 @@ class FeatureDictEncoder(Encoder):
         grid_obs = torch.cat([
             self._grid_meta_embs.expand(batch_size, -1, -1, -1, -1),
             obs_dict["grid_obs"].unsqueeze(-1)], dim=-1)
-        grid_obs = grid_obs.view(-1, self._grid_feature_net[0].in_features)
+        try:
+            grid_obs = grid_obs.view(-1, self._grid_feature_net[0].in_features)
+        except:
+            print("Error in grid_obs", grid_obs.shape, self._grid_meta_embs.shape, obs_dict["grid_obs"].shape)
 
         grid_embs = self._grid_feature_net(grid_obs).view(batch_size, -1, self._cfg.grid_emb_size)
         grid_state = torch.sum(grid_embs, dim=1)
