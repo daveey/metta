@@ -42,15 +42,17 @@ class FeatureDictEncoder(Encoder):
         # Generate the feature id embeddings
         self._grid_feature_ids = embed_strings(self._grid_feature_names, self._cfg.feature_id_embedding_dim)
         self._grid_meta_embs = self._grid_feature_ids\
-            .view(-1, 1, 1, self._cfg.feature_id_embedding_dim)\
-            .expand(-1, *self._grid_shape, -1)
+            .view(-1, self._cfg.feature_id_embedding_dim)\
 
         # If we are using position embeddings, add them to the grid embeddings
         grid_obs_size = np.prod(self._grid_shape) + self._grid_meta_embs.size(-1)
         if self._cfg.add_position_embeddings:
             pos_embs = sinusoidal_position_embeddings(*self._grid_shape, self._cfg.position_embedding_dim)
-            pos_embs = pos_embs.expand(self._grid_meta_embs.size(0), -1,-1,-1)
-            self._grid_meta_embs = torch.cat([self._grid_meta_embs, pos_embs], dim=-1)
+            pos_embs = pos_embs.expand(self._grid_meta_embs.size(0), *self._grid_shape, -1)
+            self._grid_meta_embs = torch.cat([
+                self._grid_meta_embs.unsqueeze(1).unsqueeze(1).expand(-1, *self._grid_shape, -1),
+                pos_embs.expand(self._grid_meta_embs.size(0), -1 -1, -1)
+            ], dim=-1)
             grid_obs_size = 1 + self._grid_meta_embs.size(-1)
 
         # Create the observation normalizers
@@ -128,14 +130,17 @@ class FeatureDictEncoder(Encoder):
                     norm(obs_dict["grid_obs"][:, fidx, :, :])
 
         # Combine the grid embeddings with the grid observations
-        grid_obs = torch.cat([
-            self._grid_meta_embs.expand(batch_size, -1, -1, -1, -1),
-            obs_dict["grid_obs"].unsqueeze(-1)], dim=-1)
-        try:
-            grid_obs = grid_obs.view(-1, self._grid_feature_net[0].in_features)
-        except:
-            print("Error in grid_obs", grid_obs.shape, self._grid_meta_embs.shape, obs_dict["grid_obs"].shape)
+        if self._cfg.add_position_embeddings:
+            grid_obs = torch.cat([
+                self._grid_meta_embs.expand(batch_size, -1, -1, -1, -1),
+                obs_dict["grid_obs"].unsqueeze(-1)], dim=-1)
+        else:
+            grid_obs = torch.cat([
+                self._grid_meta_embs.expand(batch_size, -1, -1),
+                obs_dict["grid_obs"].view(batch_size, self._num_grid_features, -1)
+            ], dim=-1)
 
+        grid_obs = grid_obs.view(-1, self._grid_feature_net[0].in_features)
         grid_embs = self._grid_feature_net(grid_obs).view(batch_size, -1, self._cfg.grid_emb_size)
         grid_state = torch.sum(grid_embs, dim=1)
 
