@@ -3,7 +3,12 @@ _target_: agent.feature_dict_agent.FeatureDictAgent
 defaults:
   - rnn/gru
 
+feature_id_embedding_dim: 4
+position_embedding_dim: 4
+
+add_position_embeddings: False
 normalize_features: False
+
 globals_emb_size: 8
 globals_emb_layers: 2
 globals_emb_norm: False
