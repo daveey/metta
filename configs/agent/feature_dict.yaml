@@ -7,7 +7,7 @@ feature_id_embedding_dim: 4
 position_embedding_dim: 4
 
 add_position_embeddings: True
-normalize_features: False
+normalize_features: True
 
 globals_emb_size: 8
 globals_emb_layers: 2

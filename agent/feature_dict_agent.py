@@ -101,23 +101,24 @@ class FeatureDictEncoder(Encoder):
         self._global_meta_embs = self._global_meta_embs.to(obs_dict["global_vars"].device)
         self._grid_meta_embs = self._grid_meta_embs.to(obs_dict["grid_obs"].device)
 
-        global_vars = obs_dict["global_vars"].unsqueeze(-1)
         batch_size = obs_dict["grid_obs"].size(0)
+
+        global_obs = torch.concat(
+            [obs_dict["global_vars"],
+             obs_dict["last_action"],
+             obs_dict["last_reward"]], dim=-1).unsqueeze(-1)
 
         # Normalize global features
         if self._cfg.normalize_features:
             with torch.no_grad():
                 for fidx, norm in enumerate(self._globals_norms):
-                    norm(global_vars[:, fidx, :])
+                    norm(global_obs[:, fidx, :])
 
         # Embed every (feature_id,value), then sum them up
-        global_obs = torch.concat(
-            [obs_dict["global_vars"],
-             obs_dict["last_action"],
-             obs_dict["last_reward"]], dim=-1)
         global_obs = torch.cat([
             self._global_meta_embs.unsqueeze(0).expand(batch_size, -1, -1),
-            global_obs.unsqueeze(-1)], dim=-1)
+            global_obs
+        ], dim=-1)
 
         globals_embed = self._global_net(global_obs.view(-1, global_obs.size(-1)))
         globals_embed = globals_embed.view(batch_size, -1, self._cfg.globals_emb_size)
