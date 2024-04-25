@@ -96,8 +96,8 @@ class FeatureDictEncoder(Encoder):
 
     def forward(self, obs_dict):
         # obs_dict = ObservationNormalizer._clone_tensordict(obs_dict)
-        self._global_meta_embs.to(device=obs_dict["grid_obs"].device)
-        self._grid_meta_embs.to(device=obs_dict["grid_obs"].device)
+        self._global_meta_embs.to(obs_dict["grid_obs"].device)
+        self._grid_meta_embs.to(obs_dict["grid_obs"].device)
 
         global_vars = obs_dict["global_vars"].unsqueeze(-1)
         batch_size = obs_dict["grid_obs"].size(0)
