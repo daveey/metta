@@ -3,31 +3,26 @@ _target_: agent.feature_agent.FeatureAgent
 defaults:
   - rnn/gru
 
-normalize_features: False
-projection_layers: 1
+normalize_features: True
 
-globals_emb_size: 8
-globals_emb_layers: 2
-globals_emb_norm: False
-globals_emb_skip: False
+globals_embedding:
+  label_dim: 4
+  input_dim: 1
+  output_dim: 8
+  layers: 2
+  norm: False
+  skip: False
 
-grid_emb_size: 512
-grid_emb_layers: 4
-grid_emb_norm: False
-grid_emb_skip: False
+grid_embedding:
+  label_dim: 4
+  output_dim: 512
+  layers: 4
+  norm: False
+  skip: False
 
 fc_layers: 3
 fc_size: 512
 fc_norm: False
 fc_skip: False
-
-
-num_grid_features: 50
-add_position: True
-
-embedding_size: 64
-embedding_layers: 3
-embedding_norm: False
-embedding_skip: False
 
 

@@ -1,8 +1,0 @@
-architecture: obj_attn_agent
-
-defaults:
-  - rnn/gru
-
-fc_layers: 3
-fc_size: 512
-attention_combo: mean
