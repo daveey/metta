@@ -4,7 +4,6 @@ from sample_factory.algo.utils.running_mean_std import RunningMeanStdInPlace
 from torch import nn
 import torch
 
-
 class FeatureListNormalizer(nn.Module):
     def __init__(self, feature_names, input_shape=(1,)):
         super().__init__()

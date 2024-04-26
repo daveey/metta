@@ -14,6 +14,7 @@ class FeatureListEncoder(nn.Module):
         self._num_features = len(feature_names)
 
         self._labels_emb = embed_strings(self._feature_names, cfg.label_dim)
+        self._labels_emb = self._labels_emb.unsqueeze(0)
 
         self._embedding_net = make_nn_stack(
             input_size=cfg.label_dim + cfg.input_dim,
@@ -33,5 +34,5 @@ class FeatureListEncoder(nn.Module):
         ], dim=-1)
         obs = obs.view(-1, self._embedding_net[0].in_features)
 
-        obs = self._embedding_net(obs).view(batch_size, -1, self._cfg.output_dim)
-        return torch.sum(obs, dim=1)
+        embs = self._embedding_net(obs).view(batch_size, -1, self._cfg.output_dim)
+        return torch.sum(embs, dim=1)
