@@ -10,3 +10,4 @@ max_policy_lag: 50
 nonlinearity: elu
 load_checkpoint_kind: latest
 normalize_input: False
+seed: 0

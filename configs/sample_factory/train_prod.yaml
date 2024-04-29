@@ -6,4 +6,4 @@ decorrelate_experience_max_seconds: 150
 train_for_env_steps: 9999999999999
 with_wandb: True
 wandb_user: platypus
-wandb_project: sample_factory
+wandb_project: metta
