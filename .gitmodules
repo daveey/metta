@@ -4,3 +4,6 @@
 [submodule "third_party/griddly"]
 	path = third_party/griddly
 	url = https://github.com/daveey/Griddly.git
+[submodule "third_party/meltingpot"]
+	path = third_party/meltingpot
+	url = https://github.com/google-deepmind/meltingpot.git
