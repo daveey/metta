@@ -1,4 +1,4 @@
 defaults:
   - /sample_factory/train
   - /agent/feature_agent
-  - /env/a20_40x40
+  - /env/powergrid/a20_40x40@env

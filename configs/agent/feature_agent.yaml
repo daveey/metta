@@ -3,6 +3,10 @@ _target_: agent.feature_agent.FeatureAgent
 defaults:
   - rnn/gru
 
+grid_feature_names: ???
+global_feature_names: ???
+
+
 normalize_features: True
 
 globals_embedding:

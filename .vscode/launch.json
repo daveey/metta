@@ -12,6 +12,8 @@
             "args": [
                 "+sample_factory=train_sand",
                 "+agent=feature_agent",
+                // "+env=meltingpot/harvest",
+
                 "+sample_factory.device=cpu",
                 "+sample_factory.experiment=mac.pres10",
 
@@ -49,6 +51,13 @@
             ],
         },
         {
+            "name": "Meltingpot",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "envs.meltingpot.harvest",
+            "args": [
+            ],
+        },        {
             "name": "Play",
             "type": "debugpy",
             "request": "launch",

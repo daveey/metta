@@ -1,7 +1,7 @@
 import hydra
 from omegaconf import OmegaConf
 
-from rl_framework.sample_factory import SampleFactoryFramework
+from rl_framework.sample_factory.sample_factory import SampleFactoryFramework
 
 @hydra.main(version_base=None, config_path="../configs", config_name="configs")
 def main(cfg):

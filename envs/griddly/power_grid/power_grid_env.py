@@ -1,32 +1,40 @@
-import argparse
-import enum
+from functools import lru_cache
 import random
-import stat
-from tkinter.font import families
-from typing import List
+from typing import Optional
 
+from griddly.wrappers.render_wrapper import RenderWrapper
 import gymnasium as gym
 import numpy as np
-from pygame import init
-from torch import rand
-import yaml
-from envs.reward_sharing import FamillyAllocator, FamillySparseAllocator, RewardAllocator
-from griddly.gym import GymWrapper
-from gymnasium.core import Env
+from rl_framework.sample_factory.sample_factory_env_wrapper import SampleFactoryEnvWrapper
+from envs.reward_sharing import FamillyAllocator, RewardAllocator
 from envs.griddly.power_grid.power_grid_level_generator import PowerGridLevelGenerator
-from gymnasium.spaces import Space
 
-import util.args_parsing as args_parsing
-import cv2
-import matplotlib.pyplot as plt
-GYM_ENV_NAME = "GDY-PowerGrid"
+class GriddlyEnv(SampleFactoryEnvWrapper):
+    def __init__(self, render_mode: Optional[str]=None, env_id:int=0, **cfg):
+        self._cfg = cfg
+        self._gym_env = PowerGridEnv(render_mode, self._cfg)
+        self._global_env = RenderWrapper(
+            self._gym_env, "global",
+            render_mode=render_mode
+        )
+
+        super().__init__(self._gym_env, env_id=env_id)
+
+    def render(self, *args, **kwargs):
+        return self._global_env.render()
+
+    def grid_feature_names(self):
+        return self._gym_env._griddly_feature_names
+
+    def global_feature_names(self):
+        return self._gym_env._global_variable_names
 
 class PowerGridEnv(gym.Env):
-    def __init__(self, level_generator: PowerGridLevelGenerator, render_mode="rgb_array"):
+    def __init__(self, render_mode, cfg):
         super().__init__()
-        self._level_generator = level_generator
+        self._cfg = cfg
+        self._level_generator = PowerGridLevelGenerator(cfg)
         self._render_mode = render_mode
-
         self._make_env()
 
         self._global_variable_names = sorted([
@@ -237,8 +245,8 @@ class PowerGridEnv(gym.Env):
             "rollout_info": np.array([self._env_id, self._num_resets, agent])
         } for agent, agent_obs in enumerate(obs)]
 
-    @property
-    def observation_space(self):
+    @lru_cache(maxsize=None)
+    def observation_space(self, agent_id):
         if self._num_agents == 1:
             obs_space = self._griddly_env.observation_space
         else:
@@ -263,18 +271,15 @@ class PowerGridEnv(gym.Env):
                 shape=[3],
                 dtype=np.int32),
             })
-        if self._num_agents == 1:
-            return agent_obs_space
-        else:
-            return [agent_obs_space] * self._num_agents
+        return agent_obs_space
 
-    @property
-    def action_space(self):
-        return self._griddly_env.action_space
+    @lru_cache(maxsize=None)
+    def action_space(self, agent_id):
+        return self._griddly_env.action_space[agent_id]
 
-    @property
-    def global_observation_space(self):
-        return self._griddly_env.global_observation_space
+    @lru_cache(maxsize=None)
+    def global_observation_space(self, agent_id):
+        return self._griddly_env.global_observation_space[agent_id]
 
     @property
     def player_count(self):
@@ -283,3 +288,9 @@ class PowerGridEnv(gym.Env):
 
     def render_observer(self, *args, **kwargs):
         return self._griddly_env.render_observer(*args, **kwargs)
+
+    def grid_feature_names(self):
+        return self._griddly_feature_names
+
+    def global_feature_names(self):
+        return self._global_variable_names

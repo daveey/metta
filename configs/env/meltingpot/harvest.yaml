@@ -1,0 +1,2 @@
+_target_: envs.meltingpot.harvest.HarvestEnv
+name: "MeltingPot-Harvest"

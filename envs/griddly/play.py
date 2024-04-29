@@ -10,7 +10,7 @@ from griddly import GymWrapperFactory
 from sample_factory.cfg.arguments import parse_full_cfg, parse_sf_args
 from sample_factory.envs.env_utils import register_env
 from sample_factory.train import run_rl
-from envs.griddly.sample_factory_env_wrapper import GriddlyEnvWrapper
+from rl_framework.sample_factory.sample_factory_env_wrapper import SampleFactoryEnvWrapper
 from agent import agent
 import numpy as np
 from envs.griddly.power_grid import power_grid_env, power_grid_level_generator

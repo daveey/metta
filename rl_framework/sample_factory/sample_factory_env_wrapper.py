@@ -1,32 +1,18 @@
 from copy import deepcopy
-from typing import Callable, Optional
 
 import gymnasium as gym
-from typing import Optional
 
-import numpy as np
 
-from griddly.wrappers.render_wrapper import RenderWrapper
 from sample_factory.envs.env_utils import TrainingInfoInterface
 
 
-class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
+class SampleFactoryEnvWrapper(gym.Env, TrainingInfoInterface):
 
-    def __init__(
-        self,
-        griddly_env: gym.Env,
-        render_mode: Optional[str] = None,
-        make_level: Optional[Callable] = None,
-        env_id: int = 0
-    ):
+    def __init__(self, env: gym.Env, env_id: int):
         TrainingInfoInterface.__init__(self)
 
-        self.gym_env = griddly_env
-        self.gym_env_global = RenderWrapper(
-            self.gym_env, "global", render_mode=render_mode
-        )
+        self.gym_env = env
         self.num_agents = self.gym_env.player_count
-        self.make_level = make_level
 
         self.curr_episode_steps = 0
         if self.num_agents == 1:
@@ -34,8 +20,8 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
             action_space = self.gym_env.action_space
             self.is_multiagent = False
         else:
-            self.observation_space = self.gym_env.observation_space[0]
-            action_space = self.gym_env.action_space[0]
+            self.observation_space = self.gym_env.observation_space(0)
+            action_space = self.gym_env.action_space(0)
             self.is_multiagent = True
 
         if isinstance(action_space, gym.spaces.MultiDiscrete):
@@ -53,12 +39,7 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
         self.current_episode += 1
         self.curr_episode_steps = 0
         self.episode_rewards = [[] for _ in range(self.num_agents)]
-
-        if self.make_level is not None:
-            level_string = self.make_level()
-            return self.gym_env.reset(options={"level_string": level_string})
-        else:
-            return self.gym_env.reset()
+        return self.gym_env.reset()
 
     def step(self, actions):
         if self.is_multiagent:
@@ -87,4 +68,11 @@ class GriddlyEnvWrapper(gym.Env, TrainingInfoInterface):
         return obs, rewards, terminated, truncated, infos
 
     def render(self, *args, **kwargs):
-        return self.gym_env_global.render()
+        return self.gym_env.render(*args, **kwargs)
+
+
+    def grid_feature_names(self):
+        raise NotImplementedError
+
+    def global_feature_names(self):
+        raise NotImplementedError
