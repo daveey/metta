@@ -55,8 +55,8 @@ class FeatureEncoder(Encoder):
     def forward(self, obs_dict):
         global_obs = torch.concat([
             obs_dict["global_vars"],
-            obs_dict["last_action"],
-            obs_dict["last_reward"]], dim=-1).unsqueeze(-1)
+            obs_dict["last_action"].view(-1, 2),
+            obs_dict["last_reward"].view(-1, 1)], dim=-1).unsqueeze(-1)
 
         if self._cfg.normalize_features:
             self._global_normalizer(global_obs)

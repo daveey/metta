@@ -44,7 +44,8 @@
             "module": "tools.evaluate",
             "args": [
                 "+sample_factory.experiment=mac.pres10",
-                "+env=a20_40x40"
+                "+env.extra_variables=2",
+                "+env=a20_40x40",
             ],
         },
         {
@@ -63,17 +64,6 @@
                 "--env_agent:energy:initial=50",
                 "--env_chargers=5",
                 "--env_wall_density=0.05",
-            ],
-        },
-                {
-            "name": "Render Replay",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "util.render_replay_to_video",
-            "args": [
-                "--replay_path=/tmp/sample_factory_replays/0_0.replay.yaml",
-                "--video_path=/tmp/sample_factory_replays/0_0.mp4",
-                "--fps=30",
             ],
         },
                 {
