@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import gymnasium as gym
 from meltingpot import substrate
 
-from envs.meltingpot.melting_pot_env import MeltingPotEnv
+from env.meltingpot.melting_pot_env import MeltingPotEnv
 from rl_framework.sample_factory.sample_factory_env_wrapper import SampleFactoryEnvWrapper
 
 class HarvestEnv(SampleFactoryEnvWrapper):

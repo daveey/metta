@@ -1,6 +1,6 @@
 
 # load the replay file and render to video
-from envs.replay import Replay
+from env.replay import Replay
 import argparse
 import imageio
 import numpy.typing as npt

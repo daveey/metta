@@ -15,7 +15,7 @@
                 // "+env=meltingpot/harvest",
 
                 "+sample_factory.device=cpu",
-                "+sample_factory.experiment=mac.pres10",
+                "+sample_factory.experiment=mac.pres11",
 
                 "+env.extra_variables=2",
                 // "--restart_behavior=restart",
@@ -54,14 +54,14 @@
             "name": "Meltingpot",
             "type": "debugpy",
             "request": "launch",
-            "module": "envs.meltingpot.harvest",
+            "module": "env.meltingpot.harvest",
             "args": [
             ],
         },        {
             "name": "Play",
             "type": "debugpy",
             "request": "launch",
-            "module": "envs.griddly.play",
+            "module": "env.griddly.play",
             "args": [
                 "--fps=10",
                 "--max_num_frames=1000",

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from matplotlib.pyplot import grid
 import numpy as np
 from sample_factory.model.encoder import Encoder
 import torch
@@ -18,8 +19,30 @@ class FeatureEncoder(Encoder):
         super().__init__(sf_cfg)
         self._cfg = agent_cfg
 
-        assert len(self._cfg.grid_feature_names) == obs_space["grid_obs"].shape[0], \
-            f"Number of grid features in config ({len(self._grid_feature_names)}) " \
+        self._grid_features = []
+        self._grid_obs_keys = []
+        self._global_features = []
+        self._global_obs_keys = []
+        grid_obs_shape = None
+
+
+        for obs_name, feature_names in agent_cfg.feature_schema:
+            if len(obs_space[obs_name].shape) == 1:
+                print(f"Adding {obs_name} - {feature_names} as global feature set")
+                self.global_features.extend(feature_names)
+                self.global_obs_keys.append(obs_name)
+            elif len(obs_space[obs_name].shape) == 3:
+                print(f"Adding {obs_name} - {feature_names} as grid feature set")
+                if grid_obs_shape is None:
+                    grid_obs_shape = obs_space[obs_name].shape[1:]
+                else:
+                    assert grid_obs_shape == obs_space[obs_name].shape[1:], \
+                        "All grid observations must have the same shape"
+                self.grid_features.extend(feature_names)
+                self.grid_obs_keys.append(obs_name)
+
+        assert len(self._cfg.grid_feature_names) == grid_obs_shape[0], \
+            f"Number of grid features in config ({len(self._cfg.grid_feature_names)}) " \
             f"does not match the number of grid features in the observation space ({obs_space['grid_obs'].shape[0]})"
 
         global_feature_names = self._cfg.global_feature_names + [

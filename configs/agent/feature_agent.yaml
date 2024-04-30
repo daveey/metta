@@ -3,9 +3,7 @@ _target_: agent.feature_agent.FeatureAgent
 defaults:
   - rnn/gru
 
-grid_feature_names: ???
-global_feature_names: ???
-
+feature_schema: ???
 
 normalize_features: True
 

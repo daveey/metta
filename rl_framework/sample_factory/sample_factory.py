@@ -7,11 +7,14 @@ from sample_factory.envs.env_utils import register_env
 from sample_factory.train import run_rl
 from sample_factory.enjoy import enjoy
 from rl_framework.rl_framework import RLFramework
+from rl_framework.sample_factory.sample_factory_env_wrapper import SampleFactoryEnvWrapper
 
 
 def make_env_func(full_env_name, sf_cfg, sf_env_config, render_mode):
     env_cfg = OmegaConf.create(json.loads(sf_cfg.env_cfg))
-    return hydra.utils.instantiate(env_cfg, render_mode=render_mode, env_id=0)
+    env = hydra.utils.instantiate(env_cfg, render_mode=render_mode)
+    env = SampleFactoryEnvWrapper(env, env_id=0)
+    return env
 
 class SampleFactoryFramework(RLFramework):
     def __init__(self, cfg):
@@ -27,9 +30,9 @@ class SampleFactoryFramework(RLFramework):
             "--env_cfg=" +
             json.dumps(OmegaConf.to_container(cfg.env, resolve=True)))
         env = hydra.utils.instantiate(cfg.env)
+        env = SampleFactoryEnvWrapper(env, env_id=0)
         OmegaConf.set_struct(cfg, False)
-        cfg.agent["grid_feature_names"] = env.gym_env.grid_feature_names()
-        cfg.agent["global_feature_names"] = env.gym_env.global_feature_names()
+        cfg.agent["feature_schema"] = env.gym_env.feature_schema()
         OmegaConf.set_struct(cfg, True)
         self.agent = hydra.utils.instantiate(cfg.agent)
 

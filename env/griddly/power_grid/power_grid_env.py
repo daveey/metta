@@ -5,36 +5,18 @@ from typing import Optional
 from griddly.wrappers.render_wrapper import RenderWrapper
 import gymnasium as gym
 import numpy as np
+from env.griddly.griddly_env import GriddlyEnv
+from env.metta_env import FeatureSchemaInterface
 from rl_framework.sample_factory.sample_factory_env_wrapper import SampleFactoryEnvWrapper
-from envs.reward_sharing import FamillyAllocator, RewardAllocator
-from envs.griddly.power_grid.power_grid_level_generator import PowerGridLevelGenerator
+from env.reward_sharing import FamillyAllocator, RewardAllocator
+from env.griddly.power_grid.power_grid_level_generator import PowerGridLevelGenerator
 
-class GriddlyEnv(SampleFactoryEnvWrapper):
-    def __init__(self, render_mode: Optional[str]=None, env_id:int=0, **cfg):
-        self._cfg = cfg
-        self._gym_env = PowerGridEnv(render_mode, self._cfg)
-        self._global_env = RenderWrapper(
-            self._gym_env, "global",
-            render_mode=render_mode
-        )
 
-        super().__init__(self._gym_env, env_id=env_id)
-
-    def render(self, *args, **kwargs):
-        return self._global_env.render()
-
-    def grid_feature_names(self):
-        return self._gym_env._griddly_feature_names
-
-    def global_feature_names(self):
-        return self._gym_env._global_variable_names
-
-class PowerGridEnv(gym.Env):
-    def __init__(self, render_mode, cfg):
-        super().__init__()
+class PowerGridEnv(GriddlyEnv):
+    def __init__(self, **cfg):
+        super().__init__(cfg)
         self._cfg = cfg
         self._level_generator = PowerGridLevelGenerator(cfg)
-        self._render_mode = render_mode
         self._make_env()
 
         self._global_variable_names = sorted([
@@ -68,7 +50,7 @@ class PowerGridEnv(gym.Env):
             "use", "gift", "shield", "attack"]
 
     def _make_env(self):
-        self._griddly_env = self._level_generator.make_env(self._render_mode)
+        self._griddly_env = self._level_generator.make_env()
         self._max_steps = self._level_generator.max_steps
         self._num_agents = self._griddly_env.player_count
         self._compute_max_energy()
@@ -242,7 +224,6 @@ class PowerGridEnv(gym.Env):
             "global_vars": self._global_variable_obs[agent],
             "last_action": np.array(self._last_actions[agent]),
             "last_reward": np.array(self._last_rewards[agent]),
-            "rollout_info": np.array([self._env_id, self._num_resets, agent])
         } for agent, agent_obs in enumerate(obs)]
 
     @lru_cache(maxsize=None)
@@ -266,10 +247,6 @@ class PowerGridEnv(gym.Env):
                 low=-np.inf, high=np.inf,
                 shape=[1],
                 dtype=np.float32),
-            "rollout_info": gym.spaces.Box(
-                low=0, high=np.inf,
-                shape=[3],
-                dtype=np.int32),
             })
         return agent_obs_space
 
@@ -285,12 +262,14 @@ class PowerGridEnv(gym.Env):
     def player_count(self):
         return self._num_agents
 
-
     def render_observer(self, *args, **kwargs):
         return self._griddly_env.render_observer(*args, **kwargs)
 
-    def grid_feature_names(self):
-        return self._griddly_feature_names
-
-    def global_feature_names(self):
-        return self._global_variable_names
+    @lru_cache(maxsize=None)
+    def feature_schema(self):
+        return {
+            "grid_obs": self._griddly_feature_names,
+            "global_vars": self._global_variable_names,
+            "last_action": ["last_action_id", "last_action_val"],
+            "last_reward": ["last_reward"]
+        }

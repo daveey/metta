@@ -11,7 +11,7 @@ echo "Reserving $machine with label $label"
 cmd="vastai create instance $machine \
    --image daveey/metta:latest \
    --disk 60 \
-   --onstart-cmd 'bash' \
+   --onstart-cmd '/bin/bash' \
    --label $label \
    --ssh --direct \
    --args --ulimit nofile=unlimited --ulimit nproc=unlimited -c 'echo hello; sleep infinity;' \

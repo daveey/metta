@@ -13,7 +13,7 @@ from sample_factory.train import run_rl
 from rl_framework.sample_factory.sample_factory_env_wrapper import SampleFactoryEnvWrapper
 from agent import agent
 import numpy as np
-from envs.griddly.power_grid import power_grid_env, power_grid_level_generator
+from env.griddly.power_grid import power_grid_env, power_grid_level_generator
 from griddly.wrappers.render_wrapper import RenderWrapper
 
 

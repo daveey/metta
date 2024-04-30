@@ -73,7 +73,7 @@ class PowerGridLevelGenerator():
 
         self.num_agents = int(self.sample_cfg("num_agents"))
         self.max_steps = int(self.sample_cfg("max_steps"))
-        with open("./envs/griddly/power_grid/gdy/power_grid.yaml", encoding="utf-8") as file:
+        with open("./env/griddly/power_grid/gdy/power_grid.yaml", encoding="utf-8") as file:
             self.game_config = yaml.safe_load(file)
 
         # make sure all the config variables are exist in the game config

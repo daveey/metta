@@ -1,4 +1,4 @@
-_target_: envs.griddly.power_grid.power_grid_env.GriddlyEnv
+_target_: env.griddly.power_grid.power_grid_env.PowerGridEnv
 
 name: "GDY-PowerGrid"
 

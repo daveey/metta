@@ -1,15 +1,22 @@
 from copy import deepcopy
+from typing import Union
 
 import gymnasium as gym
 
 
 from sample_factory.envs.env_utils import TrainingInfoInterface
 
+from env.metta_env import FeatureSchemaInterface
 
-class SampleFactoryEnvWrapper(gym.Env, TrainingInfoInterface):
 
-    def __init__(self, env: gym.Env, env_id: int):
+class SampleFactoryEnvWrapper(gym.Env, TrainingInfoInterface, FeatureSchemaInterface):
+
+    def __init__(self,
+                 env: Union[gym.Env, FeatureSchemaInterface],
+                 env_id: int):
+
         TrainingInfoInterface.__init__(self)
+        FeatureSchemaInterface.__init__(self)
 
         self.gym_env = env
         self.num_agents = self.gym_env.player_count
@@ -70,9 +77,6 @@ class SampleFactoryEnvWrapper(gym.Env, TrainingInfoInterface):
     def render(self, *args, **kwargs):
         return self.gym_env.render(*args, **kwargs)
 
-
-    def grid_feature_names(self):
-        raise NotImplementedError
-
-    def global_feature_names(self):
-        raise NotImplementedError
+    @property
+    def feature_schema(self):
+        return self.gym_env.feature_schema()
