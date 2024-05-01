@@ -19,49 +19,42 @@ class FeatureEncoder(Encoder):
         super().__init__(sf_cfg)
         self._cfg = agent_cfg
 
-        self._grid_features = []
+        self._grid_features_names = []
         self._grid_obs_keys = []
-        self._global_features = []
+        self._global_feature_names = []
         self._global_obs_keys = []
-        grid_obs_shape = None
+        self._grid_obs_shape = None
 
-
-        for obs_name, feature_names in agent_cfg.feature_schema:
+        for obs_name, feature_names in agent_cfg.feature_schema.items():
+            assert len(feature_names) == obs_space[obs_name].shape[0], \
+                "Number of features in schema does not match observation space"\
+                f"for {obs_name}: {feature_names} vs {obs_space[obs_name].shape[0]}"
             if len(obs_space[obs_name].shape) == 1:
                 print(f"Adding {obs_name} - {feature_names} as global feature set")
-                self.global_features.extend(feature_names)
-                self.global_obs_keys.append(obs_name)
+                self._global_feature_names.extend(feature_names)
+                self._global_obs_keys.append(obs_name)
             elif len(obs_space[obs_name].shape) == 3:
                 print(f"Adding {obs_name} - {feature_names} as grid feature set")
-                if grid_obs_shape is None:
-                    grid_obs_shape = obs_space[obs_name].shape[1:]
+                if self._grid_obs_shape is None:
+                    self._grid_obs_shape = obs_space[obs_name].shape[1:]
                 else:
-                    assert grid_obs_shape == obs_space[obs_name].shape[1:], \
+                    assert self._grid_obs_shape == obs_space[obs_name].shape[1:], \
                         "All grid observations must have the same shape"
-                self.grid_features.extend(feature_names)
-                self.grid_obs_keys.append(obs_name)
+                self._grid_features_names.extend(feature_names)
+                self._grid_obs_keys.append(obs_name)
 
-        assert len(self._cfg.grid_feature_names) == grid_obs_shape[0], \
-            f"Number of grid features in config ({len(self._cfg.grid_feature_names)}) " \
-            f"does not match the number of grid features in the observation space ({obs_space['grid_obs'].shape[0]})"
-
-        global_feature_names = self._cfg.global_feature_names + [
-            "last_action_id", "last_action_val", "last_reward"
-        ]
-        self._grid_shape = obs_space["grid_obs"].shape[1:]
-
-        self._global_normalizer = FeatureListNormalizer(global_feature_names)
+        self._global_normalizer = FeatureListNormalizer(self._global_feature_names)
         self._grid_normalizer = FeatureListNormalizer(
-            self._cfg.grid_feature_names, self._grid_shape)
+            self._grid_features_names, self._grid_obs_shape)
 
         self._global_encoder = FeatureListEncoder(
             self._cfg.globals_embedding,
-            global_feature_names)
+            self._global_feature_names)
 
         ge_cfg = self._cfg.grid_embedding
-        ge_cfg.input_dim = np.prod(self._grid_shape)
+        ge_cfg.input_dim = np.prod(self._grid_obs_shape)
         self._grid_encoder = FeatureListEncoder(
-            ge_cfg, self._cfg.grid_feature_names)
+            ge_cfg, self._grid_features_names)
 
         # Encoder head
         self.encoder_head = make_nn_stack(
@@ -76,17 +69,25 @@ class FeatureEncoder(Encoder):
         self.encoder_head_out_size = self._cfg.fc_size
 
     def forward(self, obs_dict):
+        if len(self._global_obs_keys) >= 0:
+            batch_size = obs_dict[self._global_obs_keys[0]].size(0)
+        else:
+            batch_size = obs_dict[self._grid_obs_keys[0]].size(0)
+
         global_obs = torch.concat([
-            obs_dict["global_vars"],
-            obs_dict["last_action"].view(-1, 2),
-            obs_dict["last_reward"].view(-1, 1)], dim=-1).unsqueeze(-1)
+            obs_dict[obs_key].view(batch_size, -1)
+            for obs_key in self._global_obs_keys], dim=-1).unsqueeze(-1)
+
+        grid_obs = torch.concat([
+            obs_dict[obs_key].view(batch_size, -1, *self._grid_obs_shape)
+            for obs_key in self._grid_obs_keys], dim=-1)
 
         if self._cfg.normalize_features:
             self._global_normalizer(global_obs)
-            self._grid_normalizer(obs_dict["grid_obs"])
+            self._grid_normalizer(grid_obs)
 
         global_state = self._global_encoder(global_obs)
-        grid_state = self._grid_encoder(obs_dict["grid_obs"])
+        grid_state = self._grid_encoder(grid_obs)
 
         # Final encoding
         x = self.encoder_head(torch.cat([global_state, grid_state], dim=1))
