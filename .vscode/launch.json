@@ -11,7 +11,7 @@
             "module": "tools.train",
             "args": [
                 "+sample_factory=train_sand",
-                "+env=meltingpot/harvest",
+                // "+env=meltingpot/harvest",
 
                 "+sample_factory.device=cpu",
                 "+sample_factory.experiment=mac.pres.0",
