@@ -1,7 +1,4 @@
-_target_: agent.feature_agent.FeatureAgent
-
-defaults:
-  - rnn/gru
+_target_: agent.feature_encoder.FeatureEncoder
 
 feature_schema: ???
 

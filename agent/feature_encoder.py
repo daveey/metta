@@ -1,23 +1,66 @@
 from __future__ import annotations
+from typing import Dict, List
 
-from matplotlib.pyplot import grid
+from sample_factory.utils.typing import Config
+from sympy import O
+from torch import nn
+import torch
+
+from .lib.util import make_nn_stack, embed_strings
+
 import numpy as np
 from sample_factory.model.encoder import Encoder
 import torch
 
-from sample_factory.model.decoder import MlpDecoder
 from sample_factory.model.model_utils import nonlinearity
 
-from agent.lib.feature_encoder import FeatureListEncoder
 from agent.lib.normalizer import FeatureListNormalizer
 from .lib.util import make_nn_stack
-from agent.sample_factory_agent import SampleFactoryAgent
+from omegaconf import OmegaConf
+
+
+class FeatureListEncoder(nn.Module):
+    def __init__(self, cfg, feature_names):
+        super().__init__()
+        self._cfg = cfg
+
+        self._feature_names = feature_names
+        self._num_features = len(feature_names)
+
+        self._labels_emb = embed_strings(self._feature_names, cfg.label_dim)
+        self._labels_emb = self._labels_emb.unsqueeze(0)
+
+        self._embedding_net = make_nn_stack(
+            input_size=cfg.label_dim + cfg.input_dim,
+            output_size=cfg.output_dim,
+            hidden_sizes=[cfg.output_dim] * (cfg.layers - 1),
+        )
+
+    def forward(self, obs):
+        batch_size = obs.size(0)
+        self._labels_emb = self._labels_emb.to(obs.device)
+
+        obs = obs.view(-1, self._num_features, self._cfg.input_dim)
+        obs = torch.cat([
+            self._labels_emb.expand(batch_size, -1, -1),
+            obs
+        ], dim=-1)
+        obs = obs.view(-1, self._embedding_net[0].in_features)
+
+        embs = self._embedding_net(obs).view(batch_size, -1, self._cfg.output_dim)
+        return torch.sum(embs, dim=1)
 
 class FeatureEncoder(Encoder):
+    def __init__(
+            self,
+            obs_space,
+            feature_schema: Dict[str, List[str]],
+            normalize_features: bool,
+            **cfg):
+        super().__init__({})
 
-    def __init__(self, sf_cfg, obs_space, agent_cfg):
-        super().__init__(sf_cfg)
-        self._cfg = agent_cfg
+        self._cfg = OmegaConf.create(cfg)
+        self._normalize_features = normalize_features
 
         self._grid_features_names = []
         self._grid_obs_keys = []
@@ -25,7 +68,7 @@ class FeatureEncoder(Encoder):
         self._global_obs_keys = []
         self._grid_obs_shape = None
 
-        for obs_name, feature_names in agent_cfg.feature_schema.items():
+        for obs_name, feature_names in feature_schema.items():
             assert len(feature_names) == obs_space[obs_name].shape[0], \
                 "Number of features in schema does not match observation space"\
                 f"for {obs_name}: {feature_names} vs {obs_space[obs_name].shape[0]}"
@@ -61,7 +104,7 @@ class FeatureEncoder(Encoder):
             input_size=self._cfg.grid_embedding.output_dim + self._cfg.globals_embedding.output_dim,
             output_size=self._cfg.fc_size,
             hidden_sizes=[self._cfg.fc_size] * (self._cfg.fc_layers - 1),
-            nonlinearity=nonlinearity(sf_cfg),
+            nonlinearity=nn.ELU(),
             layer_norm=self._cfg.fc_norm,
             use_skip=self._cfg.fc_skip,
         )
@@ -82,7 +125,7 @@ class FeatureEncoder(Encoder):
             obs_dict[obs_key].view(batch_size, -1, *self._grid_obs_shape)
             for obs_key in self._grid_obs_keys], dim=-1)
 
-        if self._cfg.normalize_features:
+        if self._normalize_features:
             self._global_normalizer(global_obs)
             self._grid_normalizer(grid_obs)
 
@@ -97,14 +140,4 @@ class FeatureEncoder(Encoder):
         return self.encoder_head_out_size
 
 
-class FeatureDecoder(MlpDecoder):
-    pass
-
-
-class FeatureAgent(SampleFactoryAgent):
-    def encoder_cls(self):
-        return FeatureEncoder
-
-    def decoder_cls(self):
-        return FeatureDecoder
 

@@ -1,0 +1,21 @@
+_target_: agent.metta_agent.MettaAgent
+
+feature_schema: ???
+
+defaults:
+  - feature_encoder@encoder
+
+encoder:
+  feature_schema: ${agent.feature_schema}
+
+decoder:
+  _target_: agent.decoder.Decoder
+
+
+core:
+  _target_: sample_factory.model.core.ModelCoreRNN
+
+  rnn_type: gru
+  rnn_num_layers: 1
+  rnn_size: 512
+

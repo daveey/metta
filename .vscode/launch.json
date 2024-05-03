@@ -11,11 +11,10 @@
             "module": "tools.train",
             "args": [
                 "+sample_factory=train_sand",
-                "+agent=feature_agent",
                 // "+env=meltingpot/harvest",
 
                 "+sample_factory.device=cpu",
-                "+sample_factory.experiment=mac.pres11",
+                "+sample_factory.experiment=mac.pres12",
 
                 "+env.extra_variables=2",
                 // "--restart_behavior=restart",

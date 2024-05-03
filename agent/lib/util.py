@@ -17,7 +17,7 @@ def make_nn_stack(
     input_size,
     output_size,
     hidden_sizes,
-    nonlinearity,
+    nonlinearity=nn.ELU(),
     layer_norm=False,
     use_skip=False,
 ):
