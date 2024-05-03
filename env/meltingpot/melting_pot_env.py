@@ -15,8 +15,6 @@ import tree
 import gymnasium as gym
 
 PLAYER_STR_FORMAT = "player_{index}"
-_WORLD_PREFIX = "WORLD."
-
 
 class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
     """An adapter between Melting Pot substrates and PettingZoo's ParallelEnv."""
@@ -36,8 +34,6 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
             PLAYER_STR_FORMAT.format(index=index) for index in range(self._num_players)
         ]
 
-        # self.state_space = self.spec_to_space(self._env.observation_spec()[0]["WORLD.RGB"])
-
     def state(self):
         return self._env.observation()
 
@@ -46,11 +42,14 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
         timestep = self._env.reset()
         self.agents = self.possible_agents[:]
         self.num_cycles = 0
+        self.last_rewards = {agent: 0 for agent in self.agents}
+        self.last_actions = [0 for _ in self.agents]
         return self.timestep_to_observations(timestep), {}
 
     def step(self, actions):
+        self.last_actions = actions
         timestep = self._env.step(actions)
-        rewards = {
+        self.last_rewards = {
             agent: timestep.reward[index] for index, agent in enumerate(self.agents)
         }
         self.num_cycles += 1
@@ -61,7 +60,7 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
             self.agents = []
 
         observations = self.timestep_to_observations(timestep)
-        return observations, rewards, dones, dones, infos
+        return observations, self.last_rewards, dones, dones, infos
 
     def close(self):
         """See base class."""
@@ -94,14 +93,15 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
     def timestep_to_observations(self, timestep: dm_env.TimeStep) -> Mapping[str, Any]:
         gym_observations = {}
         for index, observation in enumerate(timestep.observation):
-            gym_observations[PLAYER_STR_FORMAT.format(index=index)] = {
+            player_id = PLAYER_STR_FORMAT.format(index=index)
+            gym_observations[player_id] = {
                 "grid_rgb": observation["RGB"],
                 "global_vars": np.array([
                     observation["READY_TO_SHOOT"],
                     observation["COLLECTIVE_REWARD"],
                 ]),
-                "last_action": np.array([0, 0]),
-                "last_reward": np.array(0),
+                "last_action": np.array([self.last_actions[index], 0]),
+                "last_reward": np.array(self.last_rewards[player_id]),
             }
         return gym_observations
 
