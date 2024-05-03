@@ -37,9 +37,6 @@ class SampleFactoryFramework(RLFramework):
         self.sf_args.append(
             "--env_cfg=" +
             json.dumps(OmegaConf.to_container(cfg.env, resolve=True)))
-
-        env = hydra.utils.instantiate(cfg.env)
-        cfg.agent.feature_schema = env.feature_schema()
         self.sf_args.append(
             "--agent_cfg=" +
             json.dumps(OmegaConf.to_container(cfg.agent, resolve=True)))

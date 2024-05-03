@@ -1,12 +1,44 @@
 _target_: agent.metta_agent.MettaAgent
 
-feature_schema: ???
+observation_encoders:
+  grid_obs:
+      feature_names: ${env.grid_features}
 
-defaults:
-  - feature_encoder@encoder
+      normalize_features: True
+      label_dim: 4
+      output_dim: 512
+      layers: 4
 
-encoder:
-  feature_schema: ${agent.feature_schema}
+  global_vars:
+      feature_names: ${env.global_features}
+
+      normalize_features: True
+
+      label_dim: 4
+      output_dim: 8
+      layers: 2
+
+  last_action:
+      feature_names: [ last_action_id, last_action_val ]
+
+      normalize_features: True
+
+      label_dim: 4
+      output_dim: 8
+      layers: 2
+
+  last_reward:
+      feature_names: [ last_reward ]
+
+      normalize_features: True
+
+      label_dim: 4
+      output_dim: 8
+      layers: 2
+
+fc:
+    layers: 3
+    output_dim: 512
 
 decoder:
   _target_: agent.decoder.Decoder

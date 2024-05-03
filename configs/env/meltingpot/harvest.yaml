@@ -1,2 +1,9 @@
-_target_: envs.meltingpot.harvest.HarvestEnv
+_target_: env.meltingpot.harvest.HarvestEnv
 name: "MeltingPot-Harvest"
+
+global_features: [
+  "ready_to_shoot",
+  "collective_reward"
+]
+
+grid_features: []

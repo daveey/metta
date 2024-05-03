@@ -1,9 +1,8 @@
 
 from griddly.wrappers.render_wrapper import RenderWrapper
 import gymnasium as gym
-from env.metta_env import FeatureSchemaInterface
 
-class GriddlyEnv(gym.Env, FeatureSchemaInterface):
+class GriddlyEnv(gym.Env):
     def __init__(self, render_mode, **cfg):
         self._cfg = cfg
         self._global_env = RenderWrapper(

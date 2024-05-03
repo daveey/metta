@@ -89,21 +89,19 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
     def global_feature_names(self):
         return [
             "ready_to_shoot",
-            "collective_reward",
-            "last_action",
-            "last_reward"]
+            "collective_reward"]
 
     def timestep_to_observations(self, timestep: dm_env.TimeStep) -> Mapping[str, Any]:
         gym_observations = {}
         for index, observation in enumerate(timestep.observation):
             gym_observations[PLAYER_STR_FORMAT.format(index=index)] = {
-                "grid_obs": observation["RGB"],
+                "grid_rgb": observation["RGB"],
                 "global_vars": np.array([
                     observation["READY_TO_SHOOT"],
                     observation["COLLECTIVE_REWARD"],
-                    0, # last_action
-                    0.0, # last_reward
                 ]),
+                "last_action": np.array([0, 0]),
+                "last_reward": np.array(0),
             }
         return gym_observations
 
@@ -117,7 +115,15 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
                     low=-np.inf, high=np.inf,
                     shape=[ len(self.global_feature_names()) ],
                     dtype=np.int32),
-            })
+                "last_action": gym.spaces.Box(
+                    low=0, high=255,
+                    shape=[2],
+                    dtype=np.int32),
+                "last_reward": gym.spaces.Box(
+                    low=-np.inf, high=np.inf,
+                    shape=[1],
+                    dtype=np.float32),
+        })
         return agent_obs_space
 
     @lru_cache(maxsize=None)
