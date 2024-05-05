@@ -14,7 +14,11 @@ import numpy as np
 import tree
 import gymnasium as gym
 
+from agent.sprite_encoder import SpriteEncoder
+
 PLAYER_STR_FORMAT = "player_{index}"
+SPRITE_SIZE = 8
+NUM_GRID_FEATURES = 8
 
 class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
     """An adapter between Melting Pot substrates and PettingZoo's ParallelEnv."""
@@ -33,6 +37,7 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
         self.possible_agents = [
             PLAYER_STR_FORMAT.format(index=index) for index in range(self._num_players)
         ]
+        self._sprite_encoder = SpriteEncoder(8, 8, 3, 8, 32)
 
     def state(self):
         return self._env.observation()
@@ -95,7 +100,7 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
         for index, observation in enumerate(timestep.observation):
             player_id = PLAYER_STR_FORMAT.format(index=index)
             gym_observations[player_id] = {
-                "grid_rgb": observation["RGB"],
+                "grid_obs": self.rgb_to_grid_observation(observation["RGB"]),
                 "global_vars": np.array([
                     observation["READY_TO_SHOOT"],
                     observation["COLLECTIVE_REWARD"],
@@ -107,10 +112,15 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
 
     @lru_cache(maxsize=None)
     def observation_space(self, agent_id):
-        obs_space = self.spec_to_space(self._env.observation_spec()[0])
+        rgb_space = self.spec_to_space(self._env.observation_spec()[0])["RGB"]
+        w = int(rgb_space.shape[0] / SPRITE_SIZE)
+        h = int(rgb_space.shape[1] / SPRITE_SIZE)
 
         agent_obs_space = gym.spaces.Dict({
-                "grid_obs_rgb": obs_space["RGB"],
+                "grid_obs": gym.spaces.Box(
+                    low=0, high=255,
+                    shape=[ NUM_GRID_FEATURES, w, h ],
+                    dtype=np.uint8),
                 "global_vars": gym.spaces.Box(
                     low=-np.inf, high=np.inf,
                     shape=[ len(self.global_feature_names()) ],
@@ -125,6 +135,9 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
                     dtype=np.float32),
         })
         return agent_obs_space
+
+    def rgb_to_grid_observation(self, rgb_observation):
+        return rgb_observation
 
     @lru_cache(maxsize=None)
     def action_space(self, agent_id):

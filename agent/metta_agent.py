@@ -62,7 +62,7 @@ class MettaAgent(nn.Module, MettaAgentInterface):
         decoder_output = self._decoder(core_output)
         values = self._critic_linear(decoder_output).squeeze()
 
-        result = TensorDict({"values": values})
+        result = TensorDict({"values": values}, batch_size=values.size(0))
         if values_only:
             return result
 

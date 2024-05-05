@@ -6,4 +6,14 @@ global_features: [
   "collective_reward"
 ]
 
-grid_features: []
+grid_features: [
+  "grid_ob_0",
+  "grid_ob_1",
+  "grid_ob_2",
+  "grid_ob_3",
+  "grid_ob_4",
+  "grid_ob_5",
+  "grid_ob_6",
+  "grid_ob_7",
+]
+
