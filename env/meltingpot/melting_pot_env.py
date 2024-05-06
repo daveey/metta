@@ -13,7 +13,7 @@ from gymnasium import spaces
 import numpy as np
 import tree
 import gymnasium as gym
-
+import hashlib
 from agent.sprite_encoder import SpriteEncoder
 
 PLAYER_STR_FORMAT = "player_{index}"
@@ -136,9 +136,6 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
         })
         return agent_obs_space
 
-    def rgb_to_grid_observation(self, rgb_observation):
-        return rgb_observation
-
     @lru_cache(maxsize=None)
     def action_space(self, agent_id):
         return self.spec_to_space(self._env.action_spec()[0])
@@ -173,3 +170,55 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
             return spaces.Dict({key: self.spec_to_space(s) for key, s in spec.items()})
         else:
             raise ValueError("Unexpected spec of type {}: {}".format(type(spec), spec))
+
+    def hash_sprite(self, sprite, embedding_size):
+        # Flatten the sprite and convert it to bytes
+        sprite_bytes = sprite.flatten().tobytes()
+
+        # Create a hash of the sprite
+        sprite_hash = hashlib.sha256(sprite_bytes).hexdigest()
+
+        # Determine the number of characters to take from the hash for each float
+        chars_per_float = len(sprite_hash) // embedding_size
+
+        # Initialize an empty list to hold the floats
+        sprite_hash_floats = []
+
+        # Convert the hash into floats
+        for i in range(embedding_size):
+            # Extract the part of the hash for this float
+            sprite_hash_part = sprite_hash[i*chars_per_float:(i+1)*chars_per_float]
+
+            # Convert the part of the hash to an integer
+            sprite_hash_int = int(sprite_hash_part, 16)
+
+            # Normalize the integer to the range [-1, 1]
+            sprite_hash_float = sprite_hash_int / float(2**(4*chars_per_float) - 1) * 2 - 1
+
+            # Append the float to the list of floats
+            sprite_hash_floats.append(sprite_hash_float)
+
+        return sprite_hash_floats
+
+    def rgb_to_grid_observation(self, rgb_observation):
+        # Initialize an empty list to hold the hashed sprites
+        hashed_sprites = []
+
+        # Iterate over the sprites in the observation
+        for i in range(0, 88, SPRITE_SIZE):
+            for j in range(0, 88, SPRITE_SIZE):
+                # Extract the sprite
+                sprite = rgb_observation[i:i+SPRITE_SIZE, j:j+SPRITE_SIZE, :]
+
+                # Hash the sprite
+                sprite_hash = self.hash_sprite(sprite, NUM_GRID_FEATURES)
+                # Append the sprite hash to the list of hashed sprites
+                hashed_sprites.append(sprite_hash)
+
+        # Convert the list of hashed sprites to a numpy array
+        hashed_sprites = np.array(hashed_sprites)
+
+        # Reshape the array to (11, 11, -1)
+        hashed_sprites = hashed_sprites.reshape(11, 11, -1)
+
+        return hashed_sprites.transpose(2, 0, 1)
