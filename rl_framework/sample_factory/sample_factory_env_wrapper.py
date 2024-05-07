@@ -5,6 +5,7 @@ import gymnasium as gym
 
 
 from sample_factory.envs.env_utils import TrainingInfoInterface
+from pettingzoo import utils as pettingzoo_utils
 
 
 
@@ -49,11 +50,16 @@ class SampleFactoryEnvWrapper(gym.Env, TrainingInfoInterface):
             actions = list(actions)
 
         obs, rewards, terminated, truncated, infos_dict = self.gym_env.step(actions)
+
         self.curr_episode_steps += 1
 
         # auto-reset the environment
         if terminated or truncated:
             obs = self.reset()[0]
+
+        if isinstance(self.gym_env, pettingzoo_utils.ParallelEnv):
+            rewards = [rewards[agent] for agent in self.gym_env.agents]
+            obs = [obs[agent] for agent in self.gym_env.agents]
 
         # For better readability, make `infos` a list.
         # In case of a single player, get the first element before returning

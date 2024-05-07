@@ -59,13 +59,9 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
         }
         self.num_cycles += 1
         done = timestep.last() or self.num_cycles >= self.max_cycles
-        dones = {agent: done for agent in self.agents}
-        infos = {agent: {} for agent in self.agents}
-        if done:
-            self.agents = []
-
+        infos = { agent: {} for agent in self.agents }
         observations = self.timestep_to_observations(timestep)
-        return list(observations.values()), list(self.last_rewards.values()), done, done, infos
+        return observations, self.last_rewards, done, done, infos
 
     def close(self):
         """See base class."""
