@@ -11,11 +11,13 @@
             "module": "tools.train",
             "args": [
                 "+sample_factory=train_sand",
-                "+env=meltingpot/harvest",
+                "+env=meltingpot/meltingpot",
+                // "env.substrate_name=running_with_scissors_in_the_matrix__arena",
 
                 "+sample_factory.device=cpu",
                 "+sample_factory.experiment=mac.pres.0",
-                "+sample_factory.restart_behavior=restart",
+                // "+sample_factory.restart_behavior=restart",
+                "sample_factory.num_workers=8",
 
                 // "+env.extra_variables=2",
                 // "--restart_behavior=restart",

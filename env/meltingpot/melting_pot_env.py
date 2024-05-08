@@ -25,7 +25,8 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
 
     metadata = {"render_modes": ["human", "rgb_array"]}
 
-    def __init__(self, env_config, max_cycles):
+    def __init__(self, substrate_name, max_cycles, **cfg):
+        env_config = substrate.get_config(substrate_name)
         gym_utils.EzPickle.__init__(self, env_config, max_cycles)
 
         self.env_config = config_dict.ConfigDict(env_config)
@@ -83,13 +84,20 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
     def player_count(self):
         return self._num_players
 
-    def grid_feature_names(self):
-        return ["r", "g", "b"]
-
     def global_feature_names(self):
         return [
             "ready_to_shoot",
-            "collective_reward"]
+            "collective_reward",
+            "interaction_inventories_00",
+            "interaction_inventories_01",
+            "interaction_inventories_02",
+            "interaction_inventories_10",
+            "interaction_inventories_11",
+            "interaction_inventories_12",
+            "inventory_0",
+            "inventory_1",
+            "inventory_2",
+        ]
 
     def timestep_to_observations(self, timestep: dm_env.TimeStep) -> Mapping[str, Any]:
         gym_observations = {}
@@ -97,9 +105,11 @@ class MeltingPotEnv(pettingzoo_utils.ParallelEnv, gym_utils.EzPickle):
             player_id = PLAYER_STR_FORMAT.format(index=index)
             gym_observations[player_id] = {
                 "grid_obs": self.rgb_to_grid_observation(observation["RGB"]),
-                "global_vars": np.array([
-                    observation["READY_TO_SHOOT"],
-                    observation["COLLECTIVE_REWARD"],
+                "global_vars": np.concatenate([
+                    np.array([observation.get("READY_TO_SHOOT", 0)]),
+                    np.array([observation.get("COLLECTIVE_REWARD", 0)]),
+                    observation.get("INTERACTION_INVENTORIES", np.zeros(6)).flatten(),
+                    observation.get("INVENTORY", np.zeros(3)),
                 ]),
                 "last_action": np.array([self.last_actions[index], 0]),
                 "last_reward": np.array(self.last_rewards[player_id]),

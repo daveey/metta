@@ -34,12 +34,16 @@ class BuildGriddlyCommand(Command):
 
     def finalize_options(self):
         pass
+
 class DevelopCommand(develop):
     def run(self):
         self.run_command('build_griddly')
         subprocess.check_call(
             ['pip', 'install', "-e", './third_party/griddly/python/'],
         )
+        subprocess.check_call(
+            ['pip', 'install', "-e", './third_party/meltingpot/'],
+        ),
         subprocess.check_call(
             ['pip', 'install', "-e", './third_party/sample_factory/'],
         )
@@ -56,6 +60,7 @@ setup(
         "hydra-core",
         "jmespath",
         "matplotlib",
+        "pettingzoo",
         "pytest",
         "rich",
         "scipy",
