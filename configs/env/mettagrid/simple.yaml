@@ -1,0 +1,8 @@
+defaults: [ mettagrid ]
+
+env_builder:
+  objects:
+    wall:
+      density: 0.01
+    # altar:
+    #   cost: 100

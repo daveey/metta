@@ -1,9 +1,0 @@
-defaults: [ simple ]
-num_agents: 100
-width: 100
-height: 100
-tile_size: 16
-
-num_altars: 20
-num_chargers: 30
-num_generators: 200

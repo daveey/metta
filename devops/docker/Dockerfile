@@ -1,5 +1,9 @@
 FROM daveey/metta-base:latest
 
+RUN pip install conan==1.59.0
+RUN pip install boto3 chex hydra-core matplotlib pettingzoo
+RUN pip install rich scipy tabulate tensordict torchrl
+
 RUN echo "Cache breaker: $(date)" > cache-breaker.txt
 
 # Checkout metta and submodules

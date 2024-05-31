@@ -1,4 +1,4 @@
 defaults:
   - /sample_factory/train
   - /agent/agent@agent
-  - /env/powergrid/a20_40x40@env
+  - /env/mettagrid/a20_40x40@env

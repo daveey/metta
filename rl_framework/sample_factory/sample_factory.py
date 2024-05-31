@@ -15,7 +15,7 @@ from rl_framework.sample_factory.sample_factory_env_wrapper import SampleFactory
 
 def make_env_func(full_env_name, sf_cfg, sf_env_config, render_mode):
     env_cfg = OmegaConf.create(json.loads(sf_cfg.env_cfg))
-    env = hydra.utils.instantiate(env_cfg, render_mode=render_mode)
+    env = hydra.utils.instantiate(env_cfg, render_mode=render_mode, _recursive_=False)
     env = SampleFactoryEnvWrapper(env, env_id=0)
     return env
 

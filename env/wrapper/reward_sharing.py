@@ -1,5 +1,5 @@
-import enum
-import re
+import numpy as np
+import gymnasium as gym
 import numpy as np
 
 class RewardAllocator():
@@ -79,3 +79,39 @@ class FamillyMatrixAllocator(MatrixRewardAllocator):
         rsm = rsm / rsm.sum(axis=1, keepdims=True)
 
         super().__init__(num_agents, rsm)
+
+
+class RewardSharingEnvWrapper(gym.wrappers.Wrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        self._reward_sharing = None
+        # set up reward sharing
+        self._reward_sharing = RewardAllocator(self._num_agents)
+        num_families = self._level_generator.sample_cfg("rsm_num_families")
+        family_reward = self._level_generator.sample_cfg("rsm_family_reward")
+        if num_families > 0:
+            self._reward_sharing = FamillyAllocator(self._num_agents, num_families, family_reward)
+
+    def reset(self):
+        self._last_actions = np.zeros((self._num_agents, 2), dtype=np.int32)
+        return self.env.reset()
+
+    def step(self, actions):
+        obs, rewards, terms, truncs, infos = self.env.step(actions)
+        rewards = self._reward_sharing.compute_shared_rewards(rewards)
+
+        return self._augment_observations(obs), rewards, terms, truncs, infos
+
+    def _augment_observations(self, obs):
+        return [{
+            "last_action": np.array(self._last_actions[agent]),
+            **agent_obs
+        } for agent, agent_obs in enumerate(obs)]
+
+
+    def observation_space(self):
+        return gym.spaces.Dict({
+            "last_action": gym.spaces.Box(
+                low=0, high=255, shape=(2,), dtype=np.int32),
+            **self.env.observation_space()
+        })

@@ -16,7 +16,7 @@ class SampleFactoryEnvWrapper(gym.Env, TrainingInfoInterface):
         TrainingInfoInterface.__init__(self)
 
         self.gym_env = env
-        self.num_agents = self.gym_env.player_count
+        self.num_agents = self.gym_env.unwrapped.player_count
 
         self.curr_episode_steps = 0
         if self.num_agents == 1:
@@ -24,8 +24,8 @@ class SampleFactoryEnvWrapper(gym.Env, TrainingInfoInterface):
             action_space = self.gym_env.action_space
             self.is_multiagent = False
         else:
-            self.observation_space = self.gym_env.observation_space(0)
-            action_space = self.gym_env.action_space(0)
+            self.observation_space = self.gym_env.observation_space
+            action_space = self.gym_env.action_space
             self.is_multiagent = True
 
         if isinstance(action_space, gym.spaces.MultiDiscrete):

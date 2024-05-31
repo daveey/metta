@@ -5,13 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Train Griddly",
+            "name": "Train Metta",
             "type": "debugpy",
             "request": "launch",
             "module": "tools.train",
             "args": [
-                "+sample_factory=train_prod",
-                // "+env=meltingpot/meltingpot",
+                "+sample_factory=train_sand",
+                "+env=powergrid/dev",
                 // "env.substrate_name=running_with_scissors_in_the_matrix__arena",
 
                 "+sample_factory.device=cpu",
@@ -19,7 +19,7 @@
 
                 // "+sample_factory.experiment=mac.mp.rws",
                 // "sample_factory.wandb_project=mp_rws"
-                // "+sample_factory.restart_behavior=restart",
+                "+sample_factory.restart_behavior=restart",
                 // "sample_factory.num_workers=2",
 
                 // "+env.extra_variables=2",
@@ -51,7 +51,16 @@
             "module": "tools.evaluate",
             "args": [
                 "+sample_factory.experiment=mac.baseline",
-                "+env=a20_40x40",
+                "+env=dev",
+            ],
+        },
+        {
+            "name": "Dump Griddly Config",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "env.griddly.mettagrid.dump_config",
+            "args": [
+                "+env=mettagrid/dev",
             ],
         },
         {

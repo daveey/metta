@@ -1,0 +1,18 @@
+
+defaults:
+  - simple
+
+env_builder:
+  width: 10
+  height: 10
+
+  objects:
+    agent:
+      count: 2
+
+    # altar:
+    #   count: 5
+    # charger:
+    #   count: 10
+    generator:
+      count: 50

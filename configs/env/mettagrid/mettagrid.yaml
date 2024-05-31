@@ -1,0 +1,117 @@
+_target_: env.griddly.mettagrid.power_grid_env.PowerGridEnv
+name: "GDY-PowerGrid"
+
+
+global_features: [
+  "conf:agent:energy:initial",
+  "conf:agent:energy:max",
+  "conf:altar:cooldown",
+  "conf:altar:cost",
+  "conf:attack:damage",
+  "conf:attack:freeze_duration",
+  "conf:charger:cooldown",
+  "conf:charger:energy",
+  "conf:cost:attack",
+  "conf:cost:frozen",
+  "conf:cost:jump",
+  "conf:cost:move",
+  "conf:cost:rotate",
+  "conf:cost:shield:upkeep",
+  "conf:cost:shield",
+  "conf:generator:cooldown",
+  "conf:gift:energy",
+]
+
+grid_features: [
+  "agent",
+  "altar",
+  "charger",
+  "generator",
+  "wall",
+  "agent:dir",
+  "agent:energy",
+  "agent:frozen",
+  "agent:id",
+  "agent:inv:1",
+  "agent:inv:2",
+  "agent:inv:3",
+  "agent:shield",
+  "agent:species",
+  "altar:ready",
+  "charger:bonus",
+  "charger:input:1",
+  "charger:input:2",
+  "charger:input:3",
+  "charger:output",
+  "charger:ready",
+  "generator:ready",
+  "generator:resource"
+]
+
+actions: [
+  "rotate",
+  "move",
+  "jump",
+  "use",
+  "gift",
+  "shield",
+  "attack"
+]
+max_action_value: 10
+
+env_builder:
+  _target_: env.griddly.mettagrid.gdy.game.MettaGrid
+  obs_width: 11
+  obs_height: 11
+  max_steps: 1000
+  tile_size: 16
+
+  width: ???
+  height: ???
+
+  objects:
+    agent:
+      count: ???
+      initial_energy: 100
+      max_energy: 500
+      max_inventory: 5
+
+    altar:
+      count: ???
+      cooldown: 2
+      cost: 100
+
+    converter:
+      count: ???
+      cooldown: 2
+      energy_output: 50
+      cost: 0
+
+    generator:
+      count: ???
+      cooldown: 50
+      initial_resources: 100
+      cost: 0
+
+    wall:
+      density: [0.0, 0.15]
+
+  actions:
+    move:
+      cost: 0
+    rotate:
+      cost: 0
+    jump:
+      cost: 3
+    shield:
+      cost: 0
+      upkeep: 1
+    gift:
+      cost: 20
+      energy: 20
+    use:
+      cost: 0
+    attack:
+      cost: 5
+      damage: 5
+      freeze_duration: 10
