@@ -1,12 +1,10 @@
 from types import SimpleNamespace
 from omegaconf import OmegaConf
-from env.griddly.builder.action import GriddlyAction, GriddlyInternalAction
-from env.griddly.builder.object import GriddlyObject
-import env.griddly.builder.commands as cmd
+from env.griddly.mettagrid.gdy.objects.metta_object import MettaObject
+from env.griddly.mettagrid.gdy.util.inventory_helper import InventoryHelper
 
-class Generator(GriddlyObject):
+class Generator(MettaObject):
     def __init__(self, game, cfg: OmegaConf):
-        self.cfg = cfg
         self.States = SimpleNamespace(
             ready = 0,
             cooldown = 1,
@@ -14,6 +12,7 @@ class Generator(GriddlyObject):
         )
 
         super().__init__(
+            cfg = cfg,
             game = game,
             name = "generator",
             symbol = "g",
@@ -38,12 +37,12 @@ class Generator(GriddlyObject):
         ])
 
     def on_use(self, ctx):
+        inv = InventoryHelper(ctx, ctx.actor)
         ctx.require([
-            ctx.actor.inv_r1.lt(ctx.actor.object.cfg.max_inventory),
+            *inv.has_space("r1"),
             ctx.target.amount.gt(0)
         ])
-
-        ctx.cmd(ctx.actor.inv_r1.incr())
+        ctx.cmd(inv.add("r1", self.name))
 
         ctx.dst_cmd([
             ctx.target.amount.decr(),

@@ -3,6 +3,7 @@ from typing import Callable, Dict
 
 from env.griddly.builder.variable import GriddlyVariable
 
+
 class BehaviorContext():
     def __init__(self, game, action, actor_obj: "GriddlyObject", target_obj: "GriddlyObject"):
         self.game = game
@@ -14,65 +15,50 @@ class BehaviorContext():
         self._src_commands = []
         self._dst_commands = []
 
-        def make_ns(obj, prefix):
-            return SimpleNamespace(
-                object=obj,
-                **{
-                    name: GriddlyVariable(f"{prefix}.{obj.name}:{name}")
-                    for name in obj.properties.keys()
-                },
-                **{
-                    name: lambda delay=0: {
-                        "exec": {
-                            **action,
-                            "Delay": delay
-                        }
-                        } for name, action in obj._internal_actions.items()
-                }
-            )
-        self.actor = make_ns(actor_obj, "src")
-        self.target = make_ns(target_obj, "dst")
+        self.actor = actor_obj.action_actor()
+        self.target = target_obj.action_target()
+        self.metadata = lambda n: GriddlyVariable(f"meta.{n}")
 
-    def cond(self, cond, true_commands, false_commands):
+    def _flatten_cmds(self, cmds):
+        flat = []
+        if not isinstance(cmds, list):
+            cmds = [cmds]
+
+        for cmd in cmds:
+            if isinstance(cmd, list):
+                flat.extend(self._flatten_cmds(cmd))
+            else:
+                flat.append(cmd)
+        return flat
+
+    def cond(self, cond, on_true, on_false=None):
+        if on_false is None:
+            on_false = []
+
         return {
             "if": {
                 "Conditions": cond,
-                "OnTrue": true_commands,
-                "OnFalse": false_commands
+                "OnTrue": self._flatten_cmds(on_true),
+                "OnFalse": self._flatten_cmds(on_false)
             }
         }
 
     def cmd(self, cmd):
-        if not isinstance(cmd, list):
-            cmd = [cmd]
-        self._src_commands.extend(cmd)
+        self._src_commands.extend(self._flatten_cmds(cmd))
 
     def dst_cmd(self, cmd):
-        if not isinstance(cmd, list):
-            cmd = [cmd]
-        self._dst_commands.extend(cmd)
+        self._dst_commands.extend(self._flatten_cmds(cmd))
 
     def require(self, req):
-        if not isinstance(req, list):
-            req = [req]
-        self._preconditions.extend(req)
+        self._preconditions.extend(self._flatten_cmds(req))
 
     def global_var(self, name) -> GriddlyVariable:
-        if name not in self.game._global_vars:
-            self.game._global_vars[name] = {
-                "Name": name,
-                "InitialValue": 0
-            }
-        return GriddlyVariable(name, self._src_commands)
+        self.game.register_global_variable(name)
+        return GriddlyVariable(name)
 
     def player_var(self, name) -> GriddlyVariable:
-        if name not in self.game._player_vars:
-            self.game._player_vars[name] = {
-                "Name": name,
-                "InitialValue": 0,
-                "PerPlayer": True
-            }
-        return GriddlyVariable(name, self._src_commands)
+        self.game.register_global_variable(name, per_player=True)
+        return GriddlyVariable(name)
 
 
 class GriddlyActionBehavior():
@@ -125,7 +111,7 @@ class GriddlyActionInput():
             "Description": self.description,
         }
         if self.metadata:
-            inputs["Metadata"] = self.metadata
+            inputs["MetaData"] = self.metadata
         if self.dest:
             inputs["VectorToDest"] = self.dest
         if self.rot:

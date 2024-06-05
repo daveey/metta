@@ -1,11 +1,12 @@
 from types import SimpleNamespace
 from omegaconf import OmegaConf
-from env.griddly.builder.object import GriddlyObject
+from env.griddly.mettagrid.gdy.objects.metta_object import MettaObject
 import  env.griddly.mettagrid.gdy.sprites as sprites
+from env.griddly.mettagrid.gdy.util.energy_helper import EnergyHelper
+from env.griddly.mettagrid.gdy.util.inventory_helper import InventoryHelper
 
-class Converter(GriddlyObject):
+class Converter(MettaObject):
     def __init__(self, game, cfg: OmegaConf):
-        self.cfg = cfg
 
         self.States = SimpleNamespace(
             ready = 0,
@@ -13,6 +14,7 @@ class Converter(GriddlyObject):
         )
 
         super().__init__(
+            cfg=cfg,
             game=game,
             name = "converter",
             symbol = "c",
@@ -36,21 +38,18 @@ class Converter(GriddlyObject):
 
 
     def on_use(self, ctx):
-        actor_cfg = ctx.actor.object.cfg
-        ctx.require([ctx.actor.inv_r1.gt(0)])
-        ctx.cmd([
-            ctx.actor.inv_r1.decr(),
-            ctx.actor.inv_r2.incr(),
-            ctx.cond(ctx.actor.inv_r2.gt(actor_cfg.max_inventory), [
-                ctx.actor.inv_r2.set(actor_cfg.max_inventory)
-            ], []),
-            ctx.actor.energy.add(self.cfg.energy_output),
-            {"reward": self.cfg.energy_output},
-            ctx.cond(ctx.actor.energy.gt(actor_cfg.max_energy), [
-                ctx.actor.energy.set(actor_cfg.max_energy)
-            ], [])
-
+        inv = InventoryHelper(ctx, ctx.actor)
+        energy = EnergyHelper(ctx, ctx.actor)
+        ctx.require([
+            inv.has_item("r1")
         ])
+
+        ctx.cmd([
+            inv.remove("r1", "converter"),
+            inv.add("r2", "converter"),
+            energy.add(self.cfg.energy_output, "used:converter"),
+        ])
+
         ctx.dst_cmd([
             ctx.target.state.set(ctx.target.object.States.cooldown),
             {"set_tile": ctx.target.state.val()},

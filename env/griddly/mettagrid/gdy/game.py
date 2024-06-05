@@ -2,8 +2,11 @@ import numpy as np
 from omegaconf import OmegaConf
 
 from env.griddly.builder.game import GriddlyGame
+from env.griddly.mettagrid.gdy.actions.attack import Attack
 from env.griddly.mettagrid.gdy.actions.move import Move
+from env.griddly.mettagrid.gdy.actions.transfer import Transfer
 from env.griddly.mettagrid.gdy.actions.rotate import Rotate
+from env.griddly.mettagrid.gdy.actions.shield import Shield
 from env.griddly.mettagrid.gdy.actions.use import Use
 from env.griddly.mettagrid.gdy.objects.agent import Agent
 from env.griddly.mettagrid.gdy.objects.altar import Altar
@@ -46,6 +49,9 @@ class MettaGrid(GriddlyGame):
         self.register_action(Move(self, actions.move))
         self.register_action(Rotate(self, actions.rotate))
         self.register_action(Use(self, actions.use))
+        self.register_action(Transfer(self, actions.drop))
+        self.register_action(Attack(self, actions.attack))
+        self.register_action(Shield(self, actions.shield))
 
     def level(self):
         level = np.array([["."] * self.width] * self.height).astype("U6")
@@ -65,6 +71,9 @@ class MettaGrid(GriddlyGame):
                     break
 
         for obj in self.objects():
+            if obj.name == "agent":
+                continue
+
             obj_config = self.object_configs[obj.name]
             if "count" in obj_config:
                 count = obj_config.count

@@ -1,8 +1,12 @@
 
 
+from types import SimpleNamespace
 from typing import Callable, List
 
+from matplotlib.pylab import f
+
 from env.griddly.builder.action import BehaviorContext, GriddlyInternalAction
+from env.griddly.builder.variable import GriddlyVariable
 
 class GriddlyObject():
     def __init__(
@@ -23,7 +27,7 @@ class GriddlyObject():
         self.tiling_mode = tiling_mode
         self.properties = properties
         self._initial_actions = []
-        self._internal_actions = {}
+        self._internal_actions = []
 
     def build(self):
         object_spec = {
@@ -32,7 +36,7 @@ class GriddlyObject():
             "MapCharacter": self.symbol,
             "Variables": self._variables(),
             "Observers": self._observers(),
-            "InitialActions": [self._internal_actions[a] for a in self._initial_actions]
+            "InitialActions": [self.actions()[a](randomize=True)["exec"] for a in self._initial_actions]
         }
         return object_spec
 
@@ -44,14 +48,44 @@ class GriddlyObject():
             callback=callback,
             choices=choices
         ))
-        self._internal_actions[name] = {
-            "Action": f"{self.name}:{name}",
-            "Randomize": True if (choices and len(choices) > 0) else False,
-            "ActionId": 1
-        }
-
+        self._internal_actions.append(name)
         if initial:
             self._initial_actions.append(name)
+
+    def _make_action_call(self, name: str):
+        return lambda delay=0, input=1, randomize=False : {
+            "exec": {
+                "Action": f"{self.name}:{name}",
+                "ActionId": input,
+                "Delay": delay,
+                "Randomize": randomize
+            }
+        }
+
+    def actions(self):
+        return {
+            name: self._make_action_call(name)
+            for name in self._internal_actions
+        }
+
+    def variables(self, prefix: str):
+        return {
+            name: GriddlyVariable(f"{prefix}.{self.name}:{name}")
+            for name in self.properties.keys()
+        }
+
+    def _action_namespace(self, prefix: str):
+        return SimpleNamespace(
+            object=self,
+            **self.variables(prefix),
+            **self.actions(),
+        )
+
+    def action_actor(self):
+        return self._action_namespace("src")
+
+    def action_target(self):
+        return self._action_namespace("dst")
 
     def _variables(self):
         return [{

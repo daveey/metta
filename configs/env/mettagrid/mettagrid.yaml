@@ -75,19 +75,26 @@ env_builder:
       initial_energy: 100
       max_energy: 500
       max_inventory: 5
+      freeze_duration: 10
+      hp: 1
+      upkeep:
+        shield: 1
 
     altar:
+      hp: 30
       count: ???
       cooldown: 2
       cost: 100
 
     converter:
+      hp: 30
       count: ???
       cooldown: 2
       energy_output: 50
       cost: 0
 
     generator:
+      hp: 30
       count: ???
       cooldown: 50
       initial_resources: 100
@@ -95,6 +102,7 @@ env_builder:
 
     wall:
       density: [0.0, 0.15]
+      hp: 10
 
   actions:
     move:
@@ -105,13 +113,10 @@ env_builder:
       cost: 3
     shield:
       cost: 0
-      upkeep: 1
-    gift:
-      cost: 20
-      energy: 20
+    drop:
+      cost: 1
     use:
       cost: 0
     attack:
       cost: 5
       damage: 5
-      freeze_duration: 10

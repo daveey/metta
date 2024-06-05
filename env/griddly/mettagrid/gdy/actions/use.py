@@ -34,4 +34,5 @@ class UseBehavior(MettaActionBehavior):
     def commands(self, ctx: BehaviorContext):
         super().commands(ctx)
         ctx.require(ctx.target.state.eq(ctx.target.object.States.ready))
+        ctx.cmd(ctx.global_var(f"stats:{ctx.target.object.name}:used").incr())
         ctx.target.object.on_use(ctx)

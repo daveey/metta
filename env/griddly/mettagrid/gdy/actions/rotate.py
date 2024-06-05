@@ -1,5 +1,5 @@
 from omegaconf import OmegaConf
-from env.griddly.builder.action import BehaviorContext, GriddlyAction, GriddlyActionBehavior, GriddlyActionInput
+from env.griddly.builder.action import BehaviorContext, GriddlyAction, GriddlyActionInput
 from env.griddly.builder.game import GriddlyGame
 from env.griddly.mettagrid.gdy.actions.metta_action import MettaActionBehavior
 
@@ -8,8 +8,6 @@ class Rotate(GriddlyAction):
             self,
             game: GriddlyGame,
             cfg: OmegaConf):
-
-        self.cfg = cfg
 
         super().__init__(
             name="rotate",
@@ -23,10 +21,10 @@ class Rotate(GriddlyAction):
             relative=False
         )
 
-        self.add_behaviour(RotateBehavior("agent", "agent", cfg))
+        self.add_behaviour(MettaActionBehavior("agent", "agent", cfg, self.rotate))
 
-class RotateBehavior(MettaActionBehavior):
-    def commands(self, ctx: BehaviorContext):
-        super().commands(ctx)
-        ctx.cmd({"rot": "_dir"})
-        ctx.actor.dir.set("meta.dir")
+    def rotate(self, ctx: BehaviorContext):
+        ctx.cmd([
+            {"rot": "_dir"},
+            ctx.actor.dir.set("meta.dir")
+        ])

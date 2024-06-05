@@ -21,10 +21,7 @@ class Move(GriddlyAction):
             ],
         )
 
-        self.add_behaviour(MoveBehavior("agent", "_empty", cfg))
+        self.add_behaviour(MettaActionBehavior("agent", "_empty", cfg, self.move))
 
-
-class MoveBehavior(MettaActionBehavior):
-    def commands(self, ctx: BehaviorContext):
-        super().commands(ctx)
+    def move(self, ctx: BehaviorContext):
         ctx.cmd({"mov": "_dest"})

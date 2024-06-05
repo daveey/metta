@@ -1,11 +1,10 @@
 from types import SimpleNamespace
 from omegaconf import OmegaConf
-from env.griddly.builder.object import GriddlyObject
+from env.griddly.mettagrid.gdy.objects.metta_object import MettaObject
 import  env.griddly.mettagrid.gdy.sprites as sprites
 
-class Altar(GriddlyObject):
+class Altar(MettaObject):
     def __init__(self, game, cfg: OmegaConf):
-        self.cfg = cfg
 
         self.States = SimpleNamespace(
             ready = 0,
@@ -13,6 +12,7 @@ class Altar(GriddlyObject):
         )
 
         super().__init__(
+            cfg=cfg,
             game=game,
             name = "altar",
             symbol = "a",

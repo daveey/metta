@@ -24,7 +24,6 @@ class GriddlyGame():
         self._objects ={}
         self._actions = {}
         self._global_vars = {}
-        self._player_vars = {}
 
         self.register_object(
             GriddlyObject(self, "_empty", " ", sprites=["oryx/oryx_fantasy/floor1-0.png"]))
@@ -58,7 +57,7 @@ class GriddlyGame():
                         "IncludeVariables": True
                     }
                 },
-                "Variables": [],
+                "Variables": list(self._global_vars.values()),
                 "Levels": ["\n".join(["  ".join(row) for row in self.level()])],
                 "Termination": []
             },
@@ -86,3 +85,11 @@ class GriddlyGame():
 
     def actions(self) -> List[GriddlyAction]:
         return list(self._actions.values())
+
+    def register_global_variable(self, name: str, per_player: bool = False):
+        if name not in self._global_vars:
+            self._global_vars[name] = {
+                "Name": name,
+                "InitialValue": 0,
+                "PerPlayer": per_player
+            }
