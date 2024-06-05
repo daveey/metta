@@ -15,12 +15,17 @@ from rl_framework.sample_factory.sample_factory_env_wrapper import SampleFactory
 
 def make_env_func(full_env_name, sf_cfg, sf_env_config, render_mode):
     env_cfg = OmegaConf.create(json.loads(sf_cfg.env_cfg))
-    env = hydra.utils.instantiate(env_cfg, render_mode=render_mode, _recursive_=False)
+    env = hydra.utils.instantiate(env_cfg, render_mode=render_mode)
     env = SampleFactoryEnvWrapper(env, env_id=0)
     return env
 
 def make_agent_func(sf_cfg, obs_space, action_space):
+    env_cfg = OmegaConf.create(json.loads(sf_cfg.env_cfg))
+    env = hydra.utils.instantiate(env_cfg, render_mode="human")
+
     agent_cfg = OmegaConf.create(json.loads(sf_cfg.agent_cfg))
+    agent_cfg.observation_encoders.grid_obs.feature_names = env._griddly_env._grid_features
+    agent_cfg.observation_encoders.global_vars.feature_names = env._griddly_env._global_features
     agent = hydra.utils.instantiate(agent_cfg, obs_space, action_space, _recursive_=False)
     return SampleFactoryAgentWrapper(agent, obs_space, action_space)
 

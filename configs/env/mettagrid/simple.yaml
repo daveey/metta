@@ -1,8 +1,20 @@
 defaults: [ mettagrid ]
 
-env_builder:
+game_builder:
+  width: 20
+  height: 20
+
   objects:
     wall:
       density: 0.01
-    # altar:
-    #   cost: 100
+    altar:
+      count: 1
+      cost: 100
+    agent:
+      count: 2
+    generator:
+      count: 5
+    converter:
+      count: 10
+
+

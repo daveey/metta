@@ -2,7 +2,7 @@
 defaults:
   - simple
 
-env_builder:
+game_builder:
   width: 10
   height: 10
 

@@ -2,7 +2,7 @@ _target_: agent.metta_agent.MettaAgent
 
 observation_encoders:
   grid_obs:
-      feature_names: ${env.grid_features}
+      feature_names: []
 
       normalize_features: True
       label_dim: 4
@@ -10,7 +10,7 @@ observation_encoders:
       layers: 4
 
   global_vars:
-      feature_names: ${env.global_features}
+      feature_names: []
 
       normalize_features: True
 

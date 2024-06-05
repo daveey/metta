@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 from omegaconf import OmegaConf
-from env.griddly.mettagrid.gdy.objects.metta_object import MettaObject
-from env.griddly.mettagrid.gdy.util.inventory_helper import InventoryHelper
+from env.griddly.mettagrid.object.metta_object import MettaObject
+from env.griddly.mettagrid.util.inventory_helper import InventoryHelper
 
 class Generator(MettaObject):
     def __init__(self, game, cfg: OmegaConf):

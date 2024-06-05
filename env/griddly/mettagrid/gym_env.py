@@ -3,27 +3,30 @@ from typing import Any, Dict
 import gymnasium as gym
 import hydra
 from omegaconf import OmegaConf
-from env.griddly.griddly_env import GriddlyEnv
+from env.griddly.griddly_gym_env import GriddlyGymEnv
+from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
 from env.wrapper.last_action_tracker import LastActionTracker
 from env.wrapper.reward_tracker import RewardTracker
 
-class PowerGridEnv(gym.Env):
-    def __init__(self, render_mode, **cfg):
+class MettaGridGymEnv(gym.Env):
+    def __init__(self, render_mode: str, game_builder: MettaGridGameBuilder, **cfg):
         super().__init__()
 
         self._render_mode = render_mode
-        cfg = OmegaConf.create(cfg)
-        self._cfg = cfg
+        self._game_builder = game_builder
+        self._cfg = OmegaConf.create(cfg)
 
-        self._builder = hydra.utils.instantiate(cfg.env_builder)
-        self._griddly_env = self.make_env()
+        self.make_env()
 
     def make_env(self):
-        self._level_cfg, griddly_yaml = self._env_builder.build()
-        self._griddly_env = GriddlyEnv(
-            self._cfg,
+        griddly_yaml = self._game_builder.build()
+        self._griddly_env = GriddlyGymEnv(
             griddly_yaml,
-            self._level_cfg.agents.count,
+            self._cfg.max_action_value,
+            self._game_builder.obs_width,
+            self._game_builder.obs_height,
+            self._max_steps,
+            self._game_builder.num_agents,
             self._render_mode
         )
 
@@ -82,7 +85,7 @@ class PowerGridEnv(gym.Env):
 
     @property
     def _max_steps(self):
-        return self._level_generator.max_steps
+        return self._game_builder.max_steps
 
     @property
     def observation_space(self):

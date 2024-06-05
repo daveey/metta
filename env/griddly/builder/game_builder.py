@@ -1,10 +1,14 @@
 from typing import Dict, List
 import numpy as np
+import yaml
 from env.griddly.builder.action import GriddlyAction
 from env.griddly.builder.object import GriddlyObject
 
+class NoAliasDumper(yaml.Dumper):
+    def ignore_aliases(self, data):
+        return True
 
-class GriddlyGame():
+class GriddlyGameBuilder():
     def __init__(
             self,
             obs_width: int,
@@ -64,7 +68,12 @@ class GriddlyGame():
             "Objects": objects,
             "Actions": actions,
         }
-        return griddly_cfg
+        return yaml.dump(
+            griddly_cfg,
+            Dumper=NoAliasDumper,
+            sort_keys=False,
+            default_flow_style=False
+        )
 
     def register_object(self, obj: GriddlyObject):
         self._objects[obj.name] = obj

@@ -1,7 +1,7 @@
 from typing import Callable
 from omegaconf import OmegaConf
 from env.griddly.builder.action import BehaviorContext, GriddlyActionBehavior
-from env.griddly.mettagrid.gdy.util.energy_helper import EnergyHelper
+from env.griddly.mettagrid.util.energy_helper import EnergyHelper
 
 
 class MettaActionBehavior(GriddlyActionBehavior):

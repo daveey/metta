@@ -2,10 +2,10 @@
 
 from omegaconf import OmegaConf
 from env.griddly.builder.action import BehaviorContext
-from env.griddly.mettagrid.gdy.util.energy_helper import EnergyHelper
-from env.griddly.mettagrid.gdy.util.inventory_helper import InventoryHelper
-from env.griddly.mettagrid.gdy.objects.metta_object import MettaObject
-import  env.griddly.mettagrid.gdy.sprites as sprites
+from env.griddly.mettagrid.util.energy_helper import EnergyHelper
+from env.griddly.mettagrid.util.inventory_helper import InventoryHelper
+from env.griddly.mettagrid.object.metta_object import MettaObject
+import  env.griddly.mettagrid.util.sprite as sprite
 
 def sprite_m(name: str):
     return f"oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/{name}.png"
@@ -18,11 +18,11 @@ class Agent(MettaObject):
             name="agent",
             symbol="A",
             sprites=[
-                sprites.monster("astronaut_u1"),
-                sprites.monster("void_d1"),
-                sprites.monster("beast_u1"),
-                sprites.monster("void_d1"),
-                sprites.monster("stalker_u1"),
+                sprite.monster("astronaut_u1"),
+                sprite.monster("void_d1"),
+                sprite.monster("beast_u1"),
+                sprite.monster("void_d1"),
+                sprite.monster("stalker_u1"),
             ],
             properties={
                 "id": 0,

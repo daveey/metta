@@ -1,6 +1,6 @@
 from omegaconf import OmegaConf
 
-from env.griddly.mettagrid.gdy.objects.metta_object import MettaObject
+from env.griddly.mettagrid.object.metta_object import MettaObject
 
 
 class Wall(MettaObject):

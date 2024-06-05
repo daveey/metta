@@ -1,13 +1,13 @@
 from omegaconf import OmegaConf
 from env.griddly.builder.action import BehaviorContext, GriddlyAction, GriddlyActionInput
-from env.griddly.builder.game import GriddlyGame
-from env.griddly.mettagrid.gdy.actions.metta_action import MettaActionBehavior
-from env.griddly.mettagrid.gdy.util.inventory_helper import InventoryHelper
+from env.griddly.builder.game_builder import GriddlyGameBuilder
+from env.griddly.mettagrid.action.metta_action import MettaActionBehavior
+from env.griddly.mettagrid.util.inventory_helper import InventoryHelper
 
 class Transfer(GriddlyAction):
     def __init__(
             self,
-            game: GriddlyGame,
+            game: GriddlyGameBuilder,
             cfg: OmegaConf):
 
         super().__init__(

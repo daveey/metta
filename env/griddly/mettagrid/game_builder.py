@@ -1,20 +1,20 @@
 import numpy as np
 from omegaconf import OmegaConf
 
-from env.griddly.builder.game import GriddlyGame
-from env.griddly.mettagrid.gdy.actions.attack import Attack
-from env.griddly.mettagrid.gdy.actions.move import Move
-from env.griddly.mettagrid.gdy.actions.transfer import Transfer
-from env.griddly.mettagrid.gdy.actions.rotate import Rotate
-from env.griddly.mettagrid.gdy.actions.shield import Shield
-from env.griddly.mettagrid.gdy.actions.use import Use
-from env.griddly.mettagrid.gdy.objects.agent import Agent
-from env.griddly.mettagrid.gdy.objects.altar import Altar
-from env.griddly.mettagrid.gdy.objects.converter import Converter
-from env.griddly.mettagrid.gdy.objects.generator import Generator
-from env.griddly.mettagrid.gdy.objects.wall import Wall
+from env.griddly.builder.game_builder import GriddlyGameBuilder
+from env.griddly.mettagrid.action.attack import Attack
+from env.griddly.mettagrid.action.move import Move
+from env.griddly.mettagrid.action.transfer import Transfer
+from env.griddly.mettagrid.action.rotate import Rotate
+from env.griddly.mettagrid.action.shield import Shield
+from env.griddly.mettagrid.action.use import Use
+from env.griddly.mettagrid.object.agent import Agent
+from env.griddly.mettagrid.object.altar import Altar
+from env.griddly.mettagrid.object.converter import Converter
+from env.griddly.mettagrid.object.generator import Generator
+from env.griddly.mettagrid.object.wall import Wall
 
-class MettaGrid(GriddlyGame):
+class MettaGridGameBuilder(GriddlyGameBuilder):
     def __init__(
             self,
             obs_width: int,
@@ -89,27 +89,3 @@ class MettaGrid(GriddlyGame):
                         break
         return level
 
-        # level = self._generate_level(self.level_cfg)
-        # griddly_cfg["Environment"]["Levels"] = ["\n".join(["  ".join(row) for row in level])]
-        # for name, obj_cfg in level_cfg.objects.items():
-        #     obj = OBJECTS[name](name, obj_cfg)
-        #     griddly_cfg["Environment"]["Variables"].extend(obj.gen_global_vars())
-        #     griddly_cfg["Objects"].append(obj.gen_object())
-
-        # for name, action in level_cfg.actions.items():
-        #     for k, v in action.items():
-        #         griddly_cfg["Environment"]["Variables"].append({
-        #             "Name": f"conf:action:{name}:{k}",
-        #             "InitialValue": v,
-        #             "PerPlayer": True
-        #         })
-        #     griddly_cfg["Environment"]["Variables"].append({
-        #         "Name": f"stats:action:{name}",
-        #         "InitialValue": 0,
-        #         "PerPlayer": True
-        #     })
-        #     griddly_cfg["Environment"]["Variables"].append({
-        #         "Name": f"stats:energy:action:{name}",
-        #         "InitialValue": 0,
-        #         "PerPlayer": True
-        #     })

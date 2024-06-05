@@ -11,35 +11,46 @@ from omegaconf import OmegaConf
 import yaml
 
 
-class GriddlyEnv(gym.Env):
+class GriddlyGymEnv(gym.Env):
     def __init__(
             self,
-            cfg: OmegaConf,
-            griddly_yaml,
+            griddly_yaml: str,
+            max_action_value,
+            obs_width: int,
+            obs_height: int,
+            max_steps: int,
             num_agents: int,
             render_mode: str):
 
-        self._cfg = cfg
         self._griddly_yaml = griddly_yaml
+        self._max_action_value = max_action_value
+        self._obs_width = obs_width
+        self._obs_height = obs_height
+        self._max_steps = max_steps
         self._num_agents = num_agents
         self._render_mode = render_mode
-        self._num_actions = len(self._cfg.actions)
         self.num_steps = None
 
         self._global_env = RenderWrapper(
             self, "global",
             render_mode=render_mode
         )
+        self._griddly_env = self.make_env()
 
     def make_env(self):
         env = GymWrapper(
-            yaml_string=yaml.dump(self._griddly_yaml),
+            yaml_string=self._griddly_yaml,
             player_observer_type="VectorAgent",
             global_observer_type="GlobalSpriteObserver",
-            max_steps=self._cfg.max_steps,
+            max_steps=self._max_steps,
             level=0,
             render_mode=self._render_mode,
         )
+        self._num_actions = len(env.action_names)
+        self._global_features = env.game.get_global_variable_names()
+        self._global_features = ["_steps"]
+        self._grid_features = env.game.get_object_names() + env.game.get_object_variable_names()
+        self._actions = env.action_names
         self._validate(env)
         return env
 
@@ -96,7 +107,7 @@ class GriddlyEnv(gym.Env):
 
     def _compute_global_variable_obs(self):
         vals = []
-        for v in self._griddly_env.game.get_global_variable(self._cfg.global_features).values():
+        for v in self._griddly_env.game.get_global_variable(self._global_features).values():
             if len(v) == 1:
                 vals.append([v[0]] * self._num_agents)
             else:
@@ -106,15 +117,15 @@ class GriddlyEnv(gym.Env):
     def _validate(self, env):
         assert env.game.get_object_names() + \
               env.game.get_object_variable_names() == \
-              self._cfg.grid_features, \
-            f"Missing grid features: {set(self._cfg.grid_features) - set(env.game.get_object_names() + env.game.get_object_variable_names())}"
+              self._grid_features, \
+            f"Missing grid features: {set(self._grid_features) - set(env.game.get_object_names() + env.game.get_object_variable_names())}"
 
-        assert env.action_names == self._cfg.actions, \
-            f"Missing actions: {set(self._cfg.actions) - set(env.action_names)}"
+        assert env.action_names == self._actions, \
+            f"Missing actions: {set(self._actions) - set(env.action_names)}"
 
         assert set(env.game.get_global_variable_names()).issuperset(
-            self._cfg.global_features), \
-            f"Missing global variables: {set(self._cfg.global_features) - set(env.game.get_global_variable_names())}"
+            self._global_features), \
+            f"Missing global variables: {set(self._global_features) - set(env.game.get_global_variable_names())}"
 
 
         env_obs_space = env.observation_space
@@ -164,11 +175,11 @@ class GriddlyEnv(gym.Env):
         agent_obs_space = gym.spaces.Dict({
             "global_vars": gym.spaces.Box(
                 low=-np.inf, high=np.inf,
-                shape=[ len(self._cfg.global_features) ],
+                shape=[ len(self._global_features) ],
                 dtype=np.int32),
             "grid_obs": gym.spaces.Box(
                 low=0, high=255,
-                shape=[ len(self._cfg.grid_features), self._cfg.obs_width, self._cfg.obs_height],
+                shape=[ len(self._grid_features), self._obs_width, self._obs_height],
                 dtype=np.uint8
             )
         })
@@ -177,7 +188,7 @@ class GriddlyEnv(gym.Env):
 
     @property
     def action_space(self):
-        return gym.spaces.MultiDiscrete([len(self._cfg.actions), self._cfg.max_action_value])
+        return gym.spaces.MultiDiscrete([len(self._actions), self._max_action_value])
 
     @lru_cache(maxsize=None)
     def global_observation_space(self, agent_id):
