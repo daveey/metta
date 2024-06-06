@@ -4,6 +4,7 @@ import gymnasium as gym
 import hydra
 import numpy as np
 from omegaconf import OmegaConf
+import yaml
 from env.griddly.griddly_gym_env import GriddlyGymEnv
 from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
 from env.wrapper.last_action_tracker import LastActionTracker
@@ -21,6 +22,7 @@ class MettaGridGymEnv(gym.Env):
 
     def make_env(self):
         griddly_yaml = self._game_builder.build()
+        self._griddly_yaml = yaml.safe_load(griddly_yaml)
         self._griddly_env = GriddlyGymEnv(
             griddly_yaml,
             self._cfg.max_action_value,
@@ -61,10 +63,12 @@ class MettaGridGymEnv(gym.Env):
             agent_stats["level_max_reward_per_agent"] = self._max_level_reward_per_agent
 
     def _compute_max_energy(self):
-        max_resources = self._game_builder.object_configs.generator.count * min(
+        num_generators = self._griddly_yaml["Environment"]["Levels"][0].count("g")
+        num_converters = self._griddly_yaml["Environment"]["Levels"][0].count("c")
+        max_resources = num_generators * min(
             self._game_builder.object_configs.generator.initial_resources,
             self._max_steps / self._game_builder.object_configs.generator.cooldown)
-        max_conversions = self._game_builder.object_configs.converter.count * (
+        max_conversions = num_converters * (
             self._max_steps / self._game_builder.object_configs.converter.cooldown
         )
         max_conv_energy = min(max_resources, max_conversions) * \
@@ -75,8 +79,7 @@ class MettaGridGymEnv(gym.Env):
         self._max_level_energy = max_conv_energy + initial_energy
         self._max_level_energy_per_agent = self._max_level_energy / self._game_builder.num_agents
 
-        # if the agents use all their energy for the altar, we get a 3x reward
-        self._max_level_reward_per_agent = self._max_level_energy_per_agent * 3
+        self._max_level_reward_per_agent = self._max_level_energy_per_agent * 2
 
 
     @property
