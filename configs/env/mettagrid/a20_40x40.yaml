@@ -3,16 +3,16 @@ defaults:
   - simple
 
 game_builder:
-  width: 10
-  height: 10
+  width: 40
+  height: 40
 
   objects:
     agent:
-      count: 2
+      count: 20
 
-    # altar:
-    #   count: 5
-    # charger:
-    #   count: 10
+    altar:
+      count: 5
+    charger:
+      count: 10
     generator:
       count: 50
