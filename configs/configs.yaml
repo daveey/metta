@@ -1,4 +1,4 @@
 defaults:
   - sample_factory: train
   - agent: agent
-  - env: mettagrid/a20_r4_40x40
+  - env: mettagrid/a20_b4_40x40

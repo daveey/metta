@@ -3,7 +3,7 @@
 experiment=$1
 shift
 
-for envcfg in a5_25x25 a20_40x40 a100_100x100; do
+for envcfg in a5_25x25 a20_40x40 a20_r4_40x40 a20_b4_40x40; do
     echo "Generating video for $envcfg"
     python -m tools.evaluate \
         env=mettagrid/$envcfg \
