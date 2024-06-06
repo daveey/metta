@@ -50,7 +50,8 @@ class Generator(MettaObject):
                 ctx.target.state.set(ctx.target.object.States.cooldown),
                 ctx.target.reset(ctx.target.object.cfg.cooldown)
             ], [
-                ctx.target.state.set(ctx.target.object.States.empty)
+                ctx.target.state.set(ctx.target.object.States.empty),
+                ctx.global_var("stats:generator:depleted").incr()
             ]),
             {"set_tile": ctx.target.state.val()},
         ])

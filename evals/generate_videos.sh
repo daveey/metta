@@ -13,4 +13,4 @@ for envcfg in a5_25x25 a20_40x40 a20_r4_40x40 a20_b4_40x40; do
         "$@"
 done
 
-cd train_dir/$experiment/ && ln -s a20_40x40.mp4 replay.mp4
+cd train_dir/$experiment/ && rm -f replay.mp4 && ln -s a20_40x40.mp4 replay.mp4

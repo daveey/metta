@@ -35,8 +35,8 @@ game_builder:
 
     generator:
       hp: 30
-      cooldown: 50
-      initial_resources: 100
+      cooldown: 5
+      initial_resources: 30
       cost: 0
 
     wall:
