@@ -4,16 +4,15 @@ defaults:
   - mettagrid/mettagrid
 
 game_builder:
-  width: 40
-  height: 40
-
-  objects:
-    agent:
-      count: 20
-
-    altar:
-      count: 5
-    converter:
-      count: 10
-    generator:
-      count: 50
+  num_agents: 20
+  map:
+    room:
+      width: 40
+      height: 40
+      border: 1
+      objects:
+        agent: 20
+        altar: 5
+        converter: 10
+        generator: 50
+        wall: 40

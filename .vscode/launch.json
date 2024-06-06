@@ -52,6 +52,7 @@
             "args": [
                 "+sample_factory.experiment=mac.baseline.2",
                 "sample_factory=video",
+                "sample_factory.device=cpu",
                 // "+env=dev",
             ],
         },
@@ -61,7 +62,8 @@
             "request": "launch",
             "module": "env.griddly.dump_griddly_config",
             "args": [
-                "+env=mettagrid/dev",
+                // "env=mettagrid/a5_25x25"
+                "env=mettagrid/a20_r4_40x40"
             ],
         },
         {

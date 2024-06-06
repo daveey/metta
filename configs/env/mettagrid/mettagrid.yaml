@@ -2,6 +2,7 @@
 
 name: "GDY-MettaGrid"
 _target_: env.griddly.mettagrid.gym_env.MettaGridGymEnv
+max_action_value: 10
 
 game_builder:
   _target_: env.griddly.mettagrid.game_builder.MettaGridGameBuilder
@@ -9,13 +10,10 @@ game_builder:
   obs_height: 11
   max_steps: 1000
   tile_size: 16
-
-  width: ???
-  height: ???
+  num_agents: ???
 
   objects:
     agent:
-      count: ???
       initial_energy: 100
       max_energy: 500
       max_inventory: 5
@@ -26,20 +24,17 @@ game_builder:
 
     altar:
       hp: 30
-      count: ???
       cooldown: 2
       cost: 100
 
     converter:
       hp: 30
-      count: ???
       cooldown: 2
       energy_output: 50
       cost: 0
 
     generator:
       hp: 30
-      count: ???
       cooldown: 50
       initial_resources: 100
       cost: 0
@@ -65,4 +60,19 @@ game_builder:
       cost: 5
       damage: 5
 
-max_action_value: 10
+  map:
+    # _target_: env.griddly.mettagrid.level_builder.MettaGridLevelBuilder
+
+    layout: [ [ room ]]
+
+    room:
+      # _target_: env.griddly.mettagrid.level_builder.MettaGridRoomBuilder
+      width: 25
+      height: 25
+      num_agents: 5
+      objects:
+        agent: 5
+        altar: 1
+        converter: 3
+        generator: 15
+        wall: 10

@@ -14,15 +14,11 @@ class GriddlyGameBuilder():
             obs_width: int,
             obs_height: int,
             tile_size: int,
-            width: int,
-            height: int,
             num_agents: int,
             max_steps: int):
         self.obs_width = obs_width
         self.obs_height = obs_height
         self.tile_size = tile_size
-        self.width = width
-        self.height = height
         self.num_agents = num_agents
         self.max_steps = max_steps
         self._objects ={}
@@ -89,7 +85,8 @@ class GriddlyGameBuilder():
         self._actions[action.name] = action
 
     def level(self) -> np.ndarray:
-        return np.array([["."] * self.width] * self.height).astype("U6")
+        raise NotImplementedError("level() must be implemented by subclass")
+        # return np.array([["."] * self.width] * self.height).astype("U6")
 
     def objects(self) -> List[GriddlyObject]:
         return [
