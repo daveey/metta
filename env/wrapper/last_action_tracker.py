@@ -10,7 +10,9 @@ class LastActionTracker(gym.Wrapper):
 
     def reset(self):
         self._last_actions = np.zeros((self.unwrapped.player_count, 2), dtype=np.int32)
-        return self.env.reset()
+        obs, infos = self.env.reset()
+        return self._augment_observations(obs), infos
+
 
     def step(self, actions):
         obs, rewards, terms, truncs, infos = self.env.step(actions)

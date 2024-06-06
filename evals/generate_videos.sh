@@ -6,8 +6,8 @@ shift
 for envcfg in a5_25x25 a20_40x40 a100_100x100; do
     echo "Generating video for $envcfg"
     python -m tools.evaluate \
-        +env=$envcfg \
-        +sample_factory=video \
+        env=mettagrid/$envcfg \
+        sample_factory=video \
         +sample_factory.video_name="${envcfg}.mp4" \
         +sample_factory.experiment=$experiment \
         "$@"

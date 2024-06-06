@@ -1,3 +1,5 @@
+# @package env
+
 name: "GDY-MettaGrid"
 _target_: env.griddly.mettagrid.gym_env.MettaGridGymEnv
 
@@ -43,7 +45,7 @@ game_builder:
       cost: 0
 
     wall:
-      density: [0.0, 0.15]
+      density: 0.01
       hp: 10
 
   actions:
@@ -63,60 +65,4 @@ game_builder:
       cost: 5
       damage: 5
 
-
-global_features: [
-  "conf:agent:energy:initial",
-  "conf:agent:energy:max",
-  "conf:altar:cooldown",
-  "conf:altar:cost",
-  "conf:attack:damage",
-  "conf:attack:freeze_duration",
-  "conf:charger:cooldown",
-  "conf:charger:energy",
-  "conf:cost:attack",
-  "conf:cost:frozen",
-  "conf:cost:jump",
-  "conf:cost:move",
-  "conf:cost:rotate",
-  "conf:cost:shield:upkeep",
-  "conf:cost:shield",
-  "conf:generator:cooldown",
-  "conf:gift:energy",
-]
-
-grid_features: [
-  "agent",
-  "altar",
-  "charger",
-  "generator",
-  "wall",
-  "agent:dir",
-  "agent:energy",
-  "agent:frozen",
-  "agent:id",
-  "agent:inv:1",
-  "agent:inv:2",
-  "agent:inv:3",
-  "agent:shield",
-  "agent:species",
-  "altar:ready",
-  "charger:bonus",
-  "charger:input:1",
-  "charger:input:2",
-  "charger:input:3",
-  "charger:output",
-  "charger:ready",
-  "generator:ready",
-  "generator:resource"
-]
-
-actions: [
-  "rotate",
-  "move",
-  "jump",
-  "use",
-  "gift",
-  "shield",
-  "attack"
-]
 max_action_value: 10

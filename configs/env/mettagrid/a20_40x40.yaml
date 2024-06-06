@@ -1,6 +1,7 @@
+# @package env
 
 defaults:
-  - simple
+  - mettagrid/mettagrid
 
 game_builder:
   width: 40
@@ -12,7 +13,7 @@ game_builder:
 
     altar:
       count: 5
-    charger:
+    converter:
       count: 10
     generator:
       count: 50

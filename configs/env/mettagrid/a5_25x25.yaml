@@ -1,10 +1,19 @@
-defaults: [ simple ]
+# @package env
 
-level_generator:
-  num_agents: 5
+defaults:
+  - mettagrid/mettagrid
+
+game_builder:
   width: 25
   height: 25
 
-  num_altars: 1
-  num_chargers: 3
-  num_generators: 15
+  objects:
+    agent:
+      count: 5
+
+    altar:
+      count: 1
+    converter:
+      count: 3
+    generator:
+      count: 15

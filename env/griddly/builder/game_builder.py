@@ -50,7 +50,14 @@ class GriddlyGameBuilder():
                         "TileSize": self.tile_size,
                         "Type": "SPRITE_2D",
                         "RotateAvatarImage": True,
-                        "BackgroundTile": "oryx/oryx_fantasy/floor1-0.png"
+                        "BackgroundTile": "oryx/oryx_fantasy/floor1-0.png",
+                        "Shader": {
+                            "ObjectVariables": [
+                                "agent:energy",
+                                "agent:energy"
+                            ],
+                            "ObserverAvatarMode": "DARKEN",
+                        }
                     },
                     "VectorAgent": {
                         "Type": "VECTOR",

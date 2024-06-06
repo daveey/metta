@@ -1,3 +1,5 @@
+# @package sample_factory
+
 aux_loss_coef: 0
 recurrence: 256
 rollout: 256

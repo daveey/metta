@@ -94,3 +94,6 @@ class MettaGridGymEnv(gym.Env):
     @property
     def player_count(self):
         return self._env.unwrapped.player_count
+
+    def render(self, *args, **kwargs):
+        return self._env.render(*args, **kwargs)
