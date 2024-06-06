@@ -12,18 +12,20 @@ class MettaActionBehavior(GriddlyActionBehavior):
 
         super().__init__(actor, target)
         self.cfg = cfg
-        self.cost = cfg.cost
         self.callback = callback
+
+    def cost (self):
+        return self.cfg.cost
 
     def commands(self, ctx: BehaviorContext, *args, **kwargs):
         energy = EnergyHelper(ctx, ctx.actor)
         ctx.require([
             ctx.actor.frozen.eq(0),
-            *energy.has_energy(self.cost),
+            *energy.has_energy(self.cost()),
         ])
         ctx.cmd([
             ctx.global_var(f"stats:action:{ctx.action.name}").incr(),
-            *energy.use(self.cost, ctx.action.name)
+            *energy.use(self.cost(), ctx.action.name)
         ])
         if self.callback is not None:
             self.callback(ctx, *args, **kwargs)

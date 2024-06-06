@@ -3,6 +3,7 @@ from env.griddly.builder.action import BehaviorContext, GriddlyAction, GriddlyAc
 from env.griddly.builder.game_builder import GriddlyGameBuilder
 from env.griddly.builder.variable import GriddlyVariable
 from env.griddly.mettagrid.action.metta_action import MettaActionBehavior
+from env.griddly.mettagrid.util.energy_helper import EnergyHelper
 
 
 class Use(GriddlyAction):
@@ -20,19 +21,19 @@ class Use(GriddlyAction):
         )
         self.cfg = cfg
 
-        self.add_behaviour(UseBehavior(game, "agent", "generator", cfg))
-        self.add_behaviour(UseBehavior(game, "agent", "altar", cfg))
-        self.add_behaviour(UseBehavior(game, "agent", "converter", cfg))
+        self.add_behaviour(MettaActionBehavior("agent", "generator", cfg, self.use))
+        self.add_behaviour(MettaActionBehavior("agent", "altar", cfg, self.use))
+        self.add_behaviour(MettaActionBehavior("agent", "converter", cfg, self.use))
 
-
-class UseBehavior(MettaActionBehavior):
-    def __init__(self, game, actor, target, cfg):
-        self.cfg = game.action_configs.use
-        super().__init__(actor, target, cfg)
-        self.cost += game.object_configs[target].cost
-
-    def commands(self, ctx: BehaviorContext):
-        super().commands(ctx)
-        ctx.require(ctx.target.state.eq(ctx.target.object.States.ready))
-        ctx.cmd(ctx.global_var(f"stats:{ctx.target.object.name}:used").incr())
+    def use(self, ctx: BehaviorContext):
+        energy_helper = EnergyHelper(ctx, ctx.actor)
+        ctx.require([
+            energy_helper.has_energy(self.cfg.cost + ctx.target.object.cfg.cost),
+            ctx.target.state.eq(ctx.target.object.States.ready)
+        ])
+        ctx.cmd([
+            ctx.global_var(f"stats:{ctx.target.object.name}:used").incr(),
+            energy_helper.use(self.cfg.cost + ctx.target.object.cfg.cost, f"{ctx.target.object.name}")
+        ])
         ctx.target.object.on_use(ctx)
+
