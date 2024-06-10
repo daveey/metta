@@ -1,5 +1,5 @@
 import numpy as np
-from omegaconf import OmegaConf
+from omegaconf import ListConfig, OmegaConf
 
 from env.griddly.builder.game_builder import GriddlyGameBuilder
 from env.griddly.mettagrid.action.attack import Attack
@@ -53,9 +53,18 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
         self.register_action(Shield(self, actions.shield))
 
     def level(self):
+        layout = self.map_config.layout
+
+        if "rooms" in layout:
+            return self.build_map(layout.rooms)
+        else:
+            return self.build_map(
+                [["room"] * layout.rooms_x] * layout.rooms_y)
+
+    def build_map(self, rooms):
         num_agents = 0
         layers = []
-        for layer in self.map_config.layout:
+        for layer in rooms:
             rooms = []
             for room_name in layer:
                 room_config = self.map_config[room_name]
@@ -65,7 +74,6 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
         level = np.concatenate(layers, axis=0)
         assert num_agents == self.num_agents, f"Number of agents in map ({num_agents}) does not match num_agents ({self.num_agents})"
         return level
-
 
     def build_room(self, room_config, starting_agent=1):
         symbols = []
@@ -82,7 +90,7 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
 
         assert(len(symbols) <= area), f"Too many objects in room: {len(symbols)} > {area}"
         symbols.extend(["."] * (area - len(symbols)))
-        symbols = np.array(symbols).astype("U6")
+        symbols = np.array(symbols).astype("U8")
         np.random.shuffle(symbols)
         content = symbols.reshape(content_height, content_width)
         room = np.full((room_config.height, room_config.width), "W", dtype="U6")

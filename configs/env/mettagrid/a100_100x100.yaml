@@ -5,6 +5,7 @@ defaults:
 
 game_builder:
   num_agents: 100
+  tile_size: 8
   map:
     room:
       width: 100

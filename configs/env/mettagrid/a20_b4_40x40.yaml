@@ -6,11 +6,12 @@ defaults:
 game_builder:
   num_agents: 20
   map:
-    layout: [
-      [ "base", "wild_1", "base" ],
-      [ "wild_2", "center", "wild_2" ],
-      [ "base", "wild_1", "base" ],
-    ]
+    layout:
+      rooms: [
+        [ "base", "wild_1", "base" ],
+        [ "wild_2", "center", "wild_2" ],
+        [ "base", "wild_1", "base" ],
+      ]
 
     wild_1:
       width: 10

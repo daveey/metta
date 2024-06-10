@@ -63,7 +63,9 @@ game_builder:
   map:
     # _target_: env.griddly.mettagrid.level_builder.MettaGridLevelBuilder
 
-    layout: [ [ room ]]
+    layout:
+      rooms_x: 1
+      rooms_y: 1
 
     room:
       # _target_: env.griddly.mettagrid.level_builder.MettaGridRoomBuilder
