@@ -1,12 +1,12 @@
 from typing import Any, Dict
 
 import gymnasium as gym
-import hydra
 import numpy as np
 from omegaconf import OmegaConf
 import yaml
 from env.griddly.griddly_gym_env import GriddlyGymEnv
 from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
+from env.wrapper.kinship import Kinship
 from env.wrapper.last_action_tracker import LastActionTracker
 from env.wrapper.reward_tracker import RewardTracker
 
@@ -34,6 +34,7 @@ class MettaGridGymEnv(gym.Env):
         )
 
         self._env = LastActionTracker(self._griddly_env)
+        self._env = Kinship(**self._cfg.kinship, env=self._env)
         self._env = RewardTracker(self._env)
 
     def reset(self, **kwargs):
@@ -100,3 +101,11 @@ class MettaGridGymEnv(gym.Env):
 
     def render(self, *args, **kwargs):
         return self._env.render(*args, **kwargs)
+
+    @property
+    def grid_features(self):
+        return self._griddly_env.grid_features
+
+    @property
+    def global_features(self):
+        return self._griddly_env.global_features

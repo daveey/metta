@@ -24,8 +24,8 @@ def make_agent_func(sf_cfg, obs_space, action_space):
     env = hydra.utils.instantiate(env_cfg, render_mode="human")
 
     agent_cfg = OmegaConf.create(json.loads(sf_cfg.agent_cfg))
-    agent_cfg.observation_encoders.grid_obs.feature_names = env._griddly_env._grid_features
-    agent_cfg.observation_encoders.global_vars.feature_names = env._griddly_env._global_features
+    agent_cfg.observation_encoders.grid_obs.feature_names = env.grid_features
+    agent_cfg.observation_encoders.global_vars.feature_names = env.global_features
     agent = hydra.utils.instantiate(agent_cfg, obs_space, action_space, _recursive_=False)
     return SampleFactoryAgentWrapper(agent, obs_space, action_space)
 

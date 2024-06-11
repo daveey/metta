@@ -78,3 +78,8 @@ game_builder:
         converter: 3
         generator: 15
         wall: 10
+
+kinship:
+  # _target_: env.wrapper.reward_sharing.TeamRewardSharing
+  team_size: 1
+  team_reward: 0

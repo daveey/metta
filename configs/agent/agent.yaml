@@ -38,6 +38,15 @@ observation_encoders:
       output_dim: 8
       layers: 2
 
+  kinship:
+      feature_names: [ kinship ]
+
+      normalize_features: True
+
+      label_dim: 4
+      output_dim: 8
+      layers: 2
+
 fc:
     layers: 3
     output_dim: 512

@@ -201,3 +201,10 @@ class GriddlyGymEnv(gym.Env):
     def render_observer(self, *args, **kwargs):
         return self._griddly_env.render_observer(*args, **kwargs)
 
+    @property
+    def grid_features(self):
+        return self._grid_features
+
+    @property
+    def global_features(self):
+        return self._global_features

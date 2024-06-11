@@ -11,7 +11,9 @@
             "module": "tools.train",
             "args": [
                 "sample_factory=train_sand",
-                // "+env=mettagrid/simple",
+                "env=mettagrid/a20_b4_40x40",
+                "env.kinship.team_size=5",
+                "env.kinship.team_reward=0.8",
                 // "env.substrate_name=running_with_scissors_in_the_matrix__arena",
 
                 "+sample_factory.device=cpu",
