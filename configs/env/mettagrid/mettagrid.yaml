@@ -18,6 +18,7 @@ game_builder:
       max_energy: 500
       max_inventory: 5
       freeze_duration: 10
+      energy_reward: True
       hp: 1
       upkeep:
         shield: 1
