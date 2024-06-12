@@ -4,52 +4,52 @@ _target_: agent.metta_agent.MettaAgent
 
 observation_encoders:
   grid_obs:
-      feature_names: []
+    feature_names: []
 
-      normalize_features: True
-      label_dim: 4
-      output_dim: 512
-      layers: 4
+    normalize_features: True
+    label_dim: 4
+    output_dim: 512
+    layers: 4
 
   global_vars:
-      feature_names: []
+    feature_names: []
 
-      normalize_features: True
+    normalize_features: True
 
-      label_dim: 4
-      output_dim: 8
-      layers: 2
+    label_dim: 4
+    output_dim: 8
+    layers: 2
 
   last_action:
-      feature_names: [ last_action_id, last_action_val ]
+    feature_names: [ last_action_id, last_action_val ]
 
-      normalize_features: True
+    normalize_features: True
 
-      label_dim: 4
-      output_dim: 8
-      layers: 2
+    label_dim: 4
+    output_dim: 8
+    layers: 2
 
   last_reward:
-      feature_names: [ last_reward ]
+    feature_names: [ last_reward ]
 
-      normalize_features: True
+    normalize_features: True
 
-      label_dim: 4
-      output_dim: 8
-      layers: 2
+    label_dim: 4
+    output_dim: 8
+    layers: 2
 
   kinship:
-      feature_names: [ kinship ]
+    feature_names: [ kinship ]
 
-      normalize_features: True
+    normalize_features: True
 
-      label_dim: 4
-      output_dim: 8
-      layers: 2
+    label_dim: 4
+    output_dim: 8
+    layers: 2
 
 fc:
-    layers: 3
-    output_dim: 512
+  layers: 3
+  output_dim: 512
 
 decoder:
   _target_: agent.decoder.Decoder

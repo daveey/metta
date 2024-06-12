@@ -4,6 +4,11 @@ name: "GDY-MettaGrid"
 _target_: env.griddly.mettagrid.gym_env.MettaGridGymEnv
 max_action_value: 10
 
+hidden_features:
+  grid_obs: [
+    "agent:energy"
+  ]
+
 game:
   _target_: env.griddly.mettagrid.game_builder.MettaGridGameBuilder
   obs_width: 11

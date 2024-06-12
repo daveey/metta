@@ -25,7 +25,7 @@ class FeatureSetEncoder(nn.Module):
             normalize_features: bool,
             label_dim: int,
             output_dim: int,
-            layers: int,
+            layers: int
         ):
         super().__init__()
 

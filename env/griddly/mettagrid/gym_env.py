@@ -6,6 +6,7 @@ from omegaconf import OmegaConf
 import yaml
 from env.griddly.griddly_gym_env import GriddlyGymEnv
 from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
+from env.wrapper.feature_masker import FeatureMasker
 from env.wrapper.kinship import Kinship
 from env.wrapper.last_action_tracker import LastActionTracker
 from env.wrapper.reward_tracker import RewardTracker
@@ -36,6 +37,7 @@ class MettaGridGymEnv(gym.Env):
         self._env = LastActionTracker(self._griddly_env)
         self._env = Kinship(**self._cfg.kinship, env=self._env)
         self._env = RewardTracker(self._env)
+        self._env = FeatureMasker(self._env, self._cfg.hidden_features)
 
     def reset(self, **kwargs):
         self.make_env()
