@@ -11,10 +11,6 @@ class FeatureMasker(gym.Wrapper):
             self.env.unwrapped.grid_features.index(feature)
             for feature in masked_features.grid_obs
         ]
-        self_pos =(
-            self.env.unwrapped._obs_width // 2,
-            self.env.unwrapped._obs_height // 2)
-
         self._grid_obs_mask = np.ones(
             self.env.unwrapped.observation_space["grid_obs"].shape,
             dtype=np.uint8)
