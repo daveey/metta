@@ -80,7 +80,7 @@ class MettaGridGymEnv(gym.Env):
         self._max_level_energy = max_conv_energy + initial_energy
         self._max_level_energy_per_agent = self._max_level_energy / self._game_builder.num_agents
 
-        self._max_level_reward_per_agent = self._max_level_energy_per_agent * 2
+        self._max_level_reward_per_agent = self._max_level_energy_per_agent
 
 
     @property
