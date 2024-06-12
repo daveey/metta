@@ -6,7 +6,8 @@ max_action_value: 10
 
 hidden_features:
   grid_obs: [
-    "agent:energy"
+    "agent:energy",
+    "agent:hp",
   ]
 
 game:
