@@ -4,7 +4,7 @@ defaults:
   - mettagrid/mettagrid
 
 
-game_builder:
+game:
   num_agents: 5
   map:
     room:

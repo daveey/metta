@@ -14,6 +14,9 @@ class EnergyHelper():
         return [ self.agent.energy.gte(energy) ]
 
     def add(self, amount: int, reason: str):
+        if amount == 0:
+            return []
+
         cmds = [
             self.agent.energy.add(amount),
             self.ctx.player_var("stats:agent:energy:gained").add(amount),
@@ -28,6 +31,9 @@ class EnergyHelper():
         return cmds
 
     def use(self, amount: int, reason: str):
+        if amount == 0:
+            return []
+
         return [
             self.agent.energy.sub(amount),
             self.ctx.player_var("stats:agent:energy:used").add(amount),

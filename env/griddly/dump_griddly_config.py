@@ -6,7 +6,7 @@ import yaml
 @hydra.main(version_base=None, config_path="../../configs", config_name="configs")
 def main(cfg):
     print(OmegaConf.to_yaml(cfg))
-    builder = hydra.utils.instantiate(cfg.env.game_builder)
+    builder = hydra.utils.instantiate(cfg.env.game)
     griddly_yaml = builder.build()
 
     config_path = "/tmp/griddly_env.yaml"

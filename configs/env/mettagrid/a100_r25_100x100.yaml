@@ -3,7 +3,7 @@
 defaults:
   - mettagrid/mettagrid
 
-game_builder:
+game:
   num_agents: 100
   tile_size: 8
   map:

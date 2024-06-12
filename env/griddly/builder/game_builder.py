@@ -66,7 +66,9 @@ class GriddlyGameBuilder():
                 },
                 "Variables": list(self._global_vars.values()),
                 "Levels": ["\n".join(["  ".join(row) for row in self.level()])],
-                "Termination": []
+                "Termination": {
+                    "Win": [ {"eq": ["game:agent:dead", self.num_agents]}]
+                }
             },
             "Objects": objects,
             "Actions": actions,

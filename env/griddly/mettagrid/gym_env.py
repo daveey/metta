@@ -11,11 +11,11 @@ from env.wrapper.last_action_tracker import LastActionTracker
 from env.wrapper.reward_tracker import RewardTracker
 
 class MettaGridGymEnv(gym.Env):
-    def __init__(self, render_mode: str, game_builder: MettaGridGameBuilder, **cfg):
+    def __init__(self, render_mode: str, game: MettaGridGameBuilder, **cfg):
         super().__init__()
 
         self._render_mode = render_mode
-        self._game_builder = game_builder
+        self._game_builder = game
         self._cfg = OmegaConf.create(cfg)
 
         self.make_env()

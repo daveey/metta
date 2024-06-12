@@ -4,7 +4,7 @@ name: "GDY-MettaGrid"
 _target_: env.griddly.mettagrid.gym_env.MettaGridGymEnv
 max_action_value: 10
 
-game_builder:
+game:
   _target_: env.griddly.mettagrid.game_builder.MettaGridGameBuilder
   obs_width: 11
   obs_height: 11
@@ -21,6 +21,7 @@ game_builder:
       energy_reward: True
       hp: 1
       upkeep:
+        time: 1
         shield: 1
 
     altar:

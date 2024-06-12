@@ -66,7 +66,7 @@
             "module": "env.griddly.dump_griddly_config",
             "args": [
                 // "env=mettagrid/a5_25x25"
-                "env=mettagrid/a100_r25_100x100"
+                "env=mettagrid/a5_25x25"
             ],
         },
         {
