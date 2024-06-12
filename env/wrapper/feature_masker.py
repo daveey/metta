@@ -20,7 +20,9 @@ class FeatureMasker(gym.Wrapper):
             dtype=np.uint8)
 
         self._grid_obs_mask[self._masked_grid_obs] = 0
-        self._grid_obs_mask[self._masked_grid_obs, *self_pos] = 1
+        self._grid_obs_mask[self._masked_grid_obs,
+                            self.env.unwrapped._obs_width // 2,
+                            self.env.unwrapped._obs_height // 2] = 1
 
     def reset(self, **kwargs):
         obs, infos = self.env.reset(**kwargs)
