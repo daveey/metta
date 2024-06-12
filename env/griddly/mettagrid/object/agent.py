@@ -44,17 +44,21 @@ class Agent(MettaObject):
 
     def _tick(self, ctx: BehaviorContext):
         energy = EnergyHelper(ctx, ctx.actor)
+        if self.cfg.mortal:
+            ctx.cmd([
+                ctx.cond(ctx.actor.energy.lte(0), [
+                    ctx.global_var("game:agent:dead").incr(),
+                    {"remove": True }
+                ])
+            ])
         ctx.cmd([
-            # turn off the shield if we run out of energy
-            ctx.cond(ctx.actor.energy.lte(0), [
-                ctx.global_var("game:agent:dead").incr(),
-                {"remove": True }
-            ]),
-
             energy.use(self.cfg.upkeep.time, "upkeep:time"),
+            # turn off the shield if out of energy
+            ctx.cond(ctx.actor.energy.lte(0), [
+                ctx.actor.shield.set(0),
+            ]),
             ctx.cond(ctx.actor.shield.eq(1),
-                energy.use(self.cfg.upkeep.shield, "upkeep:shield")
-            ),
+                energy.use(self.cfg.upkeep.shield, "upkeep:shield")),
 
             {"set_tile": 0},
             ctx.cond(ctx.actor.frozen.eq(1), {"set_tile": 1}),
