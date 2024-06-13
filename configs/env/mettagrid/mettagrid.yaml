@@ -14,21 +14,21 @@ game:
   _target_: env.griddly.mettagrid.game_builder.MettaGridGameBuilder
   obs_width: 11
   obs_height: 11
-  max_steps: 1000
+  max_steps: 5000
   tile_size: 16
   num_agents: ???
 
   objects:
     agent:
-      initial_energy: 100
+      initial_energy: 500
       max_energy: 500
       max_inventory: 5
       freeze_duration: 10
-      energy_reward: True
+      energy_reward: False
       hp: 1
-      mortal: False
+      mortal: True
       upkeep:
-        time: 0
+        time: 1
         shield: 1
 
     altar:

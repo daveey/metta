@@ -16,6 +16,7 @@
                 "env.kinship.team_reward=0.8",
                 // "env.substrate_name=running_with_scissors_in_the_matrix__arena",
 
+                "sample_factory.aux_loss_coeff=0.1",
                 "+sample_factory.device=cpu",
                 "+sample_factory.experiment=baseline.v0.4.1",
                 "+sample_factory.train_dir=./train_dir",
