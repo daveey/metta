@@ -55,7 +55,7 @@
             "module": "tools.evaluate",
             "args": [
                 "+sample_factory.experiment=baseline.v0.4.1",
-                "env=mettagrid/a20_b4_40x40",
+                "env=mettagrid/a20_r4_40x40",
                 "sample_factory=video",
                 "sample_factory.device=cpu",
                 // "+env=dev",

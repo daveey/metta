@@ -1,14 +1,7 @@
 # @package env
 
-name: "GDY-MettaGrid"
-_target_: env.griddly.mettagrid.gym_env.MettaGridGymEnv
-max_action_value: 10
-
-hidden_features:
-  grid_obs: [
-    "agent:energy",
-    "agent:hp",
-  ]
+defaults:
+  - mettagrid
 
 game:
   # _target_: env.griddly.mettagrid.game_builder.MettaGridGameBuilder
@@ -20,54 +13,54 @@ game:
 
   objects:
     agent:
-      initial_energy: 500
-      max_energy: 500
-      max_inventory: 5
-      freeze_duration: 10
+      initial_energy: [50, 500]
+      max_energy: [200, 500]
+      max_inventory: [3, 10]
+      freeze_duration: [5, 20]
       energy_reward: False
       hp: 1
       mortal: True
       upkeep:
         time: 1
-        shield: 1
+        shield: [0, 3]
 
     altar:
-      hp: 30
-      cooldown: 2
-      cost: 100
+      hp: [10, 50]
+      cooldown: [2, 5]
+      cost: [50, 300]
 
     converter:
-      hp: 30
-      cooldown: 2
-      energy_output: 100
+      hp: [10, 50]
+      cooldown: [2, 5]
+      energy_output: [50, 200]
       cost: 0
 
     generator:
-      hp: 30
-      cooldown: 5
-      initial_resources: 30
+      hp: [10, 50]
+      cooldown: [3, 10]
+      initial_resources: [5, 50]
       cost: 0
 
     wall:
       density: 0.01
-      hp: 10
+      hp: [3, 20]
 
   actions:
     move:
-      cost: 0
+      cost: [0, 2]
     rotate:
-      cost: 0
+      cost: [0, 1]
     jump:
-      cost: 3
+      cost: [1, 5]
     shield:
-      cost: 0
+      cost: [0, 2]
     drop:
-      cost: 1
+      cost: [0, 2]
     use:
-      cost: 0
+      cost: [0, 2]
     attack:
-      cost: 5
-      damage: 5
+      cost: [3, 10]
+      damage: [3, 10]
 
   map:
     # _target_: env.griddly.mettagrid.level_builder.MettaGridLevelBuilder
@@ -90,5 +83,5 @@ game:
 
 kinship:
   # _target_: env.wrapper.reward_sharing.TeamRewardSharing
-  team_size: 1
-  team_reward: 0
+  team_size: [1, 5]
+  team_reward: [0.0, 1.0]
