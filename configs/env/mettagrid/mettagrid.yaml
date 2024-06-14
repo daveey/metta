@@ -39,7 +39,7 @@ game:
     converter:
       hp: 30
       cooldown: 2
-      energy_output: 50
+      energy_output: 100
       cost: 0
 
     generator:
