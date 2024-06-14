@@ -1,5 +1,5 @@
 import numpy as np
-from omegaconf import ListConfig, OmegaConf
+from omegaconf import OmegaConf
 
 from env.griddly.builder.game_builder import GriddlyGameBuilder
 from env.griddly.mettagrid.action.attack import Attack
@@ -13,7 +13,6 @@ from env.griddly.mettagrid.object.altar import Altar
 from env.griddly.mettagrid.object.converter import Converter
 from env.griddly.mettagrid.object.generator import Generator
 from env.griddly.mettagrid.object.wall import Wall
-
 class MettaGridGameBuilder(GriddlyGameBuilder):
     def __init__(
             self,
@@ -98,4 +97,3 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
              room_config.border:room_config.border+content_width] = content
 
         return room
-

@@ -1,3 +1,4 @@
+import math
 import gymnasium as gym
 import numpy as np
 
@@ -7,7 +8,7 @@ class Kinship(gym.Wrapper):
         self._team_size = team_size
         self._team_reward = team_reward
         self._num_agents = self.env.unwrapped.player_count
-        self._num_teams = self._num_agents // self._team_size
+        self._num_teams = int(math.ceil(self._num_agents / self._team_size))
 
         self._agent_team = np.array([
             agent // self._team_size for agent in range(self._num_agents)])

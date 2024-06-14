@@ -10,18 +10,20 @@ from env.wrapper.feature_masker import FeatureMasker
 from env.wrapper.kinship import Kinship
 from env.wrapper.last_action_tracker import LastActionTracker
 from env.wrapper.reward_tracker import RewardTracker
+from util.sample_config import sample_config
 
 class MettaGridGymEnv(gym.Env):
-    def __init__(self, render_mode: str, game: MettaGridGameBuilder, **cfg):
+    def __init__(self, render_mode: str, **cfg):
         super().__init__()
 
         self._render_mode = render_mode
-        self._game_builder = game
         self._cfg = OmegaConf.create(cfg)
 
         self.make_env()
 
     def make_env(self):
+        self._game_builder = MettaGridGameBuilder(**sample_config(self._cfg.game))
+
         griddly_yaml = self._game_builder.build()
         self._griddly_yaml = yaml.safe_load(griddly_yaml)
         self._griddly_env = GriddlyGymEnv(
@@ -35,7 +37,7 @@ class MettaGridGymEnv(gym.Env):
         )
 
         self._env = LastActionTracker(self._griddly_env)
-        self._env = Kinship(**self._cfg.kinship, env=self._env)
+        self._env = Kinship(**sample_config(self._cfg.kinship), env=self._env)
         self._env = RewardTracker(self._env)
         self._env = FeatureMasker(self._env, self._cfg.hidden_features)
 

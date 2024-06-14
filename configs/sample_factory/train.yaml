@@ -1,6 +1,6 @@
 # @package sample_factory
 
-aux_loss_coef: 0
+aux_loss_coeff: 0
 recurrence: 256
 rollout: 256
 value_loss_coeff: 0.976
