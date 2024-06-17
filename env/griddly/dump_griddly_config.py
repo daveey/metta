@@ -2,11 +2,15 @@ import hydra
 from omegaconf import OmegaConf
 import yaml
 
+from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
+from util.sample_config import sample_config
+
 
 @hydra.main(version_base=None, config_path="../../configs", config_name="configs")
 def main(cfg):
     print(OmegaConf.to_yaml(cfg))
-    builder = hydra.utils.instantiate(cfg.env.game)
+
+    builder = MettaGridGameBuilder(**sample_config(cfg.env.game))
     griddly_yaml = builder.build()
 
     config_path = "/tmp/griddly_env.yaml"

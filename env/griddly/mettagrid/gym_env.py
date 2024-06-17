@@ -62,6 +62,7 @@ class MettaGridGymEnv(gym.Env):
             for stat_name in agent_stats.keys():
                 if stat_name.startswith("stats_action_"):
                     agent_stats[stat_name] /= self._griddly_env.num_steps
+                    agent_stats[stat_name + "_pct"] = agent_stats[stat_name] / self._griddly_env.num_steps
 
             agent_stats["level_max_energy"] = self._max_level_energy
             agent_stats["level_max_energy_per_agent"] = self._max_level_energy_per_agent

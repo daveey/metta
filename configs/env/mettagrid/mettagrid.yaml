@@ -26,9 +26,9 @@ game:
       freeze_duration: 10
       energy_reward: False
       hp: 1
-      mortal: True
+      mortal: False
       upkeep:
-        time: 1
+        time: 0
         shield: 1
 
     altar:

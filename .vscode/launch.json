@@ -67,8 +67,8 @@
             "request": "launch",
             "module": "env.griddly.dump_griddly_config",
             "args": [
+                "env=mettagrid/a20_r4_40x40_rand"
                 // "env=mettagrid/a5_25x25"
-                "env=mettagrid/a5_25x25"
             ],
         },
         {
