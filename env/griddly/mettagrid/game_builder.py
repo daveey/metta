@@ -21,6 +21,7 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
             tile_size: int,
             max_steps: int,
             num_agents: int,
+            no_energy_steps: int,
             objects,
             actions,
             map):
@@ -32,11 +33,15 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
             num_agents=num_agents,
             max_steps=max_steps
         )
+        self.no_energy_steps = no_energy_steps
         objects = OmegaConf.create(objects)
         self.object_configs = objects
         actions = OmegaConf.create(actions)
         self.action_configs = actions
         self.map_config = OmegaConf.create(map)
+
+        self.register_global_variable("game:agent:dead")
+        self.register_global_variable("game:max_steps", initial_value=no_energy_steps)
 
         self.register_object(Agent(self, objects.agent))
         self.register_object(Altar(self, objects.altar))
@@ -97,3 +102,8 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
              room_config.border:room_config.border+content_width] = content
 
         return room
+
+    def termination_conditions(self):
+        return {
+            "Win": [ {"lt": ["game:max_steps", "_steps"]} ],
+        }

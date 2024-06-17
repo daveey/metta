@@ -17,6 +17,7 @@ game:
   max_steps: 5000
   tile_size: 16
   num_agents: ???
+  no_energy_steps: 500
 
   objects:
     agent:

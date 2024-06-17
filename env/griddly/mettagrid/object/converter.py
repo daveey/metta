@@ -48,7 +48,11 @@ class Converter(MettaObject):
             inv.remove("r1", "converter"),
             inv.add("r2", "converter"),
             energy.add(self.cfg.energy_output, "used:converter"),
+            ctx.global_var("game:max_steps").set("_steps"),
+            ctx.global_var("game:max_steps").add(ctx.game.no_energy_steps)
         ])
+        if ctx.actor.object.cfg.energy_reward:
+            ctx.cmd({"reward": self.cfg.energy_output})
 
         ctx.dst_cmd([
             ctx.target.state.set(ctx.target.object.States.cooldown),

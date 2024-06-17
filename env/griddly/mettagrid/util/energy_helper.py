@@ -8,7 +8,6 @@ class EnergyHelper():
         self.agent = agent
         self.ctx = ctx
         self.max_energy = agent.object.cfg.max_energy
-        self.energy_reward = agent.object.cfg.energy_reward
 
     def has_energy(self, energy: int):
         return [ self.agent.energy.gte(energy) ]
@@ -23,10 +22,9 @@ class EnergyHelper():
             self.ctx.player_var(f"stats:agent:energy:gained:{reason}").add(amount),
             self.ctx.cond(self.agent.energy.gt(self.max_energy), [
                 self.agent.energy.set(self.max_energy)
-            ])
+            ]),
+
         ]
-        if self.energy_reward:
-            cmds.append({"reward": amount})
 
         return cmds
 

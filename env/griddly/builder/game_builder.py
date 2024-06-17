@@ -27,7 +27,6 @@ class GriddlyGameBuilder():
 
         self.register_object(
             GriddlyObject(self, "_empty", " ", sprites=["oryx/oryx_fantasy/floor1-0.png"]))
-        self.register_global_variable("game:agent:dead")
 
     def build(self):
         objects = [obj.build() for obj in self._objects.values() if obj.name != "_empty"]
@@ -67,9 +66,7 @@ class GriddlyGameBuilder():
                 },
                 "Variables": list(self._global_vars.values()),
                 "Levels": ["\n".join(["  ".join(row) for row in self.level()])],
-                "Termination": {
-                    "Win": [ {"eq": ["game:agent:dead", self.num_agents]}]
-                }
+                "Termination": self.termination_conditions()
             },
             "Objects": objects,
             "Actions": actions,
@@ -102,10 +99,13 @@ class GriddlyGameBuilder():
     def actions(self) -> List[GriddlyAction]:
         return list(self._actions.values())
 
-    def register_global_variable(self, name: str, per_player: bool = False):
+    def register_global_variable(self, name: str, per_player: bool = False, initial_value: int = 0):
         if name not in self._global_vars:
             self._global_vars[name] = {
                 "Name": name,
-                "InitialValue": 0,
+                "InitialValue": initial_value,
                 "PerPlayer": per_player
             }
+
+    def termination_conditions(self):
+        return {}
