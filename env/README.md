@@ -17,31 +17,31 @@ The environment is highly configurable, allowing for experimentation with differ
 
 ### Agent
 
-<img src="../third_party/griddly/resources/images/oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_u1.png" width="32"/>
+<img src="https://github.com/daveey/Griddly/blob/develop/resources/images/oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_astronaut_u1.png?raw=true" width="32"/>
 
 The `Agent` object represents an individual agent in the environment. Agents can move, rotate, attack, and interact with other objects. Each agent has energy, resources, and shield properties that govern its abilities and interactions.
 
 ### Altar
 
-<img src="../third_party/griddly/resources/images/oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_heart_full.png" width="32"/>
+<img src="https://github.com/daveey/Griddly/blob/develop/resources/images/oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_heart_full.png?raw=true" width="32"/>
 
 The `Altar` object allows agents to spend energy to gain rewards. Agents can power the altar by using the `use` action when near it. The altar has a cooldown period between uses.
 
 ### Converter
 
-<img src="../third_party/griddly/resources/images/oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_pda_A.png" width="32"/>
+<img src="https://github.com/daveey/Griddly/blob/develop/resources/images/oryx/oryx_tiny_galaxy/tg_sliced/tg_items/tg_items_pda_A.png?raw=true" width="32"/>
 
 The `Converter` object allows agents to convert their harvested resources into energy. Agents can use converters by moving to them and taking the `use` action. Each use of a converter provides a specified amount of energy and has a cooldown period.
 
 ### Generator
 
-<img src="../third_party/griddly/resources/images/oryx/oryx_fantasy/ore-0.png" width="32"/>
+<img src="https://github.com/daveey/Griddly/blob/develop/resources/images/oryx/oryx_fantasy/ore-0.png?raw=true" width="32"/>
 
 The `Generator` object produces resources that agents can harvest. Agents can gather resources from generators by moving to them and taking the `use` action. Generators have a specified capacity and replenish resources over time.
 
 ### Wall
 
-<img src="../third_party/griddly/resources/images/oryx/oryx_fantasy/wall2-0.png" width="32"/>
+<img src="https://github.com/daveey/Griddly/blob/develop/resources/images/oryx/oryx_fantasy/wall2-0.png?raw=true" width="32"/>
 
 The `Wall` object acts as an impassable barrier in the environment, restricting agent movement.
 
