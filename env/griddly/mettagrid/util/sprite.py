@@ -4,3 +4,6 @@ def item(name: str) -> str:
 
 def monster(name: str) -> str:
     return f"oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/tg_monsters_{name}.png"
+
+def sprite2d(name: str) -> str:
+    return f"sprite2d/{name}.png"

@@ -2,6 +2,7 @@ import numpy as np
 from omegaconf import OmegaConf
 
 from env.griddly.builder.game_builder import GriddlyGameBuilder
+from env.griddly.builder.objects.clock import Clock
 from env.griddly.mettagrid.action.attack import Attack
 from env.griddly.mettagrid.action.move import Move
 from env.griddly.mettagrid.action.transfer import Transfer
@@ -43,6 +44,7 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
         self.register_global_variable("game:agent:dead")
         self.register_global_variable("game:max_steps", initial_value=no_energy_steps)
 
+        self.register_object(Clock(self))
         self.register_object(Agent(self, objects.agent))
         self.register_object(Altar(self, objects.altar))
         self.register_object(Converter(self, objects.converter))
@@ -77,6 +79,11 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
             layers.append(np.concatenate(rooms, axis=1))
         level = np.concatenate(layers, axis=0)
         assert num_agents == self.num_agents, f"Number of agents in map ({num_agents}) does not match num_agents ({self.num_agents})"
+
+        footer = np.full((1, level.shape[1]), "W", dtype="U6")
+        footer[0, 0] = "q"
+
+        level = np.concatenate([level, footer], axis=0)
         return level
 
     def build_room(self, room_config, starting_agent=1):
@@ -105,5 +112,5 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
 
     def termination_conditions(self):
         return {
-            "Win": [ {"lt": ["game:max_steps", "_steps"]} ],
+            "Win": [ {"lt": ["game:max_steps", "game:step"]} ],
         }

@@ -79,7 +79,9 @@
 			"unordered_set": "cpp",
 			"variant": "cpp",
 			"vector": "cpp",
-			"algorithm": "cpp"
+			"algorithm": "cpp",
+			"__verbose_abort": "cpp",
+			"execution": "cpp"
 		},
 
 	},

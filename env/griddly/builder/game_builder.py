@@ -25,8 +25,11 @@ class GriddlyGameBuilder():
         self._actions = {}
         self._global_vars = {}
 
+        self.register_global_variable("game:step")
+
         self.register_object(
             GriddlyObject(self, "_empty", " ", sprites=["oryx/oryx_fantasy/floor1-0.png"]))
+
 
     def build(self):
         objects = [obj.build() for obj in self._objects.values() if obj.name != "_empty"]

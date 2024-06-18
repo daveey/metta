@@ -7,9 +7,6 @@ from env.griddly.mettagrid.util.inventory_helper import InventoryHelper
 from env.griddly.mettagrid.object.metta_object import MettaObject
 import  env.griddly.mettagrid.util.sprite as sprite
 
-def sprite_m(name: str):
-    return f"oryx/oryx_tiny_galaxy/tg_sliced/tg_monsters/{name}.png"
-
 class Agent(MettaObject):
     def __init__(self, game, cfg: OmegaConf):
         super().__init__(
