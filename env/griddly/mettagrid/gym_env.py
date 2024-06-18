@@ -62,7 +62,6 @@ class MettaGridGymEnv(gym.Env):
             extra_stats = {}
             for stat_name in agent_stats.keys():
                 if stat_name.startswith("stats_action_"):
-                    agent_stats[stat_name] /= self._griddly_env.num_steps
                     extra_stats[stat_name + "_pct"] = agent_stats[stat_name] / self._griddly_env.num_steps
 
             agent_stats.update(extra_stats)
