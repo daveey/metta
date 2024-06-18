@@ -80,9 +80,7 @@ class GriddlyGymEnv(gym.Env):
         if self._num_agents == 1:
             obs = [obs]
 
-        # config variables get update in the first few steps (species get set)
-        if self.num_steps < 2:
-            self._compute_global_variable_obs()
+        self._compute_global_variable_obs()
 
         self.num_steps += 1
         rewards = np.array(rewards, dtype=np.float32)
