@@ -87,23 +87,13 @@ class Agent(MettaObject):
         ])
 
         energy = EnergyHelper(ctx, ctx.target)
-        attacker_inv = InventoryHelper(ctx, ctx.actor)
-        target_inv = InventoryHelper(ctx, ctx.target)
 
         frozen_cond = {
             "or": [ctx.target.shield.eq(0), ctx.target.energy.lt(damage)]
         }
 
-        inv_add_cmds = []
-        inv_rem_cmds = []
-        for r in InventoryHelper.Items.values():
-            inv_add_cmds.extend(attacker_inv.add(r, "loot", target_inv.item_var(r).val()))
-            inv_rem_cmds.extend(target_inv.remove(r, "loot", target_inv.item_var(r).val()))
-
         ctx.cmd(ctx.cond(
             frozen_cond, [
-                inv_add_cmds,
-                inv_rem_cmds,
                 ctx.player_var(f"stats:agent:attack:victory").incr(),
                 ctx.target.frozen.set(1),
                 ctx.player_var(f"stats:agent:defeated").incr(),
@@ -117,4 +107,21 @@ class Agent(MettaObject):
                 {"set_tile": 1},
                 ctx.target.unfreeze(delay=self.cfg.freeze_duration),
             ])
+        ])
+
+    def usable(self, ctx: BehaviorContext):
+        return [ ctx.target.frozen.eq(1) ]
+
+    def on_use(self, ctx):
+        inv_add_cmds = []
+        inv_rem_cmds = []
+        attacker_inv = InventoryHelper(ctx, ctx.actor)
+        target_inv = InventoryHelper(ctx, ctx.target)
+        for r in InventoryHelper.Items.values():
+            inv_add_cmds.extend(attacker_inv.add(r, "loot", target_inv.item_var(r).val()))
+            inv_rem_cmds.extend(target_inv.remove(r, "loot", target_inv.item_var(r).val()))
+
+        ctx.cmd([
+            inv_add_cmds,
+            inv_rem_cmds,
         ])

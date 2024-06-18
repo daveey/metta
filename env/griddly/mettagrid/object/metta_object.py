@@ -26,3 +26,6 @@ class MettaObject(GriddlyObject):
                 {"remove": True }
             ])
         ])
+
+    def usable(self, ctx: BehaviorContext):
+        return [ctx.target.state.eq(ctx.target.object.States.ready)]

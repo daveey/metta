@@ -21,23 +21,24 @@ game:
       hp: 1
       upkeep:
         shield: [0, 3]
+      use_cost: 0
 
     altar:
       hp: [10, 50]
       cooldown: [2, 5]
-      cost: [50, 300]
+      use_cost: [50, 300]
 
     converter:
       hp: [10, 50]
       cooldown: [2, 5]
       energy_output: [50, 200]
-      cost: 0
+      use_cost: 0
 
     generator:
       hp: [10, 50]
       cooldown: [3, 10]
       initial_resources: [5, 50]
-      cost: 0
+      use_cost: 0
 
     wall:
       density: 0.01

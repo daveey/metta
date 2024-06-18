@@ -24,16 +24,18 @@ class Use(GriddlyAction):
         self.add_behaviour(MettaActionBehavior("agent", "generator", cfg, self.use))
         self.add_behaviour(MettaActionBehavior("agent", "altar", cfg, self.use))
         self.add_behaviour(MettaActionBehavior("agent", "converter", cfg, self.use))
+        self.add_behaviour(MettaActionBehavior("agent", "agent", cfg, self.use))
 
     def use(self, ctx: BehaviorContext):
         energy_helper = EnergyHelper(ctx, ctx.actor)
         ctx.require([
-            energy_helper.has_energy(self.cfg.cost + ctx.target.object.cfg.cost),
-            ctx.target.state.eq(ctx.target.object.States.ready)
+            energy_helper.has_energy(self.cfg.cost + ctx.target.object.cfg.use_cost),
         ])
+        ctx.require(ctx.target.object.usable(ctx))
+
         ctx.cmd([
             ctx.global_var(f"stats:{ctx.target.object.name}:used").incr(),
-            energy_helper.use(self.cfg.cost + ctx.target.object.cfg.cost, f"{ctx.target.object.name}")
+            energy_helper.use(self.cfg.cost + ctx.target.object.cfg.use_cost, f"{ctx.target.object.name}")
         ])
         ctx.target.object.on_use(ctx)
 

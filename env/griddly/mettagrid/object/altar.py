@@ -36,7 +36,7 @@ class Altar(MettaObject):
 
     def on_use(self, ctx):
         ctx.cmd([
-            {"reward": self.cfg.cost},
+            {"reward": self.cfg.use_cost},
         ])
         ctx.dst_cmd([
             ctx.target.state.set(ctx.target.object.States.cooldown),
