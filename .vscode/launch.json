@@ -54,8 +54,8 @@
             "request": "launch",
             "module": "tools.evaluate",
             "args": [
-                "+sample_factory.experiment=baseline.v0.4.1",
-                "env=mettagrid/a20_r4_40x40",
+                "+sample_factory.experiment=baseline.v0.5.2",
+                "env=mettagrid/behaviors/resources/competition/10x10_2a",
                 "sample_factory=video",
                 "sample_factory.device=cpu",
                 // "+env=dev",

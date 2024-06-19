@@ -21,8 +21,8 @@ game:
 
   objects:
     agent:
-      initial_energy: 500
-      max_energy: 500
+      initial_energy: 250
+      max_energy: 250
       max_inventory: 5
       freeze_duration: 10
       energy_reward: False
@@ -41,7 +41,7 @@ game:
     converter:
       hp: 30
       cooldown: 2
-      energy_output: 100
+      energy_output: 50
       use_cost: 0
 
     generator:

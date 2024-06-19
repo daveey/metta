@@ -13,8 +13,8 @@ game:
 
   objects:
     agent:
-      initial_energy: [50, 500]
-      max_energy: [200, 500]
+      initial_energy: [50, 250]
+      max_energy: [200, 250]
       max_inventory: [3, 10]
       freeze_duration: [5, 20]
       energy_reward: False
@@ -26,7 +26,7 @@ game:
     altar:
       hp: [10, 50]
       cooldown: [2, 5]
-      use_cost: [50, 300]
+      use_cost: [50, 250]
 
     converter:
       hp: [10, 50]
