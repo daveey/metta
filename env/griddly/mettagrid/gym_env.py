@@ -65,7 +65,7 @@ class MettaGridGymEnv(gym.Env):
                     extra_stats[stat_name + "_pct"] = agent_stats[stat_name] / self._griddly_env.num_steps
                 for object in self._game_builder.object_configs.keys():
                     if stat_name.startswith(f"stats_{object}_") and object != "agent":
-                        symbol = self._game_builder.objects()[object].symbol
+                        symbol = self._game_builder._objects[object].symbol
                         num_obj = self._griddly_yaml["Environment"]["Levels"][0].count(symbol)
                         extra_stats[stat_name + "_pct"] = agent_stats[stat_name] / num_obj
 
