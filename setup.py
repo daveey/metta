@@ -2,6 +2,8 @@ from setuptools import setup, find_packages, Command
 import subprocess
 from setuptools.command.install import install
 from setuptools.command.develop import develop
+from Cython.Build import cythonize
+import numpy
 
 class BuildGriddlyCommand(Command):
     description = 'Build Griddly'
@@ -37,16 +39,16 @@ class BuildGriddlyCommand(Command):
 
 class DevelopCommand(develop):
     def run(self):
-        self.run_command('build_griddly')
-        subprocess.check_call(
-            ['pip', 'install', "-e", './third_party/griddly/python/'],
-        )
+        # self.run_command('build_griddly')
+        # subprocess.check_call(
+        #     ['pip', 'install', "-e", './third_party/griddly/python/'],
+        # )
         # subprocess.check_call(
         #     ['pip', 'install', "-e", './third_party/meltingpot/'],
         # ),
-        subprocess.check_call(
-            ['pip', 'install', "-e", './third_party/sample_factory/'],
-        )
+        # subprocess.check_call(
+        #     ['pip', 'install', "-e", './third_party/sample_factory/'],
+        # )
         super().run()
 
 setup(
@@ -67,6 +69,8 @@ setup(
         "tabulate",
         "tensordict",
         "torchrl",
+        "pynvml",
+        "raylib"
     ],
     entry_points={
         'console_scripts': [
@@ -77,5 +81,12 @@ setup(
     cmdclass={
         'build_griddly': BuildGriddlyCommand,
         'develop': DevelopCommand,
-    }
+    },
+    include_dirs=[numpy.get_include()],
+    ext_modules = cythonize([
+        # "third_party/pufferlib/pufferlib/extensions.pyx",
+        # "third_party/pufferlib/pufferlib/environments/ocean/grid/c_grid.pyx",
+    ],
+        #compiler_directives={'profile': True}, annotate=True
+    ),
 )

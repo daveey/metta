@@ -62,6 +62,18 @@
             ],
         },
         {
+            "name": "Run Puffer",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rl_framework.pufferlib.main",
+            "args": [
+                // "train.device=cpu",
+                // "mode=eval",
+                // "env=grid",
+                // "render-mode=human",
+            ],
+        },
+        {
             "name": "Dump Griddly Config",
             "type": "debugpy",
             "request": "launch",
