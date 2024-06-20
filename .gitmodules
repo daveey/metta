@@ -7,3 +7,6 @@
 [submodule "third_party/meltingpot"]
 	path = third_party/meltingpot
 	url = https://github.com/google-deepmind/meltingpot.git
+[submodule "third_party/pufferlib"]
+	path = third_party/pufferlib
+	url = git@github.com:daveey/PufferLib.git
