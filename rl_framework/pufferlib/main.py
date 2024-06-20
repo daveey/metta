@@ -242,6 +242,7 @@ def main(cfg):
     parser.add_argument('--wandb-project', type=str, default='pufferlib', help='WandB project')
     parser.add_argument('--wandb-group', type=str, default='debug', help='WandB group')
     parser.add_argument('--track', action='store_true', help='Track on WandB')
+    sys.argv = sys.argv[:1]
     wandb_name, pkg, args, env_module, make_env, make_policy = load_config(parser)
 
     if args.baseline:
@@ -286,16 +287,6 @@ def main(cfg):
         from pstats import SortKey
         p = pstats.Stats('stats.profile')
         p.sort_stats(SortKey.TIME).print_stats(10)
-    elif args.mode == 'evaluate' and pkg == 'pokemon_red':
-        import pokemon_red_eval
-        pokemon_red_eval.rollout(
-            make_env,
-            args.env,
-            agent_creator=make_policy,
-            agent_kwargs={'env_module': env_module, 'args': args},
-            model_path=args.eval_model_path,
-            device=args.train.device,
-        )
 
 if __name__ == '__main__':
     main()

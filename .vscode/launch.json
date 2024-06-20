@@ -67,6 +67,8 @@
             "request": "launch",
             "module": "rl_framework.pufferlib.main",
             "args": [
+                "env=mettagrid/a20_b4_40x40",
+
                 // "train.device=cpu",
                 // "mode=eval",
                 // "env=grid",

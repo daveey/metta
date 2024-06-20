@@ -5,6 +5,7 @@ from omegaconf import OmegaConf
 import shimmy
 import functools
 
+from env.wrapper.petting_zoo import PettingZooEnvWrapper
 import pufferlib
 import pufferlib.emulation
 import pufferlib.environments
@@ -18,4 +19,5 @@ def env_creator(name='GDY-MettaGrid'):
 def make(name, cfg: OmegaConf, render_mode='rgb_array'):
     env = hydra.utils.instantiate(cfg, render_mode=render_mode)
     # env = pufferlib.postprocess.EpisodeStats(env)
-    return pufferlib.emulation.GymnasiumPufferEnv(env)
+    env = PettingZooEnvWrapper(env)
+    return pufferlib.emulation.PettingZooPufferEnv(env)

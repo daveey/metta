@@ -46,9 +46,12 @@ class DevelopCommand(develop):
         # subprocess.check_call(
         #     ['pip', 'install', "-e", './third_party/meltingpot/'],
         # ),
-        # subprocess.check_call(
-        #     ['pip', 'install', "-e", './third_party/sample_factory/'],
-        # )
+        subprocess.check_call(
+            ['pip', 'install', "-e", './third_party/sample_factory/'],
+        )
+        subprocess.check_call(
+            ['pip', 'install', "-e", './third_party/pufferlib/'],
+        )
         super().run()
 
 setup(

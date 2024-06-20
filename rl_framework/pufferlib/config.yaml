@@ -83,8 +83,10 @@ metta:
     gae_lambda: 0.99
     ent_coef: 0.0018
     bptt_horizon: 8
-    batch_size: 65536
-    minibatch_size: 2048
+    # batch_size: 65536
+    batch_size: 1024
+    # minibatch_size: 2048
+    minibatch_size: 1024
     compile: False
     anneal_lr: False
   sweep:
