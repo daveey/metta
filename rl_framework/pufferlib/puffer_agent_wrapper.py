@@ -4,10 +4,14 @@ import torch
 from torch import nn
 
 import pufferlib
+import pufferlib.models
 import pufferlib.pytorch
 
 from agent.metta_agent import MettaAgent
 
+class Recurrent(pufferlib.models.LSTMWrapper):
+    def __init__(self, env, policy, input_size=512, hidden_size=512, num_layers=1):
+        super().__init__(env, policy, input_size, hidden_size, num_layers)
 
 class Policy(nn.Module):
     def __init__(self, env, cfg):
@@ -28,7 +32,7 @@ class Policy(nn.Module):
 
     def encode_observations(self, flat_obs):
         x = pufferlib.pytorch.nativize_tensor(flat_obs, self.dtype)
-        return self.model.forward_head(x)
+        return self.model.forward_head(x), None
 
     def decode_actions(self, flat_hidden, lookup, concat=None):
         action = [self.atn_type(flat_hidden), self.atn_param(flat_hidden)]

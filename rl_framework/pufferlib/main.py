@@ -102,11 +102,6 @@ def load_config(parser, config_path='rl_framework/pufferlib/config.yaml'):
 
 def make_policy(env, env_module, args, hydra_cfg):
     policy = env_module.Policy(env, hydra_cfg)
-=======
-def make_policy(env, env_module, args):
-    policy_args = pufferlib.utils.get_init_args(env_module.Policy)
-    policy = env_module.Policy(env, **policy_args)
->>>>>>> 3bef184681d8a3eaa111725b54cae82ee05be96e
     if args.use_rnn:
         policy = env_module.Recurrent(env, policy, **args.rnn)
         policy = pufferlib.frameworks.cleanrl.RecurrentPolicy(policy)
@@ -160,7 +155,7 @@ def sweep(args, wandb_name, env_module, make_env):
 def train(cfg, env_module, make_env):
     args = cfg.pufferlib
     if args.wandb.track:
-        wandb = init_wandb(args, "xcxc_wandb", id=args.exp_id)
+        args.train.wandb = init_wandb(args, "xcxc_wandb", id=args.exp_id)
 
     vec = args.vectorization
     if vec == 'serial':
@@ -172,7 +167,6 @@ def train(cfg, env_module, make_env):
     else:
         raise ValueError(f'Invalid --vector (serial/multiprocessing/ray).')
 
-    env_kwargs = {k: v for k, v in args.cfg.env.items() if k!='name'}
     vecenv = pufferlib.vector.make(
         make_env,
         env_kwargs=dict(cfg = dict(**cfg.env)),
@@ -182,14 +176,14 @@ def train(cfg, env_module, make_env):
         zero_copy=args.train.zero_copy,
         backend=vec,
     )
-    policy = make_policy(vecenv.driver_env, env_module, args, args.cfg.agent)
+    policy = make_policy(vecenv.driver_env, env_module, args, cfg.agent)
     train_config = args.train
     train_config.track = args.wandb.track
     train_config.device = args.train.device
     train_config.env = cfg.env.name
 
     if args.backend == 'clean_pufferl':
-        data = clean_pufferl.create(train_config, vecenv, policy, wandb=args.wandb)
+        data = clean_pufferl.create(train_config, vecenv, policy, wandb=args.train.wandb)
 
         while data.global_step < args.train.total_timesteps:
             try:
@@ -248,7 +242,6 @@ def main(cfg):
             model_file = max(os.listdir(data_dir))
             args.eval_model_path = os.path.join(data_dir, model_file)
 
-    args.cfg = cfg
     if args.mode == 'train':
         train(cfg, env_module, make_env)
     elif args.mode in ('eval', 'evaluate'):
