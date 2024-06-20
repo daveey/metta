@@ -1,4 +1,5 @@
 defaults:
   - sample_factory: train
+  - pufferlib: prod
   - agent: agent
   - env: mettagrid/a20_b4_40x40
