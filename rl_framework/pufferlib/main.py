@@ -1,3 +1,4 @@
+from calendar import c
 from pdb import set_trace as T
 import functools
 import argparse
@@ -101,6 +102,11 @@ def load_config(parser, config_path='rl_framework/pufferlib/config.yaml'):
 
 def make_policy(env, env_module, args, hydra_cfg):
     policy = env_module.Policy(env, hydra_cfg)
+=======
+def make_policy(env, env_module, args):
+    policy_args = pufferlib.utils.get_init_args(env_module.Policy)
+    policy = env_module.Policy(env, **policy_args)
+>>>>>>> 3bef184681d8a3eaa111725b54cae82ee05be96e
     if args.use_rnn:
         policy = env_module.Recurrent(env, policy, **args.rnn)
         policy = pufferlib.frameworks.cleanrl.RecurrentPolicy(policy)
@@ -114,9 +120,9 @@ def init_wandb(args, name, id=None, resume=True):
     import wandb
     wandb.init(
         id=id or wandb.util.generate_id(),
-        project=args.wandb_project,
-        entity=args.wandb_entity,
-        group=args.wandb_group,
+        project=args.wandb.project,
+        entity=args.wandb.entity,
+        group=args.wandb.group,
         config={
             'cleanrl': dict(args.train),
             'env': dict(args.env),
@@ -151,13 +157,12 @@ def sweep(args, wandb_name, env_module, make_env):
 
     wandb.agent(sweep_id, main, count=100)
 
-def train(args, env_module, make_env):
-    args.wandb = None
-    args.train.exp_id = args.exp_id
-    if args.track:
-        args.wandb = init_wandb(args, wandb_name, id=args.exp_id)
+def train(cfg, env_module, make_env):
+    args = cfg.pufferlib
+    if args.wandb.track:
+        wandb = init_wandb(args, "xcxc_wandb", id=args.exp_id)
 
-    vec = args.vec
+    vec = args.vectorization
     if vec == 'serial':
         vec = pufferlib.vector.Serial
     elif vec == 'multiprocessing':
@@ -170,7 +175,7 @@ def train(args, env_module, make_env):
     env_kwargs = {k: v for k, v in args.cfg.env.items() if k!='name'}
     vecenv = pufferlib.vector.make(
         make_env,
-        env_kwargs={'cfg': env_kwargs},
+        env_kwargs=dict(cfg = dict(**cfg.env)),
         num_envs=args.train.num_envs,
         num_workers=args.train.num_workers,
         batch_size=args.train.env_batch_size,
@@ -179,9 +184,9 @@ def train(args, env_module, make_env):
     )
     policy = make_policy(vecenv.driver_env, env_module, args, args.cfg.agent)
     train_config = args.train
-    train_config.track = args.track
+    train_config.track = args.wandb.track
     train_config.device = args.train.device
-    train_config.env = args.env_name
+    train_config.env = cfg.env.name
 
     if args.backend == 'clean_pufferl':
         data = clean_pufferl.create(train_config, vecenv, policy, wandb=args.wandb)
@@ -220,42 +225,24 @@ def train(args, env_module, make_env):
 @hydra.main(version_base=None, config_path="../../configs", config_name="configs")
 def main(cfg):
     install(show_locals=False) # Rich tracebacks
-    # TODO: Add check against old args like --config to demo
-    parser = argparse.ArgumentParser(
-            description=f':blowfish: PufferLib [bright_cyan]{pufferlib.__version__}[/]'
-        ' demo options. Shows valid args for your env and policy',
-        formatter_class=RichHelpFormatter, add_help=False)
-    assert 'config' not in sys.argv, '--config deprecated. Use --env'
-    parser.add_argument('--env', '--environment', type=str,
-        default='metta', help='Name of specific environment to run')
-    parser.add_argument('--pkg', '--package', type=str, default=None, help='Configuration in config.yaml to use')
-    parser.add_argument('--backend', type=str, default='clean_pufferl', help='Train backend (clean_pufferl, sb3)')
-    parser.add_argument('--mode', type=str, default='train', choices='train eval evaluate sweep autotune baseline profile'.split())
-    parser.add_argument('--eval-model-path', type=str, default=None, help='Path to model to evaluate')
-    parser.add_argument('--baseline', action='store_true', help='Baseline run')
-    parser.add_argument('--render-mode', type=str, default='auto',
-        choices='auto human ansi rgb_array None'.split(),
-        help='Disable render during evaluate')
-    parser.add_argument('--vec', '--vector', '--vectorization', type=str,
-        default='serial', choices='serial multiprocessing ray'.split())
-    parser.add_argument('--exp-id', '--exp-name', type=str, default=None, help="Resume from experiment")
-    parser.add_argument('--wandb-entity', type=str, default='jsuarez', help='WandB entity')
-    parser.add_argument('--wandb-project', type=str, default='pufferlib', help='WandB project')
-    parser.add_argument('--wandb-group', type=str, default='debug', help='WandB group')
-    parser.add_argument('--track', action='store_true', help='Track on WandB')
-    sys.argv = sys.argv[:1]
-    wandb_name, pkg, args, env_module, make_env, make_policy = load_config(parser)
+
+    make_env = env_module.env_creator(cfg.env.name)
+    make_env_args = pufferlib.utils.get_init_args(make_env)
+    rnn_args = pufferlib.utils.get_init_args(env_module.Recurrent)
+
+    wandb_name = cfg.env.name
+    args = cfg.pufferlib
 
     if args.baseline:
         assert args.mode in ('train', 'eval', 'evaluate')
-        args.track = True
+        args.wandb.track = True
         version = '.'.join(pufferlib.__version__.split('.')[:2])
-        args.exp_id = f'puf-{version}-{args.env_name}'
-        args.wandb_group = f'puf-{version}-baseline'
+        args.exp_id = f'puf-{version}-{cfg.env.name}'
+        args.wandb.group = f'puf-{version}-baseline'
         shutil.rmtree(f'experiments/{args.exp_id}', ignore_errors=True)
-        run = init_wandb(args, args.exp_id, resume=False)
+        run = init_wandb(cfg, args.exp_id, resume=False)
         if args.mode in ('eval', 'evaluate'):
-            model_name = f'puf-{version}-{args.env_name}_model:latest'
+            model_name = f'puf-{version}-{cfg.env.name}_model:latest'
             artifact = run.use_artifact(model_name)
             data_dir = artifact.download()
             model_file = max(os.listdir(data_dir))
@@ -263,12 +250,12 @@ def main(cfg):
 
     args.cfg = cfg
     if args.mode == 'train':
-        train(args, env_module, make_env)
+        train(cfg, env_module, make_env)
     elif args.mode in ('eval', 'evaluate'):
         try:
             clean_pufferl.rollout(
                 make_env,
-                args.env,
+                {cfg: cfg.env},
                 agent_creator=make_policy,
                 agent_kwargs={'env_module': env_module, 'args': args},
                 model_path=args.eval_model_path,
@@ -278,7 +265,7 @@ def main(cfg):
         except KeyboardInterrupt:
             os._exit(0)
     elif args.mode == 'sweep':
-        sweep(args, wandb_name, env_module, make_env)
+        sweep(cfg, wandb_name, env_module, make_env)
     elif args.mode == 'autotune':
         cfg = {k: v for k, v in cfg.env.items() if k != 'name'}
         creator = lambda: make_env(cfg)
