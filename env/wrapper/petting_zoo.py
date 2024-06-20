@@ -3,13 +3,14 @@ import gymnasium as gym
 import numpy as np
 
 class PettingZooEnvWrapper(pettingzoo.ParallelEnv):
-    def __init__(self, gym_env: gym.Env):
+    def __init__(self, gym_env: gym.Env, render_mode='rgb_array'):
         super().__init__()
         self._gym_env = gym_env
         self.possible_agents = [i+1 for i in range(self.num_agents)]
         # agents gets manipulated
         self.agents = [i+1 for i in range(self.num_agents)]
         self.infos = {i: {} for i in self.possible_agents}
+        self.render_mode = 'render_mode'
 
     @property
     def num_agents(self):
@@ -20,6 +21,9 @@ class PettingZooEnvWrapper(pettingzoo.ParallelEnv):
 
     def action_space(self, agent: int) -> gym.Space:
         return self._gym_env.action_space
+
+    def render(self, *args):
+        return self._gym_env.render()
 
     def reset(self, seed=0):
         obs, _ = self._gym_env.reset()
