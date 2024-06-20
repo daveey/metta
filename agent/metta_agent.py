@@ -45,7 +45,7 @@ class MettaAgent(nn.Module, MettaAgentInterface):
         decoder_out_size: int = self._decoder.get_out_size()
 
         self._critic_linear = nn.Linear(decoder_out_size, 1)
-        self._action_parameterization = self.get_action_parameterization(decoder_out_size)
+        #self._action_parameterization = self.get_action_parameterization(decoder_out_size)
         self._last_action_distribution = None
 
         self.apply(self.initialize_weights)

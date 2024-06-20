@@ -82,6 +82,7 @@ default:
 metta:
   package: metta
   env_name: mettagrid
+  use_rnn: True
   train:
     total_timesteps: 50_000_000
     learning_rate: 0.00175

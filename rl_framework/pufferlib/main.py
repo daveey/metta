@@ -48,8 +48,8 @@ def load_config(parser, config_path='rl_framework/pufferlib/config.yaml'):
     make_env_args = [make_name] if make_name else []
     make_env = env_module.env_creator(*make_env_args)
     make_env_args = pufferlib.utils.get_init_args(make_env)
-    policy_args = pufferlib.utils.get_init_args(env_module.Policy)
-    rnn_args = pufferlib.utils.get_init_args(env_module.Recurrent)
+    policy_args = {} #pufferlib.utils.get_init_args(env_module.Policy)
+    rnn_args = {} #pufferlib.utils.get_init_args(env_module.Recurrent)
     fn_sig = dict(env=make_env_args, policy=policy_args, rnn=rnn_args)
     config = vars(parser.parse_known_args()[0])
 
@@ -80,7 +80,7 @@ def load_config(parser, config_path='rl_framework/pufferlib/config.yaml'):
         config[name] = pufferlib.namespace(**config[name])
 
     pufferlib.utils.validate_args(make_env.func if isinstance(make_env, functools.partial) else make_env, config['env'])
-    pufferlib.utils.validate_args(env_module.Policy, config['policy'])
+    #pufferlib.utils.validate_args(env_module.Policy, config['policy'])
 
     if 'use_rnn' in env_config:
         config['use_rnn'] = env_config['use_rnn']
@@ -99,8 +99,8 @@ def load_config(parser, config_path='rl_framework/pufferlib/config.yaml'):
     config['exp_id'] = args.exp_id or args.env + '-' + str(uuid.uuid4())[:8]
     return wandb_name, pkg_name, pufferlib.namespace(**config), env_module, make_env, make_policy
 
-def make_policy(env, env_module, args):
-    policy = env_module.Policy(env, **args.policy)
+def make_policy(env, env_module, args, hydra_cfg):
+    policy = env_module.Policy(env, hydra_cfg)
     if args.use_rnn:
         policy = env_module.Recurrent(env, policy, **args.rnn)
         policy = pufferlib.frameworks.cleanrl.RecurrentPolicy(policy)
@@ -167,16 +167,17 @@ def train(args, env_module, make_env):
     else:
         raise ValueError(f'Invalid --vector (serial/multiprocessing/ray).')
 
+    env_kwargs = {k: v for k, v in args.cfg.env.items() if k!='name'}
     vecenv = pufferlib.vector.make(
         make_env,
-        env_kwargs=args.env,
+        env_kwargs={'cfg': env_kwargs},
         num_envs=args.train.num_envs,
         num_workers=args.train.num_workers,
         batch_size=args.train.env_batch_size,
         zero_copy=args.train.zero_copy,
         backend=vec,
     )
-    policy = make_policy(vecenv.driver_env, env_module, args)
+    policy = make_policy(vecenv.driver_env, env_module, args, args.cfg.agent)
     train_config = args.train
     train_config.track = args.track
     train_config.device = args.train.device
@@ -260,7 +261,7 @@ def main(cfg):
             model_file = max(os.listdir(data_dir))
             args.eval_model_path = os.path.join(data_dir, model_file)
 
-    args.env.cfg = cfg.env
+    args.cfg = cfg
     if args.mode == 'train':
         train(args, env_module, make_env)
     elif args.mode in ('eval', 'evaluate'):
@@ -279,7 +280,9 @@ def main(cfg):
     elif args.mode == 'sweep':
         sweep(args, wandb_name, env_module, make_env)
     elif args.mode == 'autotune':
-        pufferlib.vector.autotune(make_env, batch_size=args.train.env_batch_size)
+        cfg = {k: v for k, v in cfg.env.items() if k != 'name'}
+        creator = lambda: make_env(cfg)
+        pufferlib.vector.autotune(creator, batch_size=args.train.env_batch_size)
     elif args.mode == 'profile':
         import cProfile
         cProfile.run('train(args, env_module, make_env)', 'stats.profile')
