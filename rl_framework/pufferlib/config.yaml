@@ -45,51 +45,6 @@ default:
     compile_mode: reduce-overhead
 
   sweep:
-    method: random
-    name: sweep
-    metric:
-      goal: maximize
-      name: environment/episode_return
-    # Nested parameters name required by WandB API
-    parameters:
-      train:
-        parameters:
-          learning_rate: {
-            'distribution': 'log_uniform_values',
-            'min': 1e-4,
-            'max': 1e-1,
-          }
-          batch_size: {
-            'values': [512, 1024, 2048],
-          }
-          minibatch_size: {
-            'values': [128, 256, 512],
-          }
-          bptt_horizon: {
-            'values': [4, 8, 16],
-          }
-
-metta:
-  package: metta
-  env_name: mettagrid
-  train:
-    total_timesteps: 50_000_000
-    learning_rate: 0.00175
-    num_envs: 1
-    num_workers: 1
-    env_batch_size: 1
-    update_epochs: 1
-    gamma: 0.925
-    gae_lambda: 0.99
-    ent_coef: 0.0018
-    bptt_horizon: 8
-    # batch_size: 65536
-    batch_size: 1024
-    # minibatch_size: 2048
-    minibatch_size: 1024
-    compile: False
-    anneal_lr: False
-  sweep:
     method: bayes
     name: sweep
     metric:
@@ -124,3 +79,44 @@ metta:
           bptt_horizon: {
             'values': [1, 2, 4, 8, 16],
           }
+metta:
+  package: metta
+  env_name: mettagrid
+  train:
+    total_timesteps: 50_000_000
+    learning_rate: 0.00175
+    num_envs: 1
+    num_workers: 1
+    env_batch_size: 1
+    update_epochs: 1
+    gamma: 0.925
+    gae_lambda: 0.99
+    ent_coef: 0.0018
+    bptt_horizon: 8
+    # batch_size: 65536
+    batch_size: 1024
+    # minibatch_size: 2048
+    minibatch_size: 1024
+    compile: False
+    anneal_lr: False
+
+
+metta-fast:
+  package: metta
+  env_name: mettagrid
+  train:
+    total_timesteps: 50_000_000
+    learning_rate: 0.00175
+    num_envs: 60
+    num_workers: 6
+    env_batch_size: 20
+    zero_copy: False
+    update_epochs: 1
+    gamma: 0.925
+    gae_lambda: 0.99
+    ent_coef: 0.0018
+    bptt_horizon: 8
+    batch_size: 4096
+    minibatch_size: 1024
+    compile: False
+    anneal_lr: False
