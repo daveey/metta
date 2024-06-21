@@ -1,7 +1,7 @@
 package: metta
 
 
-use_rnn: False
+use_rnn: True
 rnn: {}
 
 baseline: False
@@ -20,6 +20,7 @@ wandb:
 
 
 train:
+  wandb: null
   track: False
   env: ???
   seed: 1

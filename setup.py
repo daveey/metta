@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages, Command
+from setuptools import Extension, setup, find_packages, Command
 import subprocess
 from setuptools.command.install import install
 from setuptools.command.develop import develop
@@ -54,6 +54,14 @@ class DevelopCommand(develop):
         )
         super().run()
 
+ext_modules = [
+    Extension(
+        "env.mettagrid.c_grid",  # Name of the resulting .so file
+        ["env/mettagrid/c_grid.pyx"],
+        include_dirs=[numpy.get_include()],
+    )
+]
+
 setup(
     name='metta',
     version='0.1',
@@ -86,10 +94,7 @@ setup(
         'develop': DevelopCommand,
     },
     include_dirs=[numpy.get_include()],
-    ext_modules = cythonize([
-        # "third_party/pufferlib/pufferlib/extensions.pyx",
-        # "third_party/pufferlib/pufferlib/environments/ocean/grid/c_grid.pyx",
-    ],
-        #compiler_directives={'profile': True}, annotate=True
+    ext_modules=cythonize(
+        ext_modules, compiler_directives={'profile': True}, annotate=True
     ),
 )
