@@ -76,14 +76,14 @@ def container_config(args, task_args):
     ]
     train_cmd = [
         './devops/train.sh',
-        f'+sample_factory.experiment={args.experiment}',
+        f'+framework.experiment={args.experiment}',
         *task_args,
     ]
     if args.git_branch is not None:
         setup_cmds.append(f'git checkout {args.git_branch}')
     if args.init_model is not None:
         setup_cmds.append(f'./devops/load_model.sh {args.init_model}',)
-        train_cmd.append(f'+sample_factory.init_checkpoint_path=train_dir/{args.init_model}/latest.pth')
+        train_cmd.append(f'+framework.init_checkpoint_path=train_dir/{args.init_model}/latest.pth')
 
     print("\n".join([
             "Setup:",

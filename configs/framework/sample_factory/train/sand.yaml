@@ -1,5 +1,7 @@
+# @package framework
+
 defaults:
-  - train
+  - sample_factory/train
 
 decorrelate_experience_max_seconds: 0
 num_workers: 3

@@ -8,20 +8,19 @@
             "name": "Train Metta",
             "type": "debugpy",
             "request": "launch",
-            "module": "tools.train",
+            "module": "tools.run",
             "args": [
-                "sample_factory=train_sand",
+                "framework=sample_factory/train/sand",
                 "env=mettagrid/a20_b4_40x40",
                 "env.kinship.team_size=5",
                 "env.kinship.team_reward=0.8",
                 // "env.substrate_name=running_with_scissors_in_the_matrix__arena",
 
                 // "sample_factory.aux_loss_coeff=0.1",
-                "+sample_factory.device=cpu",
-                "+sample_factory.experiment=baseline.v0.4.1",
-                "+sample_factory.train_dir=./train_dir",
+                "+framework.device=cpu",
+                "+framework.experiment=baseline.v0.4.1",
+                "+framework.train_dir=./train_dir",
 
-                // "+sample_factory.experiment=mac.mp.rws",
                 // "sample_factory.wandb_project=mp_rws"
                 // "+sample_factory.restart_behavior=restart",
                 // "sample_factory.num_workers=2",
@@ -52,13 +51,12 @@
             "name": "Evaluate",
             "type": "debugpy",
             "request": "launch",
-            "module": "tools.evaluate",
+            "module": "tools.run",
             "args": [
-                "+sample_factory.experiment=baseline.v0.5.2",
+                "framework=sample_factory/eval/video",
+                "cmd=evaluate",
+                "+framework.experiment=baseline.v0.5.2",
                 "env=mettagrid/behaviors/resources/competition/10x10_2a",
-                "sample_factory=video",
-                "sample_factory.device=cpu",
-                // "+env=dev",
             ],
         },
         {

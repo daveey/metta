@@ -1,3 +1,10 @@
+# @package framework
+
+defaults:
+  - defaults
+
+experiment: ???
+
 seed: 0
 max_num_frames: 1000
 eval_env_frameskip: 1

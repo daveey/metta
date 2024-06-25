@@ -30,10 +30,10 @@ def make_agent_func(sf_cfg, obs_space, action_space):
     return SampleFactoryAgentWrapper(agent, obs_space, action_space)
 
 class SampleFactoryFramework(RLFramework):
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self, cfg, **sf_args):
+        super().__init__(OmegaConf.create(cfg))
         self.sf_args = [
-            f"--{k}={v}" for k, v in cfg.sample_factory.items()
+            f"--{k}={v}" for k, v in sf_args.items()
         ] + [
             f"--{k}={v}" for k, v in cfg.agent.core.items() if k.startswith("rnn_")
         ]

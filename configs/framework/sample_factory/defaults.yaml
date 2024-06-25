@@ -1,0 +1,9 @@
+# @package framework
+
+_target_: rl_framework.sample_factory.sample_factory.SampleFactoryFramework
+
+nonlinearity: elu
+load_checkpoint_kind: latest
+normalize_input: False
+seed: 0
+with_wandb: False

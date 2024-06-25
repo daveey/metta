@@ -1,6 +1,13 @@
 #!/bin/bash -e
 
 experiment=$1
+# Check if experiment is set
+if [ -z "$experiment" ]; then
+    echo "Error: No experiment name provided."
+    echo "Usage: $0 <experiment_name>"
+    exit 1
+fi
+
 shift
 
 behavior_cfgs=$(find configs/env/mettagrid/behaviors/ -name "*.yaml" | sed 's|.*/behaviors/\(.*\)\.yaml|behaviors\1|')
@@ -9,11 +16,12 @@ train_cfgs="a5_25x25 a20_40x40 a20_r4_40x40 a20_b4_40x40"
 for envcfg in $behavior_cfgs  $train_cfgs ; do
     echo "Generating video for $envcfg"
     video_name=${envcfg//\//_}
-    python -m tools.evaluate \
+    python -m tools.run \
         env=mettagrid/$envcfg \
-        sample_factory=video \
-        +sample_factory.video_name="${video_name}.mp4" \
-        +sample_factory.experiment=$experiment \
+        framework=sample_factory/eval/video \
+        cmd=evaluate \
+        +framework.video_name="${video_name}.mp4" \
+        +framework.experiment=$experiment \
         "$@"
 done
 

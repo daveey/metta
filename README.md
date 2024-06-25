@@ -142,12 +142,6 @@ git lfs install
 ./devops/load_model.sh baseline
 ```
 
-### Run the evaluation
-
-```
-python -m tools.evaluate  +sample_factory=eval +sample_factory.experiment=baseline
-```
-
 ### Render a video of the evaluation
 
 ```

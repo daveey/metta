@@ -1,5 +1,0 @@
-defaults:
-  - eval
-
-save_video: True
-fps: 8
