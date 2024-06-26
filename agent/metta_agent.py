@@ -50,8 +50,8 @@ class MettaAgent(nn.Module, MettaAgentInterface):
 
         self.apply(self.initialize_weights)
 
-    def forward_head(self, obs_dict: Dict[str, Tensor]) -> Tensor:
-        x = self._encoder(obs_dict)
+    def encode_observations(self, td: TensorDict):
+        td["encoded_"] = self._encoder(obs_dict)
         return x
 
     def forward_core(self, head_output: Tensor, rnn_states):
@@ -75,7 +75,7 @@ class MettaAgent(nn.Module, MettaAgentInterface):
         return result
 
     def forward(self, normalized_obs_dict, rnn_states, values_only=False) -> TensorDict:
-        x = self.forward_head(normalized_obs_dict)
+        x = self.encode_observations(normalized_obs_dict)
         x, new_rnn_states = self.forward_core(x, rnn_states)
         result = self.forward_tail(x, values_only, sample_actions=True)
         result["new_rnn_states"] = new_rnn_states

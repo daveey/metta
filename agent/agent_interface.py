@@ -9,7 +9,7 @@ from torch import Tensor
 
 
 class MettaAgentInterface():
-    def forward_head(self, obs_dict: Dict[str, Tensor]) -> Tensor:
+    def encode_observations(self, obs_dict: Dict[str, Tensor]) -> Tensor:
         raise NotImplementedError()
 
     def forward_core(self, head_output, rnn_states):

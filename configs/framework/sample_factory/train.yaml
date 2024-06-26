@@ -1,7 +1,7 @@
 # @package framework
 
 defaults:
-  - sample_factory/defaults
+  - defaults
 
 aux_loss_coeff: 0
 recurrence: 256

@@ -100,36 +100,7 @@ def load_config(parser, config_path='rl_framework/pufferlib/config.yaml'):
     config['exp_id'] = args.exp_id or args.env + '-' + str(uuid.uuid4())[:8]
     return wandb_name, pkg_name, pufferlib.namespace(**config), env_module, make_env, make_policy
 
-def make_policy(env, env_module, args, hydra_cfg):
-    policy = env_module.Policy(env, hydra_cfg)
-    if args.use_rnn:
-        policy = env_module.Recurrent(env, policy, **args.rnn)
-        policy = pufferlib.frameworks.cleanrl.RecurrentPolicy(policy)
-    else:
-        policy = pufferlib.frameworks.cleanrl.Policy(policy)
 
-    return policy.to(args.train.device)
-
-def init_wandb(args, name, id=None, resume=True):
-    #os.environ["WANDB_SILENT"] = "true"
-    import wandb
-    wandb.init(
-        id=id or wandb.util.generate_id(),
-        project=args.wandb.project,
-        entity=args.wandb.entity,
-        group=args.wandb.group,
-        config={
-            'cleanrl': dict(args.train),
-            'env': dict(args.env),
-            'policy': dict(args.policy),
-            #'recurrent': args.recurrent,
-        },
-        name=name,
-        monitor_gym=True,
-        save_code=True,
-        resume=resume,
-    )
-    return wandb
 
 def sweep(args, wandb_name, env_module, make_env):
     import wandb
@@ -152,73 +123,9 @@ def sweep(args, wandb_name, env_module, make_env):
 
     wandb.agent(sweep_id, main, count=100)
 
-def train(cfg, env_module, make_env):
-    args = cfg.pufferlib
-    if args.wandb.track:
-        args.train.wandb = init_wandb(args, "xcxc_wandb", id=args.exp_id)
-
-    vec = args.vectorization
-    if vec == 'serial':
-        vec = pufferlib.vector.Serial
-    elif vec == 'multiprocessing':
-        vec = pufferlib.vector.Multiprocessing
-    elif vec == 'ray':
-        vec = pufferlib.vector.Ray
-    else:
-        raise ValueError(f'Invalid --vector (serial/multiprocessing/ray).')
-
-    vecenv = pufferlib.vector.make(
-        make_env,
-        env_kwargs=dict(cfg = dict(**cfg.env)),
-        num_envs=args.train.num_envs,
-        num_workers=args.train.num_workers,
-        batch_size=args.train.env_batch_size,
-        zero_copy=args.train.zero_copy,
-        backend=vec,
-    )
-    policy = make_policy(vecenv.driver_env, env_module, args, cfg.agent)
-    train_config = args.train
-    train_config.track = args.wandb.track
-    train_config.device = args.train.device
-    train_config.env = cfg.env.name
-
-    if args.backend == 'clean_pufferl':
-        data = clean_pufferl.create(train_config, vecenv, policy, wandb=args.train.wandb)
-
-        while data.global_step < args.train.total_timesteps:
-            try:
-                clean_pufferl.evaluate(data)
-                clean_pufferl.train(data)
-            except KeyboardInterrupt:
-                clean_pufferl.close(data)
-                os._exit(0)
-            except Exception:
-                Console().print_exception()
-                os._exit(0)
-
-        clean_pufferl.evaluate(data)
-        clean_pufferl.close(data)
-
-    elif args.backend == 'sb3':
-        from stable_baselines3 import PPO
-        from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
-        from stable_baselines3.common.env_util import make_vec_env
-        from sb3_contrib import RecurrentPPO
-
-        envs = make_vec_env(lambda: make_env(**args.env),
-            n_envs=args.train.num_envs, seed=args.train.seed, vec_env_cls=DummyVecEnv)
-
-        model = RecurrentPPO("CnnLstmPolicy", envs, verbose=1,
-            n_steps=args.train.batch_rows*args.train.bptt_horizon,
-            batch_size=args.train.batch_size, n_epochs=args.train.update_epochs,
-            gamma=args.train.gamma
-        )
-
-        model.learn(total_timesteps=args.train.total_timesteps)
 
 @hydra.main(version_base=None, config_path="../../configs", config_name="configs")
 def main(cfg):
-    install(show_locals=False) # Rich tracebacks
 
     make_env = env_module.env_creator(cfg.env.name)
     make_env_args = pufferlib.utils.get_init_args(make_env)

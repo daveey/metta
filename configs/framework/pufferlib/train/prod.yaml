@@ -1,5 +1,8 @@
+# @package framework
+
 defaults:
-  - default
+  - pufferlib/train
+
 
 train:
   total_timesteps: 50_000_000

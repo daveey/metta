@@ -32,7 +32,7 @@ class Policy(nn.Module):
 
     def encode_observations(self, flat_obs):
         x = pufferlib.pytorch.nativize_tensor(flat_obs, self.dtype)
-        return self.model.forward_head(x), None
+        return self.model.encode_observations(x), None
 
     def decode_actions(self, flat_hidden, lookup, concat=None):
         action = [self.atn_type(flat_hidden), self.atn_param(flat_hidden)]

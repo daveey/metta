@@ -1,5 +1,7 @@
+# @package framework
+
 defaults:
-  - default
+  - pufferlib/train
 
 vectorization: multiprocessing
 train:

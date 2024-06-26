@@ -32,7 +32,7 @@ class SampleFactoryAgentWrapper(ActorCritic):
         self.agent = agent
 
     def forward_head(self, obs_dict: Dict[str, Tensor]) -> Tensor:
-        return self.agent.forward_head(obs_dict)
+        return self.agent.encode_observations(obs_dict)
 
     def forward_core(self, head_output, rnn_states):
         return self.agent.forward_core(head_output, rnn_states)
