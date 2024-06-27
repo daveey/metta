@@ -14,14 +14,6 @@ backend: clean_pufferl
 experiment: ${experiment}
 train_dir: ./train_dir/pufferlib
 
-wandb:
-  track: False
-  project: metta
-  entity: platypus
-  group: platypus
-  name: ${framework.experiment}
-
-
 train:
   data_dir: ${framework.train_dir}
   exp_id: ${framework.experiment}

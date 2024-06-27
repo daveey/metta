@@ -37,6 +37,12 @@ class SampleFactoryFramework(RLFramework):
         ] + [
             f"--{k}={v}" for k, v in cfg.agent.core.items() if k.startswith("rnn_")
         ]
+        if cfg.wandb.track:
+            self.sf_args.append("--with_wandb")
+            self.sf_args.append(f"--wandb_user={cfg.wandb.entity}")
+            self.sf_args.append(f"--wandb_project={cfg.wandb.project}")
+            self.sf_args.append(f"--wandb_group={cfg.wandb.group}")
+
         register_env(cfg.env.name, make_env_func)
         self.sf_args.append(f"--env={cfg.env.name}")
         self.sf_args.append(

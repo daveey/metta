@@ -3,5 +3,12 @@ defaults:
   - agent: agent
   - env: mettagrid/a20_b4_40x40
 
-cmd: train
+cmd: ???
 experiment: ???
+
+wandb:
+  track: False
+  project: metta
+  entity: platypus
+  group: platypus
+  name: ${experiment}

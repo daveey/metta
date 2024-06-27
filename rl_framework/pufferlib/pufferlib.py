@@ -85,12 +85,12 @@ def init_wandb(cfg: OmegaConf, resume=True):
     #os.environ["WANDB_SILENT"] = "true"
     import wandb
     wandb.init(
-        id=cfg.framework.experiment or wandb.util.generate_id(),
-        project=cfg.framework.wandb.project,
-        entity=cfg.framework.wandb.entity,
+        id=cfg.experiment or wandb.util.generate_id(),
+        project=cfg.wandb.project,
+        entity=cfg.wandb.entity,
         config=OmegaConf.to_container(cfg, resolve=True),
-        group=cfg.framework.wandb.group,
-        name=cfg.framework.wandb.name,
+        group=cfg.wandb.group,
+        name=cfg.wandb.name,
         monitor_gym=True,
         save_code=True,
         resume=resume,

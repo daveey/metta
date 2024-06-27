@@ -5,4 +5,5 @@ pkill -9 -f python
 git pull
 python -m tools.run \
     framework=sample_factory/train/prod \
+    wandb.track=true \
     "$@"
