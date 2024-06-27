@@ -1,0 +1,6 @@
+# @package framework
+
+defaults:
+  - sample_factory/eval
+
+no_render: False
