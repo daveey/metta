@@ -1,14 +1,8 @@
-defaults:
-  - framework: sample_factory/train
-  - agent: agent
-  - env: mettagrid/a20_b4_40x40
-
 cmd: ???
 experiment: ???
 
-wandb:
-  track: False
-  project: metta
-  entity: platypus
-  group: platypus
-  name: ${experiment}
+defaults:
+  - framework: framework/sample_factory
+  - agent: agent
+  - env: mettagrid/a20_b4_40x40
+  - wandb: wandb
