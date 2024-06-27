@@ -56,8 +56,6 @@ decoder:
 
 
 core:
-  _target_: sample_factory.model.core.ModelCoreRNN
-
   rnn_type: gru
   rnn_num_layers: 1
   rnn_size: 512

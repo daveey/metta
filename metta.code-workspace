@@ -83,6 +83,9 @@
 			"__verbose_abort": "cpp",
 			"execution": "cpp"
 		},
+		"python.analysis.extraPaths": [
+			"./third_party/pufferlib"
+		],
 
 	},
 

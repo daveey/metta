@@ -506,6 +506,7 @@ class Utilization(Thread):
             else:
                 self.gpu_util.append(1)
                 self.gpu_mem.append(1)
+
             time.sleep(self.delay)
 
     def stop(self):

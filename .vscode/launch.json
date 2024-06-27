@@ -19,8 +19,9 @@
                 // "sample_factory.aux_loss_coeff=0.1",
 
                 "+framework.device=cpu",
-                "+framework.experiment=baseline.v0.4.1",
+                "framework.experiment=mac.puffer.2",
                 "+framework.train_dir=./train_dir",
+                // "framework.wandb.track=True",
 
                 // "sample_factory.wandb_project=mp_rws"
                 // "+sample_factory.restart_behavior=restart",

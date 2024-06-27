@@ -1,40 +1,63 @@
 from pdb import set_trace as T
 
-import torch
-from torch import nn
-
+import hydra
+from tensordict import TensorDict
 import pufferlib
 import pufferlib.models
 import pufferlib.pytorch
+import torch
+from omegaconf import OmegaConf
+from pufferlib.emulation import PettingZooPufferEnv
+from pufferlib.environment import PufferEnv
+from torch import nn
 
 from agent.metta_agent import MettaAgent
+from env.wrapper.petting_zoo import PettingZooEnvWrapper
+
 
 class Recurrent(pufferlib.models.LSTMWrapper):
     def __init__(self, env, policy, input_size=512, hidden_size=512, num_layers=1):
         super().__init__(env, policy, input_size, hidden_size, num_layers)
 
-class Policy(nn.Module):
-    def __init__(self, env, cfg):
+class PufferAgentWrapper(nn.Module):
+    def __init__(self, agent: MettaAgent, env: PettingZooPufferEnv):
         super().__init__()
         self.dtype = pufferlib.pytorch.nativize_dtype(env.emulated)
-        obs_space = env.env._gym_env.observation_space
-        atn_space = env.env._gym_env.action_space
-
-        cfg.observation_encoders.grid_obs.feature_names = env.env._gym_env.grid_features
-        cfg.observation_encoders.global_vars.feature_names = env.env._gym_env.global_features
-        self.model = MettaAgent(obs_space, atn_space, **cfg)
-        self.atn_type = nn.Linear(cfg.core.rnn_size, 6)
-        self.atn_param = nn.Linear(cfg.core.rnn_size, 10)
+        self.atn_type = nn.Linear(agent.core_out_size, 6)
+        self.atn_param = nn.Linear(agent.core_out_size, 10)
+        self._agent = agent
 
     def forward(self, obs):
-        x = self.encode_observations(obs)
+        x, _ = self.encode_observations(obs)
         return self.decode_actions(x, None)
 
     def encode_observations(self, flat_obs):
-        x = pufferlib.pytorch.nativize_tensor(flat_obs, self.dtype)
-        return self.model.encode_observations(x), None
+        obs = pufferlib.pytorch.nativize_tensor(flat_obs, self.dtype)
+        td = TensorDict({"obs": obs})
+        self._agent.encode_observations(td)
+        return td["encoded_obs"], None
 
     def decode_actions(self, flat_hidden, lookup, concat=None):
         action = [self.atn_type(flat_hidden), self.atn_param(flat_hidden)]
-        value = self.model._critic_linear(flat_hidden)
+        value = self._agent._critic_linear(flat_hidden)
         return action, value
+
+def make_policy(env: PufferEnv, cfg: OmegaConf):
+    cfg.agent.observation_encoders.grid_obs.feature_names = env.env.unwrapped._gym_env.grid_features
+    cfg.agent.observation_encoders.global_vars.feature_names = env.env.unwrapped._gym_env.global_features
+    agent = hydra.utils.instantiate(
+        cfg.agent, env.env.observation_space(0),
+        env.env.action_space(0), _recursive_=False)
+    puffer_agent = PufferAgentWrapper(agent, env)
+
+    if cfg.agent.core.rnn_num_layers > 0:
+        puffer_agent = Recurrent(
+            env, puffer_agent, input_size=cfg.agent.fc.output_dim,
+            hidden_size=cfg.agent.core.rnn_size,
+            num_layers=cfg.agent.core.rnn_num_layers
+        )
+        puffer_agent = pufferlib.frameworks.cleanrl.RecurrentPolicy(puffer_agent)
+    else:
+        puffer_agent = pufferlib.frameworks.cleanrl.Policy(puffer_agent)
+
+    return puffer_agent.to(cfg.framework.train.device)

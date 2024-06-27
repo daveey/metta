@@ -26,6 +26,7 @@ class MettaAgent(nn.Module, MettaAgentInterface):
     ):
         super().__init__()
         cfg = OmegaConf.create(cfg)
+        self._cfg = cfg
         self._observation_space = obs_space
         self._action_space = action_space
 
@@ -35,44 +36,34 @@ class MettaAgent(nn.Module, MettaAgentInterface):
             cfg.fc.layers,
             cfg.fc.output_dim
         )
-
         self._core = ModelCoreRNN(cfg.core, cfg.fc.output_dim)
 
         self._decoder = hydra.utils.instantiate(
             cfg.decoder,
             self._core.get_out_size())
 
-        decoder_out_size: int = self._decoder.get_out_size()
-
-        self._critic_linear = nn.Linear(decoder_out_size, 1)
-        self._action_parameterization = self.get_action_parameterization(decoder_out_size)
-        self._last_action_distribution = None
+        self._critic_linear = nn.Linear(self.decoder_out_size, 1)
 
         self.apply(self.initialize_weights)
 
+    @property
+    def decoder_out_size(self):
+        return self._decoder.get_out_size()
+
+    @property
+    def core_out_size(self):
+        return self._cfg.core.rnn_size
+
     def encode_observations(self, td: TensorDict):
-        td["encoded_"] = self._encoder(obs_dict)
-        return x
+        td["encoded_obs"] = self._encoder(td["obs"])
 
     def forward_core(self, head_output: Tensor, rnn_states):
         x, new_rnn_states = self._core(head_output, rnn_states)
         return x, new_rnn_states
 
-    def forward_tail(self, core_output, values_only: bool, sample_actions: bool) -> TensorDict:
-        decoder_output = self._decoder(core_output)
-        values = self._critic_linear(decoder_output).squeeze()
-
-        result = TensorDict({"values": values}, batch_size=values.size(0))
-        if values_only:
-            return result
-
-        action_distribution_params, self._last_action_distribution = self._action_parameterization(decoder_output)
-
-        # `action_logits` is not the best name here, better would be "action distribution parameters"
-        result["action_logits"] = action_distribution_params
-
-        self._maybe_sample_actions(sample_actions, result)
-        return result
+    def forward_tail(self, td: TensorDict):
+        td["decoder_output"] = self._decoder(td["core_output"])
+        td["values"] = self._critic_linear(td["decoder_output"]).squeeze()
 
     def forward(self, normalized_obs_dict, rnn_states, values_only=False) -> TensorDict:
         x = self.encode_observations(normalized_obs_dict)
@@ -98,16 +89,3 @@ class MettaAgent(nn.Module, MettaAgentInterface):
             # I never noticed much difference between different initialization schemes, and here it seems safer to
             # go with default initialization,
             pass
-
-    def get_action_parameterization(self, decoder_output_size: int):
-        return ActionParameterizationDefault({}, decoder_output_size, self._action_space)
-
-    def _maybe_sample_actions(self, sample_actions: bool, result: TensorDict) -> None:
-        if sample_actions:
-            # for non-trivial action spaces it is faster to do these together
-            actions, result["log_prob_actions"] = sample_actions_log_probs(self._last_action_distribution)
-            assert actions.dim() == 2  # TODO: remove this once we test everything
-            result["actions"] = actions.squeeze(dim=1)
-
-    def action_distribution(self):
-        return self._last_action_distribution
