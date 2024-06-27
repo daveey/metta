@@ -10,7 +10,7 @@ fi
 
 shift
 
-behavior_cfgs=$(find configs/env/mettagrid/behaviors/ -name "*.yaml" | sed 's|.*/behaviors/\(.*\)\.yaml|behaviors/\1|')
+behavior_cfgs=$(find configs/env/mettagrid/behaviors/ -name "*.yaml" | sed 's|.*/behaviors\(.*\)\.yaml|behaviors\1|')
 train_cfgs="a5_25x25 a20_40x40 a20_r4_40x40 a20_b4_40x40"
 
 for envcfg in $behavior_cfgs  $train_cfgs ; do
