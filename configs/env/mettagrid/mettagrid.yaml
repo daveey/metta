@@ -41,8 +41,10 @@ game:
     converter:
       hp: 30
       cooldown: 2
-      energy_output: 50
-      use_cost: 0
+      energy_output:
+        r1: 50
+        r2: 10
+        r3: 1
 
     generator:
       hp: 30
@@ -64,7 +66,7 @@ game:
     shield:
       cost: 0
     drop:
-      cost: 1
+      cost: 0
     use:
       cost: 0
     attack:

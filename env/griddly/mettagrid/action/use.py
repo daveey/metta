@@ -23,7 +23,6 @@ class Use(GriddlyAction):
 
         self.add_behaviour(MettaActionBehavior("agent", "generator", cfg, self.use))
         self.add_behaviour(MettaActionBehavior("agent", "altar", cfg, self.use))
-        self.add_behaviour(MettaActionBehavior("agent", "converter", cfg, self.use))
         self.add_behaviour(MettaActionBehavior("agent", "agent", cfg, self.use))
 
     def use(self, ctx: BehaviorContext):
