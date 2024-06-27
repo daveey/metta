@@ -20,8 +20,8 @@ for envcfg in $behavior_cfgs  $train_cfgs ; do
         env=mettagrid/$envcfg \
         framework=sample_factory/eval/video \
         cmd=evaluate \
+        +experiment=$experiment \
         +framework.video_name="${video_name}.mp4" \
-        +framework.experiment=$experiment \
         "$@"
 done
 
