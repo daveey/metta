@@ -6,7 +6,7 @@ from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
 from util.sample_config import sample_config
 
 
-@hydra.main(version_base=None, config_path="../../configs", config_name="configs")
+@hydra.main(version_base=None, config_path="../../configs", config_name="config")
 def main(cfg):
     print(OmegaConf.to_yaml(cfg))
 
