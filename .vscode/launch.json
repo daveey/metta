@@ -11,7 +11,7 @@
             "module": "tools.run",
             "args": [
                 "experiment=mac.puffer.2",
-                "framework=sample_factory/train/sand",
+                "framework=pufferlib/train/sand",
                 "env=mettagrid/a20_b4_40x40",
                 "env.kinship.team_size=5",
                 "env.kinship.team_reward=0.8",

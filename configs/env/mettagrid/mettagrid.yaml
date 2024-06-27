@@ -63,7 +63,7 @@ game:
       cost: 3
     shield:
       cost: 0
-    drop:
+    transfer:
       cost: 1
     use:
       cost: 0
