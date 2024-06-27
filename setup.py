@@ -39,13 +39,13 @@ class BuildGriddlyCommand(Command):
 
 class DevelopCommand(develop):
     def run(self):
-        # self.run_command('build_griddly')
-        # subprocess.check_call(
-        #     ['pip', 'install', "-e", './third_party/griddly/python/'],
-        # )
-        # subprocess.check_call(
-        #     ['pip', 'install', "-e", './third_party/meltingpot/'],
-        # ),
+        self.run_command('build_griddly')
+        subprocess.check_call(
+            ['pip', 'install', "-e", './third_party/griddly/python/'],
+        )
+        subprocess.check_call(
+            ['pip', 'install', "-e", './third_party/meltingpot/'],
+        ),
         subprocess.check_call(
             ['pip', 'install', "-e", './third_party/sample_factory/'],
         )
