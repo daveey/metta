@@ -27,7 +27,7 @@ def make_agent_func(sf_cfg, obs_space, action_space):
     agent_cfg.observation_encoders.grid_obs.feature_names = env.grid_features
     agent_cfg.observation_encoders.global_vars.feature_names = env.global_features
     agent = hydra.utils.instantiate(agent_cfg, obs_space, action_space, _recursive_=False)
-    return SampleFactoryAgentWrapper(agent, obs_space, action_space)
+    return SampleFactoryAgentWrapper(agent)
 
 class SampleFactoryFramework(RLFramework):
     def __init__(self, cfg, **sf_args):

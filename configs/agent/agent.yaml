@@ -6,7 +6,7 @@ observation_encoders:
   grid_obs:
     feature_names: []
 
-    normalize_features: False
+    normalize_features: True
     label_dim: 4
     output_dim: 512
     layers: 4
@@ -14,7 +14,7 @@ observation_encoders:
   global_vars:
     feature_names: []
 
-    normalize_features: False
+    normalize_features: True
 
     label_dim: 4
     output_dim: 8
@@ -23,7 +23,7 @@ observation_encoders:
   last_action:
     feature_names: [ last_action_id, last_action_val ]
 
-    normalize_features: False
+    normalize_features: True
 
     label_dim: 4
     output_dim: 8
@@ -32,7 +32,7 @@ observation_encoders:
   last_reward:
     feature_names: [ last_reward ]
 
-    normalize_features: False
+    normalize_features: True
 
     label_dim: 4
     output_dim: 8
@@ -41,7 +41,7 @@ observation_encoders:
   kinship:
     feature_names: [ kinship ]
 
-    normalize_features: False
+    normalize_features: True
 
     label_dim: 4
     output_dim: 8
@@ -53,7 +53,6 @@ fc:
 
 decoder:
   _target_: agent.decoder.Decoder
-
 
 core:
   rnn_type: gru

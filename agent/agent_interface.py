@@ -15,7 +15,7 @@ class MettaAgentInterface():
     def forward_core(self, head_output, rnn_states):
         raise NotImplementedError()
 
-    def forward_tail(self, core_output, values_only: bool, sample_actions: bool) -> TensorDict:
+    def decode_state(self, core_output, values_only: bool, sample_actions: bool) -> TensorDict:
         raise NotImplementedError()
 
     def forward(self, obs_dict, rnn_states, values_only: bool = False) -> TensorDict:

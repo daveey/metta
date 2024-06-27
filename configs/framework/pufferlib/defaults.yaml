@@ -12,6 +12,7 @@ eval_mode_path: ""
 mode: train
 backend: clean_pufferl
 experiment: ???
+train_dir: ./train_dir/pufferlib
 
 wandb:
   track: False
@@ -22,9 +23,10 @@ wandb:
 
 
 train:
+  data_dir: ${framework.train_dir}
   exp_id: ${framework.experiment}
-  track: False
   env: ${env.name}
+
   seed: 1
   torch_deterministic: True
   cpu_offload: False
@@ -50,7 +52,6 @@ train:
   env_batch_size: null
   zero_copy: True
   verbose: True
-  data_dir: experiments
   checkpoint_interval: 200
   batch_size: 1024
   minibatch_size: 512

@@ -1,8 +1,9 @@
 
 
 from __future__ import annotations
-from xml.dom.expatbuilder import theDOMImplementation
 
+from sample_factory.algo.utils.action_distributions import sample_actions_log_probs
+from sample_factory.model.action_parameterization import ActionParameterizationDefault
 from sample_factory.model.core import ModelCoreRNN
 from tensordict import TensorDict
 
@@ -10,7 +11,6 @@ from tensordict import TensorDict
 from sample_factory.model.actor_critic import ActorCritic
 from sample_factory.model.model_utils import model_device
 from sample_factory.utils.attr_dict import AttrDict
-from sample_factory.utils.typing import Config
 import torch
 
 from agent.metta_agent import MettaAgent
@@ -21,8 +21,8 @@ from torch import Tensor
 
 
 class SampleFactoryAgentWrapper(ActorCritic):
-    def __init__(self, agent: MettaAgent, obs_space, action_space):
-        super().__init__(obs_space, action_space, AttrDict({
+    def __init__(self, agent: MettaAgent):
+        super().__init__(agent.observation_space, agent.action_space, AttrDict({
             "normalize_returns": True,
             "normalize_input": False,
             "obs_subtract_mean": 0.0,
@@ -30,46 +30,48 @@ class SampleFactoryAgentWrapper(ActorCritic):
 
         }))
         self.agent = agent
-        decoder_out_size = self.agent._decoder.get_out_size()
-        self._core = ModelCoreRNN(cfg.core, cfg.fc.output_dim)
-        self._action_parameterization = self.get_action_parameterization(decoder_out_size)
+        self._core = ModelCoreRNN(agent.cfg.core, agent.cfg.fc.output_dim)
+
+        self._action_parameterization = self.get_action_parameterization()
         self._last_action_distribution = None
 
     def forward_head(self, obs_dict: Dict[str, Tensor]) -> Tensor:
-        return self.agent.encode_observations(
-            TensorDict(obs=obs_dict))["encoded_obs"]
+        td = TensorDict({"obs": obs_dict})
+        self.agent.encode_observations(td)
+        return td["encoded_obs"]
 
     def forward_core(self, head_output, rnn_states):
-        x, new_rnn_states = self._core(head_output, rnn_states)
-        return x, new_rnn_states
-        return self.agent.forward_core(
-            TensorDict(
-                encoded_obs=head_output,
-                rnn_states=rnn_states))["core_output"]
+        core_output, new_rnn_states = self._core(head_output, rnn_states)
+        return core_output, new_rnn_states
 
     def forward_tail(self, core_output, values_only: bool, sample_actions: bool) -> TensorDict:
-        td = TensorDict(core_output=core_output)
-        self.agent.forward_tail(td, values_only)
-        if not values_only:
-            action_distribution_params, self._last_action_distribution = self._action_parameterization(td["decoder_output"])
-            # `action_logits` is not the best name here, better would be "action distribution parameters"
-            td["action_logits"] = action_distribution_params
-            self._maybe_sample_actions(sample_actions, td)
+        td = TensorDict({"core_output": core_output})
+        self.agent.decode_state(td)
+        if values_only:
+            return td
+
+        action_distribution_params, self._last_action_distribution = self._action_parameterization(td["state"])
+        # `action_logits` is not the best name here, better would be "action distribution parameters"
+        td["action_logits"] = action_distribution_params
+        if not sample_actions:
+            return td
+
+        # for non-trivial action spaces it is faster to do these together
+        actions, td["log_prob_actions"] = sample_actions_log_probs(self._last_action_distribution)
+        assert actions.dim() == 2  # TODO: remove this once we test everything
+        td["actions"] = actions.squeeze(dim=1)
+
         return td
 
     def forward(self, obs_dict, rnn_states, values_only: bool = False) -> TensorDict:
-        return self.agent.forward(obs_dict, rnn_states, values_only)
+        head_output = self.forward_head(obs_dict)
+        core_output, new_rnn_states = self.forward_core(head_output, rnn_states)
+        td = self.forward_tail(core_output, values_only, sample_actions=True)
+        td["new_rnn_states"] = new_rnn_states
+        return td
 
     def action_distribution(self):
         return self._last_action_distribution
-
-    def _maybe_sample_actions(self, sample_actions: bool, result: TensorDict) -> None:
-        if sample_actions:
-            # for non-trivial action spaces it is faster to do these together
-            actions, result["log_prob_actions"] = sample_actions_log_probs(self._last_action_distribution)
-            assert actions.dim() == 2  # TODO: remove this once we test everything
-            result["actions"] = actions.squeeze(dim=1)
-
 
     def aux_loss(self, obs_dict, rnn_states):
         return self.agent.aux_loss(obs_dict, rnn_states)
@@ -80,6 +82,7 @@ class SampleFactoryAgentWrapper(ActorCritic):
     def type_for_input_tensor(self, input_tensor_name: str) -> torch.dtype:
         return torch.float32
 
-    def get_action_parameterization(self, decoder_output_size: int):
-        return ActionParameterizationDefault({}, decoder_output_size, self._action_space)
+    def get_action_parameterization(self):
+        return ActionParameterizationDefault(
+            {}, self.agent.decoder_out_size(), self.agent.action_space)
 

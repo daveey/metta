@@ -2,6 +2,8 @@
 
 _target_: rl_framework.sample_factory.sample_factory.SampleFactoryFramework
 
+experiment: ???
+train_dir: ./train_dir/sample_factory
 nonlinearity: elu
 load_checkpoint_kind: latest
 normalize_input: False

@@ -26,9 +26,9 @@ class MettaAgent(nn.Module, MettaAgentInterface):
     ):
         super().__init__()
         cfg = OmegaConf.create(cfg)
-        self._cfg = cfg
-        self._observation_space = obs_space
-        self._action_space = action_space
+        self.cfg = cfg
+        self.observation_space = obs_space
+        self.action_space = action_space
 
         self._encoder = MultiFeatureSetEncoder(
             obs_space,
@@ -36,41 +36,24 @@ class MettaAgent(nn.Module, MettaAgentInterface):
             cfg.fc.layers,
             cfg.fc.output_dim
         )
-        self._core = ModelCoreRNN(cfg.core, cfg.fc.output_dim)
 
         self._decoder = hydra.utils.instantiate(
             cfg.decoder,
-            self._core.get_out_size())
+            cfg.core.rnn_size)
 
-        self._critic_linear = nn.Linear(self.decoder_out_size, 1)
+        self._critic_linear = nn.Linear(self.decoder_out_size(), 1)
 
         self.apply(self.initialize_weights)
 
-    @property
     def decoder_out_size(self):
         return self._decoder.get_out_size()
-
-    @property
-    def core_out_size(self):
-        return self._cfg.core.rnn_size
 
     def encode_observations(self, td: TensorDict):
         td["encoded_obs"] = self._encoder(td["obs"])
 
-    def forward_core(self, head_output: Tensor, rnn_states):
-        x, new_rnn_states = self._core(head_output, rnn_states)
-        return x, new_rnn_states
-
-    def forward_tail(self, td: TensorDict):
-        td["decoder_output"] = self._decoder(td["core_output"])
-        td["values"] = self._critic_linear(td["decoder_output"]).squeeze()
-
-    def forward(self, normalized_obs_dict, rnn_states, values_only=False) -> TensorDict:
-        x = self.encode_observations(normalized_obs_dict)
-        x, new_rnn_states = self.forward_core(x, rnn_states)
-        result = self.forward_tail(x, values_only, sample_actions=True)
-        result["new_rnn_states"] = new_rnn_states
-        return result
+    def decode_state(self, td: TensorDict):
+        td["state"] = self._decoder(td["core_output"])
+        td["values"] = self._critic_linear(td["state"]).squeeze()
 
     def aux_loss(self, normalized_obs_dict, rnn_states):
         raise NotImplementedError()
