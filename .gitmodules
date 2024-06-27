@@ -9,4 +9,4 @@
 	url = https://github.com/google-deepmind/meltingpot.git
 [submodule "third_party/pufferlib"]
 	path = third_party/pufferlib
-	url = git@github.com:daveey/PufferLib.git
+	url = https://github.com/daveey/PufferLib.git
