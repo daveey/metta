@@ -25,4 +25,4 @@ for envcfg in $behavior_cfgs  $train_cfgs ; do
         "$@"
 done
 
-cd train_dir/$experiment/ && rm -f replay.mp4 && ln -s a20_b4_40x40.mp4 replay.mp4
+cd train_dir/sample_factory/$experiment/ && rm -f replay.mp4 && ln -s a20_b4_40x40.mp4 replay.mp4
