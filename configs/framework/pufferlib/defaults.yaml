@@ -11,7 +11,7 @@ vectorization: serial
 eval_mode_path: ""
 mode: train
 backend: clean_pufferl
-experiment: ???
+experiment: ${experiment}
 train_dir: ./train_dir/pufferlib
 
 wandb:

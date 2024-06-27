@@ -4,3 +4,4 @@ defaults:
   - env: mettagrid/a20_b4_40x40
 
 cmd: train
+experiment: ???

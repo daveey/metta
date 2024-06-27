@@ -10,6 +10,7 @@
             "request": "launch",
             "module": "tools.run",
             "args": [
+                "experiment=mac.puffer.2",
                 "framework=sample_factory/train/sand",
                 "env=mettagrid/a20_b4_40x40",
                 "env.kinship.team_size=5",
@@ -19,7 +20,6 @@
                 // "sample_factory.aux_loss_coeff=0.1",
 
                 "+framework.device=cpu",
-                "framework.experiment=mac.puffer.2",
                 // "framework.wandb.track=True",
 
                 // "sample_factory.wandb_project=mp_rws"

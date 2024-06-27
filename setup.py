@@ -73,15 +73,17 @@ setup(
         "hydra-core",
         "jmespath",
         "matplotlib",
+        "numpy==2.0.0",
         "pettingzoo",
+        "pynvml",
         "pytest",
+        "PyYAML==6.0",
+        "raylib"
         "rich",
         "scipy",
         "tabulate",
         "tensordict",
         "torchrl",
-        "pynvml",
-        "raylib"
     ],
     entry_points={
         'console_scripts': [

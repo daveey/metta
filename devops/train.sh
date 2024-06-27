@@ -3,6 +3,6 @@
 pkill -9 -f wandb
 pkill -9 -f python
 git pull
-python -m tools.train \
-    sample_factory=train_prod \
+python -m tools.run \
+    framework=sample_factory/train/prod \
     "$@"

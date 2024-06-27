@@ -2,7 +2,7 @@
 
 _target_: rl_framework.sample_factory.sample_factory.SampleFactoryFramework
 
-experiment: ???
+experiment: ${experiment}
 train_dir: ./train_dir/sample_factory
 nonlinearity: elu
 load_checkpoint_kind: latest
