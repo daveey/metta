@@ -2,6 +2,8 @@ from omegaconf import OmegaConf
 from env.griddly.builder.action import BehaviorContext, GriddlyAction, GriddlyActionInput
 from env.griddly.builder.game_builder import GriddlyGameBuilder
 from env.griddly.mettagrid.action.metta_action import MettaActionBehavior
+from env.griddly.mettagrid.object.agent import Agent
+from env.griddly.mettagrid.object.converter import Converter
 from env.griddly.mettagrid.util.inventory_helper import InventoryHelper
 
 class Transfer(GriddlyAction):
@@ -21,14 +23,18 @@ class Transfer(GriddlyAction):
 
         self.add_behaviour(MettaActionBehavior("agent", "agent", cfg, self.gift))
         self.add_behaviour(MettaActionBehavior("agent", "_empty", cfg, self.drop))
+        self.add_behaviour(MettaActionBehavior("agent", "converter", cfg, self.convert))
 
     def drop(self, ctx: BehaviorContext):
         self._transfer(ctx, InventoryHelper(ctx, ctx.actor), None, "drop")
 
     def gift(self, ctx: BehaviorContext):
-        self._transfer(ctx, InventoryHelper(ctx, ctx.actor), InventoryHelper(ctx, ctx.target), "gift")
+        self._transfer(ctx, InventoryHelper(ctx, ctx.actor), ctx.target, "gift")
 
-    def _transfer(self, ctx: BehaviorContext, actor_inv, target_inv, reason: str):
+    def convert(self, ctx: BehaviorContext):
+        self._transfer(ctx, InventoryHelper(ctx, ctx.actor), ctx.target, "convert")
+
+    def _transfer(self, ctx: BehaviorContext, actor_inv, target, reason: str):
         prereqs = []
 
         for item_id, item_name in InventoryHelper.Items.items():
@@ -42,9 +48,15 @@ class Transfer(GriddlyAction):
                 *actor_inv.remove(item_name, reason),
             ]))
 
-            if target_inv is not None:
-                ctx.dst_cmd(ctx.cond(ctx.metadata("item").eq(item_id), [
-                    *target_inv.add(item_name, reason)
-                ]))
+            if target is not None:
+                # transfer to another agent
+                if type(target.object) == Agent:
+                    target_inv = InventoryHelper(ctx, target)
+                    ctx.dst_cmd(ctx.cond(ctx.metadata("item").eq(item_id), [
+                        *target_inv.add(item_name, reason)
+                    ]))
+                # transfer to a converter
+                if type(target.object) == Converter:
+                    target.object.on_convert(ctx, item_name, cnd)
 
         ctx.require({"or": prereqs})

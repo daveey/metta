@@ -6,6 +6,8 @@ from env.griddly.mettagrid.util.energy_helper import EnergyHelper
 from env.griddly.mettagrid.util.inventory_helper import InventoryHelper
 
 class Converter(MettaObject):
+    Resources = ["r1", "r2", "r3"]
+
     def __init__(self, game, cfg: OmegaConf):
 
         self.States = SimpleNamespace(
@@ -37,20 +39,26 @@ class Converter(MettaObject):
         ])
 
 
-    def on_use(self, ctx):
+    def on_convert(self, ctx, resource: str, item_condition):
         inv = InventoryHelper(ctx, ctx.actor)
         energy = EnergyHelper(ctx, ctx.actor)
-        ctx.require([
-            inv.has_item("r1")
-        ])
 
-        ctx.cmd([
-            inv.remove("r1", "converter"),
-            inv.add("r2", "converter"),
-            energy.add(self.cfg.energy_output, "used:converter"),
+        new_resource_idx = self.Resources.index(resource) + 1
+        new_resource = None
+        if new_resource_idx < len(self.Resources):
+            new_resource = self.Resources[new_resource_idx]
+
+        ctx.cmd(ctx.cond(item_condition, [
+            energy.add(self.cfg.energy_output[resource], "used:converter"),
             ctx.global_var("game:max_steps").set("game:step"),
             ctx.global_var("game:max_steps").add(ctx.game.no_energy_steps)
-        ])
+        ]))
+
+        if new_resource:
+            ctx.cmd([
+                inv.add(new_resource, "converter")
+            ])
+
         if ctx.actor.object.cfg.energy_reward:
             ctx.cmd({"reward": self.cfg.energy_output})
 

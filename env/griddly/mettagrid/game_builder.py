@@ -54,7 +54,7 @@ class MettaGridGameBuilder(GriddlyGameBuilder):
         self.register_action(Move(self, actions.move))
         self.register_action(Rotate(self, actions.rotate))
         self.register_action(Use(self, actions.use))
-        self.register_action(Transfer(self, actions.drop))
+        self.register_action(Transfer(self, actions.transfer))
         self.register_action(Attack(self, actions.attack))
         self.register_action(Shield(self, actions.shield))
 
