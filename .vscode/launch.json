@@ -11,15 +11,17 @@
             "module": "tools.run",
             "args": [
                 "experiment=mac.puffer.2",
-                "framework=pufferlib/train/sand",
+                "framework=sample_factory",
+                "hardware=macbook",
                 "env=mettagrid/a20_b4_40x40",
+                "cmd=train",
+
                 "env.kinship.team_size=5",
                 "env.kinship.team_reward=0.8",
                 // "env.substrate_name=running_with_scissors_in_the_matrix__arena",
 
                 // "sample_factory.aux_loss_coeff=0.1",
 
-                "+framework.device=cpu",
                 // "framework.wandb.track=True",
 
                 // "sample_factory.wandb_project=mp_rws"

@@ -2,7 +2,8 @@ cmd: ???
 experiment: ???
 
 defaults:
-  - framework: sample_factory/train
+  - framework: sample_factory
   - agent: agent
   - env: mettagrid/a20_b4_40x40
+  - hardware: macbook
   - wandb: wandb

@@ -82,11 +82,12 @@ class MettaGridGymEnv(gym.Env):
         max_resources = num_generators * min(
             self._game_builder.object_configs.generator.initial_resources,
             self._max_steps / self._game_builder.object_configs.generator.cooldown)
+
         max_conversions = num_converters * (
             self._max_steps / self._game_builder.object_configs.converter.cooldown
         )
         max_conv_energy = min(max_resources, max_conversions) * \
-            self._game_builder.object_configs.converter.energy_output
+            np.mean(list(self._game_builder.object_configs.converter.energy_output.values()))
 
         initial_energy = self._game_builder.object_configs.agent.initial_energy * self._game_builder.num_agents
 

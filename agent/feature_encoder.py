@@ -57,7 +57,7 @@ class FeatureSetEncoder(nn.Module):
     def forward(self, obs_dict):
         batch_size = obs_dict[self._obs_key].size(0)
         self._labels_emb = self._labels_emb.to(obs_dict[self._obs_key].device)
-        obs = obs_dict[self._obs_key].view(batch_size, -1, *self._obs_shape)
+        obs = obs_dict[self._obs_key].view(batch_size, -1, *self._obs_shape).to(torch.float32)
 
         if self._normalize_features:
             self._normalizer(obs)

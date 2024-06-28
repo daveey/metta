@@ -33,7 +33,7 @@ class SampleFactoryFramework(RLFramework):
     def __init__(self, cfg, **sf_args):
         super().__init__(OmegaConf.create(cfg))
         self.sf_args = [
-            f"--{k}={v}" for k, v in sf_args.items()
+            f"--{k}={v}" for k, v in cfg.framework.sample_factory.items()
         ] + [
             f"--{k}={v}" for k, v in cfg.agent.core.items() if k.startswith("rnn_")
         ]

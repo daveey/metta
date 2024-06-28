@@ -29,7 +29,7 @@ class PufferLibFramework(RLFramework):
         super().__init__(cfg)
         self.puffer_cfg = OmegaConf.create(puffer_args)
         self.wandb = None
-        if self.puffer_cfg.wandb.track:
+        if self.cfg.wandb.track:
             self.wandb = init_wandb(self.cfg, resume=True)
 
     def train(self):

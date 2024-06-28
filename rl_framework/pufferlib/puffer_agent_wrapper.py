@@ -1,18 +1,15 @@
-from pdb import set_trace as T
 
 import hydra
 from tensordict import TensorDict
 import pufferlib
 import pufferlib.models
 import pufferlib.pytorch
-import torch
 from omegaconf import OmegaConf
 from pufferlib.emulation import PettingZooPufferEnv
 from pufferlib.environment import PufferEnv
 from torch import nn
 
 from agent.metta_agent import MettaAgent
-from env.wrapper.petting_zoo import PettingZooEnvWrapper
 
 
 class Recurrent(pufferlib.models.LSTMWrapper):
@@ -23,8 +20,9 @@ class PufferAgentWrapper(nn.Module):
     def __init__(self, agent: MettaAgent, env: PettingZooPufferEnv):
         super().__init__()
         self.dtype = pufferlib.pytorch.nativize_dtype(env.emulated)
-        self.atn_type = nn.Linear(agent.core_out_size, 6)
-        self.atn_param = nn.Linear(agent.core_out_size, 10)
+        # xcxc
+        self.atn_type = nn.Linear(agent.decoder_out_size(), 6)
+        self.atn_param = nn.Linear(agent.decoder_out_size(), 10)
         self._agent = agent
 
     def forward(self, obs):
