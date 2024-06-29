@@ -17,11 +17,15 @@ for envcfg in $behavior_cfgs  $train_cfgs ; do
     echo "Generating video for $envcfg"
     video_name=${envcfg//\//_}
     python -m tools.run \
-        env=mettagrid/$envcfg \
-        framework=sample_factory/eval/video \
         cmd=evaluate \
         experiment=$experiment \
-        +framework.video_name="${video_name}.mp4" \
+        env=mettagrid/$envcfg \
+        +framework.sample_factory.video_name="${video_name}.mp4" \
+        framework=sample_factory \
+        +framework.sample_factory.save_video=True \
+        +framework.sample_factory.fps=8 \
+        +framework.sample_factory.max_num_frames=1000 \
+        +framework.sample_factory.eval_env_frameskip=1 \
         "$@"
 done
 

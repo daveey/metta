@@ -1,7 +1,0 @@
-# @package framework
-
-defaults:
-  - sample_factory/eval
-
-save_video: True
-fps: 8
