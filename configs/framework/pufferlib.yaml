@@ -2,7 +2,7 @@
 _target_: rl_framework.pufferlib.pufferlib.PufferLibFramework
 
 pufferlib:
-  device: gpu
+  device: ???
   baseline: False
   render_mode: auto
   vectorization: serial
