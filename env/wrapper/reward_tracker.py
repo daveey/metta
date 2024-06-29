@@ -7,9 +7,9 @@ class RewardTracker(gym.Wrapper):
         super(RewardTracker, self).__init__(env)
         self._last_rewards = None
 
-    def reset(self):
+    def reset(self, **kwargs):
         self._last_rewards = np.zeros(self.unwrapped.player_count, dtype=np.float32)
-        obs, infos = self.env.reset()
+        obs, infos = self.env.reset(**kwargs)
         return self._augment_observations(obs), infos
 
     def step(self, actions):

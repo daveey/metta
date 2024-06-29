@@ -24,8 +24,8 @@ class Kinship(gym.Wrapper):
         grid_shape = self.env.unwrapped.observation_space["grid_obs"].shape
         self._kinship_shape = (1, grid_shape[1], grid_shape[2])
 
-    def reset(self):
-        obs, infos = self.env.reset()
+    def reset(self, **kwargs):
+        obs, infos = self.env.reset(**kwargs)
         return self._augment_observations(obs), infos
 
     def step(self, actions):

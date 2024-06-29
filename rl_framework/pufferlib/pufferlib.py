@@ -1,6 +1,7 @@
 from typing import Dict
 from omegaconf import OmegaConf
 from env.wrapper.petting_zoo import PettingZooEnvWrapper
+from pufferlib import postprocess
 from rl_framework.rl_framework import RLFramework
 import os
 
@@ -19,8 +20,8 @@ from . import clean_pufferl
 
 def make_env_func(cfg: OmegaConf, render_mode='rgb_array'):
     env = hydra.utils.instantiate(cfg, render_mode=render_mode)
-    # env = pufferlib.postprocess.EpisodeStats(env)
     env = PettingZooEnvWrapper(env)
+    env = postprocess.MultiagentEpisodeStats(env)
     return pufferlib.emulation.PettingZooPufferEnv(env)
 
 class PufferLibFramework(RLFramework):
