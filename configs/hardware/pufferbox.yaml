@@ -1,6 +1,5 @@
 # @package __global__
 
-
 framework:
   sample_factory:
     device: gpu
@@ -8,3 +7,13 @@ framework:
     decorrelate_experience_max_seconds: 150
     train_for_env_steps: 9999999999999
 
+  pufferlib:
+    train:
+      device: gpu
+      total_timesteps: 50_000_000
+      learning_rate: 0.00175
+      num_envs: 60
+      num_workers: 6
+      env_batch_size: 20
+      batch_size: 65536
+      minibatch_size: 2048

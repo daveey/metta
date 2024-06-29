@@ -24,10 +24,10 @@ def make_env_func(cfg: OmegaConf, render_mode='rgb_array'):
     return pufferlib.emulation.PettingZooPufferEnv(env)
 
 class PufferLibFramework(RLFramework):
-    def __init__(self, cf: Dict, **puffer_args):
-        cfg = OmegaConf.create(cf)
+    def __init__(self, cfg: Dict, **puffer_args):
+        cfg = OmegaConf.create(cfg)
         super().__init__(cfg)
-        self.puffer_cfg = OmegaConf.create(puffer_args)
+        self.puffer_cfg = cfg.framework.pufferlib
         self.wandb = None
         if self.cfg.wandb.track:
             self.wandb = init_wandb(self.cfg, resume=True)

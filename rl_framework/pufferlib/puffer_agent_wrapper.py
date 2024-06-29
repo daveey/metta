@@ -58,4 +58,4 @@ def make_policy(env: PufferEnv, cfg: OmegaConf):
     else:
         puffer_agent = pufferlib.frameworks.cleanrl.Policy(puffer_agent)
 
-    return puffer_agent.to(cfg.framework.train.device)
+    return puffer_agent.to(cfg.framework.pufferlib.device)

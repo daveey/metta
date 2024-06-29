@@ -1,8 +1,0 @@
-# @package _global_
-
-defaults:
-  - /framework/sample_factory/defaults@framework
-
-cmd: train
-
-framework:

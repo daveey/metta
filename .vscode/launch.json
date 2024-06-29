@@ -11,7 +11,7 @@
             "module": "tools.run",
             "args": [
                 "experiment=mac.puffer.2",
-                "framework=sample_factory",
+                "framework=pufferlib",
                 "hardware=macbook",
                 "env=mettagrid/a20_b4_40x40",
                 "cmd=train",
