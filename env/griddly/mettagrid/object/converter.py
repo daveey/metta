@@ -40,27 +40,26 @@ class Converter(MettaObject):
 
 
     def on_convert(self, ctx, resource: str, item_condition):
+        ctx.require(self.usable(ctx))
+
         inv = InventoryHelper(ctx, ctx.actor)
         energy = EnergyHelper(ctx, ctx.actor)
 
         new_resource_idx = self.Resources.index(resource) + 1
-        new_resource = None
-        if new_resource_idx < len(self.Resources):
-            new_resource = self.Resources[new_resource_idx]
-
-        ctx.cmd(ctx.cond(item_condition, [
+        cmds = [
             energy.add(self.cfg.energy_output[resource], "used:converter"),
             ctx.global_var("game:max_steps").set("game:step"),
-            ctx.global_var("game:max_steps").add(ctx.game.no_energy_steps)
-        ]))
+            ctx.global_var("game:max_steps").add(ctx.game.no_energy_steps),
+        ]
 
-        if new_resource:
-            ctx.cmd([
-                inv.add(new_resource, "converter")
-            ])
+
+        if new_resource_idx < len(self.Resources):
+                cmds.append(inv.add(self.Resources[new_resource_idx], "converter"))
 
         if ctx.actor.object.cfg.energy_reward:
-            ctx.cmd({"reward": self.cfg.energy_output})
+            cmds.append({"reward": self.cfg.energy_output[resource]})
+
+        ctx.cmd(ctx.cond(item_condition, cmds))
 
         ctx.dst_cmd([
             ctx.target.state.set(ctx.target.object.States.cooldown),

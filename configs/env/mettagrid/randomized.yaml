@@ -53,7 +53,7 @@ game:
       cost: [1, 5]
     shield:
       cost: [0, 2]
-    drop:
+    transfer:
       cost: [0, 2]
     use:
       cost: [0, 2]

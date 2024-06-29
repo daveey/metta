@@ -48,15 +48,16 @@ class Transfer(GriddlyAction):
                 *actor_inv.remove(item_name, reason),
             ]))
 
+            itm_cnd = ctx.metadata("item").eq(item_id)
             if target is not None:
                 # transfer to another agent
                 if type(target.object) == Agent:
                     target_inv = InventoryHelper(ctx, target)
-                    ctx.dst_cmd(ctx.cond(ctx.metadata("item").eq(item_id), [
+                    ctx.dst_cmd(ctx.cond(itm_cnd, [
                         *target_inv.add(item_name, reason)
                     ]))
                 # transfer to a converter
                 if type(target.object) == Converter:
-                    target.object.on_convert(ctx, item_name, cnd)
+                    target.object.on_convert(ctx, item_name, itm_cnd)
 
         ctx.require({"or": prereqs})
