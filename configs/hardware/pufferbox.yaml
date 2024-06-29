@@ -9,11 +9,11 @@ framework:
 
   pufferlib:
     device: cuda
+    vectorization: multiprocessing
     train:
       total_timesteps: 50_000_000
-      learning_rate: 0.00175
-      num_envs: 60
-      num_workers: 6
+      num_envs: 48
+      num_workers: 48
       env_batch_size: 20
       batch_size: 65536
       minibatch_size: 2048

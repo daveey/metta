@@ -3,15 +3,18 @@ _target_: rl_framework.pufferlib.pufferlib.PufferLibFramework
 
 pufferlib:
   device: ???
+  vectorization: ??? # serial, multiprocessing
   baseline: False
   render_mode: auto
-  vectorization: serial
   eval_mode_path: ""
   mode: train
   backend: clean_pufferl
   train_dir: ./train_dir/pufferlib
 
   train:
+    num_envs: ???
+    num_workers: ???
+
     data_dir: ${framework.pufferlib.train_dir}
     exp_id: ${experiment}
     env: ${env.name}
@@ -36,8 +39,6 @@ pufferlib:
     max_grad_norm: 0.5
     target_kl: null
 
-    num_envs: ???
-    num_workers: ???
     env_batch_size: null
     zero_copy: True
     verbose: True

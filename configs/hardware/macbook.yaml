@@ -9,6 +9,7 @@ framework:
 
   pufferlib:
     device: cpu
+    vectorization: serial
     train:
       num_envs: 1
       num_workers: 1
