@@ -12,9 +12,10 @@ framework:
     vectorization: multiprocessing
     train:
       total_timesteps: 50_000_000
-      num_envs: 216
-      num_workers: 72
-      env_batch_size: 72
+      num_envs: 1000
+      num_workers: 250
+      env_batch_size: 250
       batch_size: 65536
-      minibatch_size: 2048
+      minibatch_size: 4096
       zero_copy: False
+      update_epochs: 1
