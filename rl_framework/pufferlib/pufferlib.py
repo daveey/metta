@@ -22,6 +22,7 @@ def make_env_func(cfg: OmegaConf, render_mode='rgb_array'):
     env = hydra.utils.instantiate(cfg, render_mode=render_mode)
     env = PettingZooEnvWrapper(env)
     env = postprocess.MultiagentEpisodeStats(env)
+    env = postprocess.MeanOverAgents(env)
     return pufferlib.emulation.PettingZooPufferEnv(env)
 
 class PufferLibFramework(RLFramework):

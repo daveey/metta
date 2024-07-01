@@ -126,21 +126,6 @@ def evaluate(data):
     with profile.eval_misc:
         data.stats = {}
 
-        # Moves into models... maybe. Definitely moves.
-        # You could also just return infos and have it in demo
-        if 'pokemon_exploration_map' in infos:
-            for pmap in infos['pokemon_exploration_map']:
-                if not hasattr(data, 'pokemon_map'):
-                    import pokemon_red_eval
-                    data.map_updater = pokemon_red_eval.map_updater()
-                    data.pokemon_map = pmap
-
-                data.pokemon_map = np.maximum(data.pokemon_map, pmap)
-
-            if len(infos['pokemon_exploration_map']) > 0:
-                rendered = data.map_updater(data.pokemon_map)
-                data.stats['Media/exploration_map'] = data.wandb.Image(rendered)
-
         for k, v in infos.items():
             if '_map' in k and data.wandb is not None:
                 data.stats[f'Media/{k}'] = data.wandb.Image(v[0])
@@ -659,6 +644,7 @@ def fmt_perf(name, time, uptime):
     return f'{c1}{name}', duration(time), f'{b2}{percent:2d}%'
 
 # TODO: Add env name to print_dashboard
+last_stats = {}
 def print_dashboard(env_name, utilization, global_step, epoch,
         profile, losses, stats, msg, clear=False, max_stats=[0]):
     console = Console()
@@ -719,6 +705,12 @@ def print_dashboard(env_name, utilization, global_step, epoch,
     monitor = Table(box=None, expand=True, pad_edge=False)
     monitor.add_row(s, p, l)
     dashboard.add_row(monitor)
+
+    global last_stats
+    if len(stats) == 0:
+        stats = last_stats
+    else:
+        last_stats = stats
 
     table = Table(box=None, expand=True, pad_edge=False)
     dashboard.add_row(table)

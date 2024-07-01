@@ -9,7 +9,6 @@ class PettingZooEnvWrapper(pettingzoo.ParallelEnv):
         self.possible_agents = [i+1 for i in range(self.num_agents)]
         # agents gets manipulated
         self.agents = [i+1 for i in range(self.num_agents)]
-        self.infos = {i: {} for i in self.possible_agents}
         self.render_mode = 'render_mode'
 
     @property
@@ -25,10 +24,17 @@ class PettingZooEnvWrapper(pettingzoo.ParallelEnv):
     def render(self, *args):
         return self._gym_env.render()
 
-    def reset(self, seed=0):
-        obs, _ = self._gym_env.reset()
+    def _handle_info(self, infos):
+        if "episode_extra_stats" in infos:
+            infos = {i+1: infos["episode_extra_stats"][i] for i in range(self.num_agents)}
+        else:
+            infos = {i+1: {} for i in range(self.num_agents)}
+        return infos
+
+    def reset(self, seed=0, **kwargs):
+        obs, infos = self._gym_env.reset()
         observations = {i+1: obs[i] for i in range(self.num_agents)}
-        return observations, self.infos
+        return observations, self._handle_info(infos)
 
     def step(self, actions):
         actions = np.array(list(actions.values()), dtype=np.uint32)
@@ -37,4 +43,6 @@ class PettingZooEnvWrapper(pettingzoo.ParallelEnv):
         rewards = {i+1: rewards[i] for i in range(self.num_agents)}
         terminated = {i+1: terminated for i in range(self.num_agents)}
         truncated = {i+1: truncated for i in range(self.num_agents)}
-        return observations, rewards, terminated, truncated, self.infos
+        infos = self._handle_info(infos)
+
+        return observations, rewards, terminated, truncated, infos
