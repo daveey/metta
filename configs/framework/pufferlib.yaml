@@ -49,3 +49,11 @@ pufferlib:
     vf_clip_coef: 0.1
     compile: False
     compile_mode: reduce-overhead
+
+    dashboard:
+      user_stats:
+        - avg_episode_return
+        - avg_episode_length
+        - avg_stats_agent_defeated
+        - avg_stats_action_attack
+        - avg_stats_altar_used
