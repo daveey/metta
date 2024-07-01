@@ -11,10 +11,11 @@ framework:
     device: cpu
     vectorization: serial
     train:
-      num_envs: 1
+      num_envs_per_worker: 1
       num_workers: 1
-      env_batch_size: 1
       update_epochs: 1
       batch_size: 1024
       minibatch_size: 1024
       checkpoint_interval: 10
+      bptt_horizon: 8
+      num_steps: 32
