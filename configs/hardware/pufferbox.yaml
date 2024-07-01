@@ -13,8 +13,7 @@ framework:
     train:
       total_timesteps: 50_000_000_000
       num_workers: 32 # num cores
-      num_envs: 128
-      env_batch_size: 128
+      num_envs_per_worker: 3
       batch_size: 262144
       minibatch_size: 4096
       zero_copy: False

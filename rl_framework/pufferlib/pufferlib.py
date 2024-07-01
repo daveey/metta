@@ -49,7 +49,7 @@ class PufferLibFramework(RLFramework):
         vecenv = pufferlib.vector.make(
             make_env_func,
             env_kwargs=dict(cfg = dict(**self.cfg.env)),
-            num_envs=pcfg.train.num_envs,
+            num_envs=pcfg.train.num_workers * pcfg.train.num_envs_per_worker,
             num_workers=pcfg.train.num_workers,
             batch_size=pcfg.train.env_batch_size,
             zero_copy=pcfg.train.zero_copy,
