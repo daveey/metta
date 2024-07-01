@@ -11,7 +11,7 @@ framework:
     device: cuda
     vectorization: multiprocessing
     train:
-      total_timesteps: 50_000_000
+      total_timesteps: 50_000_000_000
       num_envs: 216
       num_workers: 72
       env_batch_size: 72
