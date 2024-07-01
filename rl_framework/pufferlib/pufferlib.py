@@ -61,6 +61,7 @@ class PufferLibFramework(RLFramework):
         while data.global_step < pcfg.train.total_timesteps:
             try:
                 clean_pufferl.evaluate(data)
+                self.process_stats(data)
                 clean_pufferl.train(data)
             except KeyboardInterrupt:
                 clean_pufferl.close(data)
@@ -70,6 +71,7 @@ class PufferLibFramework(RLFramework):
                 os._exit(0)
 
         clean_pufferl.evaluate(data)
+        self.process_stats(data)
         clean_pufferl.close(data)
 
     def evaluate(self):
@@ -82,6 +84,13 @@ class PufferLibFramework(RLFramework):
             render_mode=self.puffer_cfg.render_mode,
             device=self.puffer_cfg.train.device
         )
+
+    def process_stats(self, data):
+        new_stats = {}
+        for k, v in data.stats.items():
+            new_stats["avg_" + k] = v
+        data.stats = new_stats
+
 
 def init_wandb(cfg: OmegaConf, resume=True):
     #os.environ["WANDB_SILENT"] = "true"
