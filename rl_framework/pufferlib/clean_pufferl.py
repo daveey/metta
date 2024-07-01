@@ -268,7 +268,7 @@ def train(data):
                     '0verview/agent_steps': data.global_step,
                     '0verview/epoch': data.epoch,
                     '0verview/learning_rate': data.optimizer.param_groups[0]["lr"],
-                    **{f'policy_stats/{k}': v for k, v in data.stats.items()},
+                    **{f'policy_stats/avg_stats_{k}': v for k, v in data.stats.items()},
                     **{f'losses/{k}': v for k, v in data.losses.items()},
                     **{f'performance/{k}': v for k, v in data.profile},
                 })
