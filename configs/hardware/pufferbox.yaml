@@ -18,4 +18,4 @@ framework:
       batch_size: 32768
       minibatch_size: 4096
       zero_copy: False
-      update_epochs: 1
+      update_epochs: 2
