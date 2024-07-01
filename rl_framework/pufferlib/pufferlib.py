@@ -89,6 +89,8 @@ class PufferLibFramework(RLFramework):
         new_stats = {}
         for k, v in data.stats.items():
             new_stats["avg_" + k] = v
+        new_stats["episode_return"] = data.stats["episode_return"]
+        new_stats["episode_length"] = data.stats["episode_length"]
         data.stats = new_stats
 
 
