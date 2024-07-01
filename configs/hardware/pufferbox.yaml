@@ -19,3 +19,5 @@ framework:
       minibatch_size: 4096
       zero_copy: False
       update_epochs: 2
+      bptt_horizon: 128
+      num_steps: 128
