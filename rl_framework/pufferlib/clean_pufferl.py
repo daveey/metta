@@ -271,7 +271,8 @@ def train(data):
                     **{f'policy_stats/avg_{k}': v for k, v in data.stats.items()},
                     **{f'losses/{k}': v for k, v in data.losses.items()},
                     **{f'performance/{k}': v for k, v in data.profile},
-                }, step=data.global_step)
+                    "global_step": data.global_step,
+                })
 
         if data.epoch % config.checkpoint_interval == 0 or done_training:
             save_checkpoint(data)
