@@ -15,7 +15,7 @@ framework:
       num_envs: 1000
       num_workers: 250
       env_batch_size: 250
-      batch_size: 65536
-      minibatch_size: 4096
+      batch_size: 4000
+      minibatch_size: 4000
       zero_copy: False
       update_epochs: 1
