@@ -15,7 +15,7 @@ framework:
       num_envs: 96
       num_workers: 32
       env_batch_size: 96
-      batch_size: 32768
+      batch_size: ${python:2**16}
       minibatch_size: 4096
       zero_copy: False
       update_epochs: 2
