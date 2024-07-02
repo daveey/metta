@@ -51,8 +51,7 @@ class PufferLibFramework(RLFramework):
             target_batch_size = 2
         batch_size = (target_batch_size // pcfg.train.num_workers) * pcfg.train.num_workers
 
-        vecenv = pufferlib.vector.make(
-            make_env_func,
+        vecenv_args = dict(
             env_kwargs=dict(cfg = dict(**self.cfg.env)),
             num_envs=batch_size * pcfg.train.async_factor,
             num_workers=pcfg.train.num_workers,
@@ -60,6 +59,8 @@ class PufferLibFramework(RLFramework):
             zero_copy=pcfg.train.zero_copy,
             backend=vec,
         )
+        print(f"Vectorization Settings: {vecenv_args}")
+        vecenv = pufferlib.vector.make(make_env_func, **vecenv_args)
         policy = puffer_agent_wrapper.make_policy(vecenv.driver_env, self.cfg)
         data = clean_pufferl.create(pcfg.train, vecenv, policy, wandb=self.wandb)
 
