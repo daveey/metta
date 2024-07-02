@@ -1,28 +1,26 @@
-from pdb import set_trace as T
-import numpy as np
-
 import os
 import random
-import psutil
 import time
+from collections import defaultdict
 
-from threading import Thread
-from collections import defaultdict, deque
-
-import rich
-from rich.console import Console
-from rich.table import Table
-
-import torch
-
+import imageio
+import numpy as np
 import pufferlib
-import pufferlib.utils
 import pufferlib.pytorch
+import pufferlib.utils
+import torch
+from omegaconf import OmegaConf
+
+from . import checkpoint, dashboard
+from .experience import Experience
+from .profile import Profile
+from .utilization import Utilization
 
 torch.set_float32_matmul_precision('high')
 
 # Fast Cython GAE implementation
 import pyximport
+
 pyximport.install(setup_args={"include_dirs": np.get_include()})
 from .c_gae import compute_gae
 
@@ -33,8 +31,8 @@ def create(config, vecenv, policy, optimizer=None, wandb=None):
     losses = make_losses()
 
     utilization = Utilization()
-    msg = f'Model Size: {abbreviate(count_params(policy))} parameters'
-    print_dashboard(config, utilization, 0, 0, profile, losses, {}, msg, clear=True)
+    msg = f'Model Size: {dashboard.abbreviate(count_params(policy))} parameters'
+    dashboard.print(config, utilization, 0, 0, profile, losses, {}, msg, clear=True)
 
     vecenv.async_reset(config.seed)
     obs_shape = vecenv.single_observation_space.shape
@@ -258,7 +256,7 @@ def train(data):
         done_training = data.global_step >= config.total_timesteps
         if profile.update(data) or (
                 'episode_return' in data.stats or done_training):
-            print_dashboard(config, data.utilization, data.global_step, data.epoch,
+            dashboard.print(config, data.utilization, data.global_step, data.epoch,
                 profile, data.losses, data.stats, data.msg)
 
             if data.wandb is not None and data.global_step > 0 and time.time() - data.last_log_time > 3.0:
@@ -283,7 +281,7 @@ def train(data):
                 })
 
         if data.epoch % config.checkpoint_interval == 0 or done_training:
-            save_checkpoint(data)
+            checkpoint.save_checkpoint(data)
             data.msg = f'Checkpoint saved at update {data.epoch}'
 
 def close(data):
@@ -293,73 +291,12 @@ def close(data):
     if data.wandb is not None:
         artifact_name = f"{config.exp_id}_model"
         artifact = data.wandb.Artifact(artifact_name, type="model")
-        model_path = save_checkpoint(data)
+        model_path = checkpoint.save_checkpoint(data)
         artifact.add_file(model_path)
         data.wandb.run.log_artifact(artifact)
         data.wandb.finish()
 
-class Profile:
-    SPS: ... = 0
-    uptime: ... = 0
-    remaining: ... = 0
-    eval_time: ... = 0
-    env_time: ... = 0
-    eval_forward_time: ... = 0
-    eval_misc_time: ... = 0
-    train_time: ... = 0
-    train_forward_time: ... = 0
-    learn_time: ... = 0
-    train_misc_time: ... = 0
-    def __init__(self):
-        self.start = time.time()
-        self.env = pufferlib.utils.Profiler()
-        self.eval_forward = pufferlib.utils.Profiler()
-        self.eval_misc = pufferlib.utils.Profiler()
-        self.train_forward = pufferlib.utils.Profiler()
-        self.learn = pufferlib.utils.Profiler()
-        self.train_misc = pufferlib.utils.Profiler()
-        self.prev_steps = 0
 
-    def __iter__(self):
-        yield 'SPS', self.SPS
-        yield 'uptime', self.uptime
-        yield 'remaining', self.remaining
-        yield 'eval_time', self.eval_time
-        yield 'env_time', self.env_time
-        yield 'eval_forward_time', self.eval_forward_time
-        yield 'eval_misc_time', self.eval_misc_time
-        yield 'train_time', self.train_time
-        yield 'train_forward_time', self.train_forward_time
-        yield 'learn_time', self.learn_time
-        yield 'train_misc_time', self.train_misc_time
-
-    @property
-    def epoch_time(self):
-        return self.train_time + self.eval_time
-
-    def update(self, data, interval_s=1):
-        global_step = data.global_step
-        if global_step == 0:
-            return True
-
-        uptime = time.time() - self.start
-        if uptime - self.uptime < interval_s:
-            return False
-
-        self.SPS = (global_step - self.prev_steps) / (uptime - self.uptime)
-        self.prev_steps = global_step
-        self.uptime = uptime
-
-        self.remaining = (data.config.total_timesteps - global_step) / self.SPS
-        self.eval_time = data._timers['evaluate'].elapsed
-        self.eval_forward_time = self.eval_forward.elapsed
-        self.env_time = self.env.elapsed
-        self.eval_misc_time = self.eval_misc.elapsed
-        self.train_time = data._timers['train'].elapsed
-        self.train_forward_time = self.train_forward.elapsed
-        self.learn_time = self.learn.elapsed
-        self.train_misc_time = self.train_misc.elapsed
-        return True
 
 def make_losses():
     return pufferlib.namespace(
@@ -372,189 +309,15 @@ def make_losses():
         explained_variance=0,
     )
 
-class Experience:
-    '''Flat tensor storage and array views for faster indexing'''
-    def __init__(self, batch_size, bptt_horizon, minibatch_size, obs_shape, obs_dtype, atn_shape,
-                 cpu_offload=False, device='cuda', lstm=None, lstm_total_agents=0):
-        if minibatch_size is None:
-            minibatch_size = batch_size
-
-        obs_dtype = pufferlib.pytorch.numpy_to_torch_dtype_dict[obs_dtype]
-        pin = device == 'cuda' and cpu_offload
-        obs_device = device if not pin else 'cpu'
-        self.obs=torch.zeros(batch_size, *obs_shape, dtype=obs_dtype,
-            pin_memory=pin, device=device if not pin else 'cpu')
-        self.actions=torch.zeros(batch_size, *atn_shape, dtype=int, pin_memory=pin)
-        self.logprobs=torch.zeros(batch_size, pin_memory=pin)
-        self.rewards=torch.zeros(batch_size, pin_memory=pin)
-        self.dones=torch.zeros(batch_size, pin_memory=pin)
-        self.truncateds=torch.zeros(batch_size, pin_memory=pin)
-        self.values=torch.zeros(batch_size, pin_memory=pin)
-
-        #self.obs_np = np.asarray(self.obs)
-        self.actions_np = np.asarray(self.actions)
-        self.logprobs_np = np.asarray(self.logprobs)
-        self.rewards_np = np.asarray(self.rewards)
-        self.dones_np = np.asarray(self.dones)
-        self.truncateds_np = np.asarray(self.truncateds)
-        self.values_np = np.asarray(self.values)
-
-        self.lstm_h = self.lstm_c = None
-        if lstm is not None:
-            assert lstm_total_agents > 0
-            shape = (lstm.num_layers, lstm_total_agents, lstm.hidden_size)
-            self.lstm_h = torch.zeros(shape).to(device)
-            self.lstm_c = torch.zeros(shape).to(device)
-
-        num_minibatches = batch_size / minibatch_size
-        self.num_minibatches = int(num_minibatches)
-        if self.num_minibatches != num_minibatches:
-            raise ValueError('batch_size must be divisible by minibatch_size')
-
-        minibatch_rows = minibatch_size / bptt_horizon
-        self.minibatch_rows = int(minibatch_rows)
-        if self.minibatch_rows != minibatch_rows:
-            raise ValueError('minibatch_size must be divisible by bptt_horizon')
-
-        self.batch_size = batch_size
-        self.bptt_horizon = bptt_horizon
-        self.minibatch_size = minibatch_size
-        self.device = device
-        self.sort_keys = []
-        self.ptr = 0
-        self.step = 0
-
-    @property
-    def full(self):
-        return self.ptr >= self.batch_size
-
-    def store(self, obs, value, action, logprob, reward, done, env_id, mask):
-        # Mask learner and Ensure indices do not exceed batch size
-        ptr = self.ptr
-        indices = torch.where(mask)[0].numpy()[:self.batch_size - ptr]
-        end = ptr + len(indices)
-
-        self.obs[ptr:end] = obs.to(self.obs.device)[indices]
-        self.values_np[ptr:end] = value.cpu().numpy()[indices]
-        self.actions_np[ptr:end] = action[indices]
-        self.logprobs_np[ptr:end] = logprob.cpu().numpy()[indices]
-        self.rewards_np[ptr:end] = reward.cpu().numpy()[indices]
-        self.dones_np[ptr:end] = done.cpu().numpy()[indices]
-        self.sort_keys.extend([(env_id[i], self.step) for i in indices])
-        self.ptr = end
-        self.step += 1
-
-    def sort_training_data(self):
-        idxs = np.asarray(sorted(
-            range(len(self.sort_keys)), key=self.sort_keys.__getitem__))
-        self.b_idxs_obs = torch.as_tensor(idxs.reshape(
-                self.minibatch_rows, self.num_minibatches, self.bptt_horizon
-            ).transpose(1,0,-1)).to(self.obs.device).long()
-        self.b_idxs = self.b_idxs_obs.to(self.device)
-        self.b_idxs_flat = self.b_idxs.reshape(
-            self.num_minibatches, self.minibatch_size)
-        self.sort_keys = []
-        self.ptr = 0
-        self.step = 0
-        return idxs
-
-    def flatten_batch(self, advantages_np):
-        advantages = torch.from_numpy(advantages_np).to(self.device)
-        b_idxs, b_flat = self.b_idxs, self.b_idxs_flat
-        self.b_actions = self.actions.to(self.device, non_blocking=True)
-        self.b_logprobs = self.logprobs.to(self.device, non_blocking=True)
-        self.b_dones = self.dones.to(self.device, non_blocking=True)
-        self.b_values = self.values.to(self.device, non_blocking=True)
-        self.b_advantages = advantages.reshape(self.minibatch_rows,
-            self.num_minibatches, self.bptt_horizon).transpose(0, 1).reshape(
-            self.num_minibatches, self.minibatch_size)
-        self.returns_np = advantages_np + self.values_np
-        self.b_obs = self.obs[self.b_idxs_obs]
-        self.b_actions = self.b_actions[b_idxs].contiguous()
-        self.b_logprobs = self.b_logprobs[b_idxs]
-        self.b_dones = self.b_dones[b_idxs]
-        self.b_values = self.b_values[b_flat]
-        self.b_returns = self.b_advantages + self.b_values
-
-class Utilization(Thread):
-    def __init__(self, delay=1, maxlen=20):
-        super().__init__()
-        self.cpu_mem = deque(maxlen=maxlen)
-        self.cpu_util = deque(maxlen=maxlen)
-        self.gpu_util = deque(maxlen=maxlen)
-        self.gpu_mem = deque(maxlen=maxlen)
-
-        self.delay = delay
-        self.stopped = False
-        self.start()
-
-    def run(self):
-        while not self.stopped:
-            self.cpu_util.append(psutil.cpu_percent())
-            mem = psutil.virtual_memory()
-            self.cpu_mem.append(mem.active / mem.total)
-            if torch.cuda.is_available():
-                self.gpu_util.append(torch.cuda.utilization())
-                free, total = torch.cuda.mem_get_info()
-                self.gpu_mem.append(free / total)
-            else:
-                self.gpu_util.append(1)
-                self.gpu_mem.append(1)
-
-            time.sleep(self.delay)
-
-    def stop(self):
-        self.stopped = True
-
-def save_checkpoint(data):
-    config = data.config
-    path = os.path.join(config.data_dir, config.exp_id)
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    model_name = f'model_{data.epoch:06d}.pt'
-    model_path = os.path.join(path, model_name)
-    if os.path.exists(model_path):
-        return model_path
-
-    torch.save(data.uncompiled_policy, model_path)
-
-    state = {
-        'optimizer_state_dict': data.optimizer.state_dict(),
-        'global_step': data.global_step,
-        'agent_step': data.global_step,
-        'update': data.epoch,
-        'model_name': model_name,
-        'exp_id': config.exp_id,
-    }
-    state_path = os.path.join(path, 'trainer_state.pt')
-    torch.save(state, state_path + '.tmp')
-    os.rename(state_path + '.tmp', state_path)
-    return model_path
-
-def try_load_checkpoint(data):
-    config = data.config
-    path = os.path.join(config.data_dir, config.exp_id)
-    if not os.path.exists(path):
-        print('No checkpoints found. Assuming new experiment')
-        return
-
-    trainer_path = os.path.join(path, 'trainer_state.pt')
-    resume_state = torch.load(trainer_path)
-    model_path = os.path.join(path, resume_state['model_name'])
-    data.policy.uncompiled.load_state_dict(model_path, map_location=config.device)
-    data.optimizer.load_state_dict(resume_state['optimizer_state_dict'])
-    print(f'Loaded checkpoint {resume_state["model_name"]}')
-
 def count_params(policy):
     return sum(p.numel() for p in policy.parameters() if p.requires_grad)
 
-def rollout(env_creator, env_kwargs, agent_creator, agent_kwargs,
+def rollout(cfg: OmegaConf, env_creator, env_kwargs, agent_creator, agent_kwargs,
         model_path=None, render_mode='auto', device='cuda', verbose=True):
     # We are just using Serial vecenv to give a consistent
     # single-agent/multi-agent API for evaluation
     if render_mode != 'auto':
-        env_kwargs.render_mode = render_mode
+        env_kwargs["render_mode"] = render_mode
 
     env = pufferlib.vector.make(env_creator, env_kwargs=env_kwargs)
 
@@ -570,7 +333,7 @@ def rollout(env_creator, env_kwargs, agent_creator, agent_kwargs,
 
     frames = []
     tick = 0
-    while tick <= 256:
+    while tick <= cfg.eval.max_steps:
         if tick % 1 == 0:
             render = driver.render()
             if driver.render_mode == 'ansi':
@@ -601,9 +364,7 @@ def rollout(env_creator, env_kwargs, agent_creator, agent_kwargs,
             print(f'Reward: {reward:.4f}, Tick: {tick}')
         tick += 1
 
-    # Save frames as gif
-    import imageio
-    imageio.mimsave('../../train_dir/grid-puffer.gif', frames, fps=30)
+    return {'reward': reward, 'frames': frames}
 
 def seed_everything(seed, torch_deterministic):
     random.seed(seed)
@@ -611,152 +372,3 @@ def seed_everything(seed, torch_deterministic):
     if seed is not None:
         torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = torch_deterministic
-
-ROUND_OPEN = rich.box.Box(
-    "╭──╮\n"
-    "│  │\n"
-    "│  │\n"
-    "│  │\n"
-    "│  │\n"
-    "│  │\n"
-    "│  │\n"
-    "╰──╯\n"
-)
-
-c1 = '[bright_cyan]'
-c2 = '[white]'
-c3 = '[cyan]'
-b1 = '[bright_cyan]'
-b2 = '[bright_white]'
-
-def abbreviate(num):
-    if num < 1e3:
-        return f'{b2}{num:.0f}'
-    elif num < 1e6:
-        return f'{b2}{num/1e3:.1f}{c2}k'
-    elif num < 1e9:
-        return f'{b2}{num/1e6:.1f}{c2}m'
-    elif num < 1e12:
-        return f'{b2}{num/1e9:.1f}{c2}b'
-    else:
-        return f'{b2}{num/1e12:.1f}{c2}t'
-
-def duration(seconds):
-    seconds = int(seconds)
-    h = seconds // 3600
-    m = (seconds % 3600) // 60
-    s = seconds % 60
-    return f"{b2}{h}{c2}h {b2}{m}{c2}m {b2}{s}{c2}s" if h else f"{b2}{m}{c2}m {b2}{s}{c2}s" if m else f"{b2}{s}{c2}s"
-
-def fmt_perf(name, time, uptime):
-    percent = 0 if uptime == 0 else int(100*time/uptime - 1e-5)
-    return f'{c1}{name}', duration(time), f'{b2}{percent:2d}%'
-
-# TODO: Add env name to print_dashboard
-last_stats = {}
-def print_dashboard(config, utilization, global_step, epoch,
-        profile, losses, stats, msg, clear=False, max_stats=[0]):
-    console = Console()
-    if clear:
-        console.clear()
-
-    env_name = config.env
-
-    dashboard = Table(box=ROUND_OPEN, expand=True,
-        show_header=False, border_style='bright_cyan')
-
-    table = Table(box=None, expand=True, show_header=False)
-    dashboard.add_row(table)
-    cpu_percent = np.mean(utilization.cpu_util)
-    dram_percent = np.mean(utilization.cpu_mem)
-    gpu_percent = np.mean(utilization.gpu_util)
-    vram_percent = np.mean(utilization.gpu_mem)
-    table.add_column(justify="left", width=30)
-    table.add_column(justify="center", width=12)
-    table.add_column(justify="center", width=12)
-    table.add_column(justify="center", width=13)
-    table.add_column(justify="right", width=13)
-    table.add_row(
-        f':blowfish: {c1}PufferLib {b2}1.0.0',
-        f'{c1}CPU: {c3}{cpu_percent:.1f}%',
-        f'{c1}GPU: {c3}{gpu_percent:.1f}%',
-        f'{c1}DRAM: {c3}{dram_percent:.1f}%',
-        f'{c1}VRAM: {c3}{vram_percent:.1f}%',
-    )
-
-    s = Table(box=None, expand=True)
-    s.add_column(f"{c1}Summary", justify='left', vertical='top', width=16)
-    s.add_column(f"{c1}Value", justify='right', vertical='top', width=8)
-    s.add_row(f'{c2}Environment', f'{b2}{env_name}')
-    s.add_row(f'{c2}Agent Steps', abbreviate(global_step))
-    s.add_row(f'{c2}SPS', abbreviate(profile.SPS))
-    s.add_row(f'{c2}Epoch', abbreviate(epoch))
-    s.add_row(f'{c2}Uptime', duration(profile.uptime))
-    s.add_row(f'{c2}Remaining', duration(profile.remaining))
-
-    p = Table(box=None, expand=True, show_header=False)
-    p.add_column(f"{c1}Performance", justify="left", width=10)
-    p.add_column(f"{c1}Time", justify="right", width=8)
-    p.add_column(f"{c1}%", justify="right", width=4)
-    p.add_row(*fmt_perf('Evaluate', profile.eval_time, profile.uptime))
-    p.add_row(*fmt_perf('  Forward', profile.eval_forward_time, profile.uptime))
-    p.add_row(*fmt_perf('  Env', profile.env_time, profile.uptime))
-    p.add_row(*fmt_perf('  Misc', profile.eval_misc_time, profile.uptime))
-    p.add_row(*fmt_perf('Train', profile.train_time, profile.uptime))
-    p.add_row(*fmt_perf('  Forward', profile.train_forward_time, profile.uptime))
-    p.add_row(*fmt_perf('  Learn', profile.learn_time, profile.uptime))
-    p.add_row(*fmt_perf('  Misc', profile.train_misc_time, profile.uptime))
-
-    l = Table(box=None, expand=True, )
-    l.add_column(f'{c1}Losses', justify="left", width=16)
-    l.add_column(f'{c1}Value', justify="right", width=8)
-    for metric, value in losses.items():
-        l.add_row(f'{c2}{metric}', f'{b2}{value:.3f}')
-
-    monitor = Table(box=None, expand=True, pad_edge=False)
-    monitor.add_row(s, p, l)
-    dashboard.add_row(monitor)
-
-    global last_stats
-    if len(stats) == 0:
-        stats = last_stats
-    else:
-        last_stats = stats
-
-    table = Table(box=None, expand=True, pad_edge=False)
-    dashboard.add_row(table)
-    left = Table(box=None, expand=True)
-    right = Table(box=None, expand=True)
-    table.add_row(left, right)
-    left.add_column(f"{c1}User Stats", justify="left", width=20)
-    left.add_column(f"{c1}Value", justify="right", width=10)
-    right.add_column(f"{c1}User Stats", justify="left", width=20)
-    right.add_column(f"{c1}Value", justify="right", width=10)
-    i = 0
-    for metric, value in stats.items():
-        try: # Discard non-numeric values
-            int(value)
-        except:
-            continue
-
-        if metric not in config.dashboard.user_stats:
-            continue
-
-        u = left if i % 2 == 0 else right
-        u.add_row(f'{c2}{metric}', f'{b2}{value:.3f}')
-        i += 1
-
-    for i in range(max_stats[0] - i):
-        u = left if i % 2 == 0 else right
-        u.add_row('', '')
-
-    max_stats[0] = max(max_stats[0], i)
-
-    table = Table(box=None, expand=True, pad_edge=False)
-    dashboard.add_row(table)
-    table.add_row(f' {c1}Message: {c2}{msg}')
-
-    with console.capture() as capture:
-        console.print(dashboard)
-
-    print('\033[0;0H' + capture.get())

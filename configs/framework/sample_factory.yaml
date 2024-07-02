@@ -2,10 +2,12 @@
 
 _target_: rl_framework.sample_factory.sample_factory.SampleFactoryFramework
 
+train_dir: ${data_dir}/sample_factory
+
 sample_factory:
   experiment: ${experiment}
-  train_dir: ./train_dir/sample_factory
   load_checkpoint_kind: latest
+  train_dir: ${data_dir}/sample_factory
 
   nonlinearity: elu
   normalize_input: False

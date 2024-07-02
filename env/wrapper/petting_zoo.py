@@ -9,7 +9,7 @@ class PettingZooEnvWrapper(pettingzoo.ParallelEnv):
         self.possible_agents = [i+1 for i in range(self.num_agents)]
         # agents gets manipulated
         self.agents = [i+1 for i in range(self.num_agents)]
-        self.render_mode = 'render_mode'
+        self.render_mode = render_mode
 
     @property
     def num_agents(self):

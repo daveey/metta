@@ -10,8 +10,8 @@
             "request": "launch",
             "module": "tools.run",
             "args": [
-                "experiment=mac.puffer.2",
-                "framework=pufferlib",
+                "experiment=mac.sf.1",
+                "framework=sample_factory",
                 "hardware=macbook",
                 "env=mettagrid/a20_b4_40x40",
                 "cmd=train",
@@ -51,18 +51,29 @@
             ],
         },
         {
-            "name": "Evaluate",
+            "name": "Evaluate SF",
             "type": "debugpy",
             "request": "launch",
             "module": "tools.run",
             "args": [
-                "framework=sample_factory/eval/video",
+                "framework=sample_factory",
                 "cmd=evaluate",
-                "+framework.experiment=baseline.v0.5.2",
+                "experiment=mac.sf.1",
                 "env=mettagrid/behaviors/resources/competition/10x10_2a",
             ],
         },
         {
+            "name": "Evaluate PL",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "tools.run",
+            "args": [
+                "framework=pufferlib",
+                "cmd=evaluate",
+                "experiment=mac.puffer.2",
+                "env=mettagrid/behaviors/resources/competition/10x10_2a",
+            ],
+        },        {
             "name": "Run Puffer",
             "type": "debugpy",
             "request": "launch",

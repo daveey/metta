@@ -1,22 +1,20 @@
 
 _target_: rl_framework.pufferlib.pufferlib.PufferLibFramework
 
+train_dir: ${data_dir}/pufferlib
+
 pufferlib:
   device: ???
   vectorization: ??? # serial, multiprocessing
   baseline: False
-  render_mode: auto
-  eval_mode_path: ""
-  mode: train
   backend: clean_pufferl
-  train_dir: ./train_dir/pufferlib
+  train_dir: ${data_dir}/pufferlib
 
   train:
     num_envs_per_worker: ???
     num_workers: ???
 
-    data_dir: ${framework.pufferlib.train_dir}
-    exp_id: ${experiment}
+    data_dir: ${framework.train_dir}
     env: ${env.name}
 
     seed: 1

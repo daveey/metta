@@ -76,7 +76,9 @@ def container_config(args, task_args):
     ]
     train_cmd = [
         './devops/train.sh',
-        f'+framework.experiment={args.experiment}',
+        f'++experiment={args.experiment}',
+        f'++framework={args.framework}',
+        '++hardware=aws',
         *task_args,
     ]
     if args.git_branch is not None:
@@ -120,6 +122,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Launch an ECS task with a wandb key.')
     parser.add_argument('--cluster', default="metta", help='The name of the ECS cluster.')
     parser.add_argument('--experiment', required=True, help='The experiment to run.')
+    parser.add_argument('--framework', default="sample_factory", choices=["sample_factory", "pufferlib"], help='The framework to use.')
     parser.add_argument('--init_model', default=None, help='The experiment to run.')
     parser.add_argument('--git_branch', default=None, help='The git branch to use for the task.')
     parser.add_argument('--batch', default=True, help='Submit as a batch job.')

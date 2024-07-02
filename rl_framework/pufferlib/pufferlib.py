@@ -2,7 +2,7 @@ from typing import Dict
 from omegaconf import OmegaConf
 from env.wrapper.petting_zoo import PettingZooEnvWrapper
 from pufferlib import postprocess
-from rl_framework.rl_framework import RLFramework
+from rl_framework.rl_framework import EvaluationResult, RLFramework
 import os
 
 import pufferlib
@@ -75,14 +75,23 @@ class PufferLibFramework(RLFramework):
         clean_pufferl.close(data)
 
     def evaluate(self):
-        clean_pufferl.rollout(
+        model_dir = os.path.join(self.puffer_cfg.train_dir, self.cfg.experiment)
+        latest_model_cp = [p for p in os.listdir(model_dir) if p.endswith(".pt")][-1]
+        print(f"Loading model from {latest_model_cp}")
+
+        result = clean_pufferl.rollout(
+            self.cfg,
             make_env_func,
             env_kwargs=dict(cfg = dict(**self.cfg.env)),
             agent_creator=puffer_agent_wrapper.make_policy,
             agent_kwargs={'cfg': self.cfg},
-            model_path=self.puffer_cfg.eval_model_path,
-            render_mode=self.puffer_cfg.render_mode,
-            device=self.puffer_cfg.train.device
+            model_path=os.path.join(model_dir, latest_model_cp),
+            render_mode="rgb_array",
+            device=self.puffer_cfg.device
+        )
+        return EvaluationResult(
+            reward=result['reward'],
+            frames=result['frames']
         )
 
     def process_stats(self, data):

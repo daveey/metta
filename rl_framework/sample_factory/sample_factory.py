@@ -1,14 +1,14 @@
 import json
 import hydra
 
-from numpy import rec
+from numpy import mean, rec
 from omegaconf import OmegaConf
 from sample_factory.algo.utils.context import global_model_factory
 from sample_factory.cfg.arguments import parse_full_cfg, parse_sf_args
 from sample_factory.envs.env_utils import register_env
 from sample_factory.train import run_rl
 from sample_factory.enjoy import enjoy
-from rl_framework.rl_framework import RLFramework
+from rl_framework.rl_framework import EvaluationResult, RLFramework
 from rl_framework.sample_factory.sample_factory_agent_wrapper import SampleFactoryAgentWrapper
 from rl_framework.sample_factory.sample_factory_env_wrapper import SampleFactoryEnvWrapper
 
@@ -70,5 +70,13 @@ class SampleFactoryFramework(RLFramework):
 
     def evaluate(self):
         sf_cfg = self.setup(evaluation=True)
-        status = enjoy(sf_cfg)
-        return status[0]
+        sf_cfg.max_num_frames = self.cfg.eval.max_steps
+        sf_cfg.save_video = False
+        sf_cfg.eval_env_frameskip = 1
+
+        status = enjoy(sf_cfg, render_mode="rgb_array")
+
+        return EvaluationResult(
+            reward=status["reward"],
+            frames=status["frames"],
+        )

@@ -1,8 +1,10 @@
+from calendar import c
 from functools import partial
 import os
 import hydra
 from omegaconf import OmegaConf
 from rich import traceback
+import util.replay as replay
 
 from rl_framework.sample_factory.sample_factory import SampleFactoryFramework
 
@@ -15,8 +17,14 @@ def main(cfg):
     try:
         if cfg.cmd == "train":
             framework.train()
+
         if cfg.cmd == "evaluate":
-            framework.evaluate()
+            result = framework.evaluate()
+            if cfg.eval.video_path is not None:
+                replay.generate_replay_video(cfg.eval.video_path, result.frames, cfg.eval.fps)
+            if cfg.eval.gif_path is not None:
+                replay.generate_replay_gif(cfg.eval.gif_path, result.frames, cfg.eval.fps)
+
     except KeyboardInterrupt:
         os._exit(0)
 
