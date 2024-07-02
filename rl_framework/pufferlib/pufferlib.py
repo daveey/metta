@@ -46,12 +46,17 @@ class PufferLibFramework(RLFramework):
         else:
             raise ValueError(f'Invalid --vector (serial/multiprocessing/ray).')
 
+        target_batch_size = pcfg.train.forward_pass_minibatch_target_size // self.cfg.env.game.num_agents
+        if target_batch_size < 2: # pufferlib bug requires batch size >= 2
+            target_batch_size = 2
+        batch_size = (target_batch_size // pcfg.train.num_workers) * pcfg.train.num_workers
+
         vecenv = pufferlib.vector.make(
             make_env_func,
             env_kwargs=dict(cfg = dict(**self.cfg.env)),
-            num_envs=pcfg.train.num_workers * pcfg.train.num_envs_per_worker,
+            num_envs=batch_size * pcfg.train.async_factor,
             num_workers=pcfg.train.num_workers,
-            batch_size=pcfg.train.env_batch_size,
+            batch_size=batch_size,
             zero_copy=pcfg.train.zero_copy,
             backend=vec,
         )
