@@ -16,6 +16,7 @@ pufferlib:
 
     data_dir: ${framework.train_dir}
     env: ${env.name}
+    exp_id: ${experiment}
 
     seed: 1
     torch_deterministic: True

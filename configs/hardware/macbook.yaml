@@ -11,7 +11,6 @@ framework:
     device: cpu
     vectorization: serial
     train:
-      num_envs_per_worker: 1
       num_workers: 1
       update_epochs: 1
       batch_size: 1024
