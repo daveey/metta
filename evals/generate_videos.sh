@@ -21,8 +21,8 @@ for envcfg in $behavior_cfgs  $train_cfgs ; do
         experiment=$experiment \
         env=mettagrid/$envcfg \
         framework=sample_factory \
-        eval.video_path=sample_factory/$experiment/$video_name.mp4 \
-        eval.gif_path=sample_factory/$experiment/$video_name.gif \
+        eval.video_path=train_dir/sample_factory/$experiment/$video_name.mp4 \
+        eval.gif_path=train_dir/sample_factory/$experiment/$video_name.gif \
         "$@"
 done
 
