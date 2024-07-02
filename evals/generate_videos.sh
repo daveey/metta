@@ -20,12 +20,9 @@ for envcfg in $behavior_cfgs  $train_cfgs ; do
         cmd=evaluate \
         experiment=$experiment \
         env=mettagrid/$envcfg \
-        +framework.sample_factory.video_name="${video_name}.mp4" \
         framework=sample_factory \
-        +framework.sample_factory.save_video=True \
-        +framework.sample_factory.fps=8 \
-        +framework.sample_factory.max_num_frames=1000 \
-        +framework.sample_factory.eval_env_frameskip=1 \
+        eval.video_path=sample_factory/$experiment/$video_name.mp4 \
+        eval.gif_path=sample_factory/$experiment/$video_name.gif \
         "$@"
 done
 
