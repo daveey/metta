@@ -47,7 +47,7 @@ def fmt_perf(name, time, uptime):
 
 
 last_stats = {}
-def print(config, utilization, global_step, epoch,
+def print_dashboard(config, utilization, global_step, epoch,
         profile, losses, stats, msg, clear=False, max_stats=[0]):
     console = Console()
     if clear:

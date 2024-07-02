@@ -32,7 +32,7 @@ def create(config, vecenv, policy, optimizer=None, wandb=None):
 
     utilization = Utilization()
     msg = f'Model Size: {dashboard.abbreviate(count_params(policy))} parameters'
-    dashboard.print(config, utilization, 0, 0, profile, losses, {}, msg, clear=True)
+    dashboard.print_dashboard(config, utilization, 0, 0, profile, losses, {}, msg, clear=True)
 
     vecenv.async_reset(config.seed)
     obs_shape = vecenv.single_observation_space.shape
@@ -256,7 +256,7 @@ def train(data):
         done_training = data.global_step >= config.total_timesteps
         if profile.update(data) or (
                 'episode_return' in data.stats or done_training):
-            dashboard.print(config, data.utilization, data.global_step, data.epoch,
+            dashboard.print_dashboard(config, data.utilization, data.global_step, data.epoch,
                 profile, data.losses, data.stats, data.msg)
 
             if data.wandb is not None and data.global_step > 0 and time.time() - data.last_log_time > 3.0:
