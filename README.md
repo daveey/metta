@@ -139,13 +139,13 @@ To download the model files, install git-lfs first, then run the following comma
 
 ```
 git lfs install
-./devops/load_model.sh baseline
+./devops/load_model.sh baseline.v0.5.4
 ```
 
 ### Render a video of the evaluation
 
 ```
-python -m tools.evaluate  +sample_factory=video +sample_factory.experiment=baseline
+python -m tools.run cmd=evaluate experiment=baseline.v0.5.4
 ```
 
 # Training a Model
@@ -153,20 +153,9 @@ python -m tools.evaluate  +sample_factory=video +sample_factory.experiment=basel
 ### Run the training
 
 ```
-python -m tools.train +sample_factory.experiment=my_experiment
+python -m tools.run cmd=train experiment=my_experiment hardware=macbook
 ```
 
-### Run the training on the CPU (no GPU)
-
-```
-python -m tools.train +sample_factory.device=cpu +sample_factory.experiment=my_experiment
-```
-
-
-### Run the training from a baseline model
-```
-python -m tools.train +sample_factory.experiment=my_experiment +sample_factory.init_checkpoint_path=./train_dir/baseline/$(ls train_dir/baseline/checkpoint_p0 | tail -n1)
-```
 
 ### Troubleshooting
 #### conan installation
