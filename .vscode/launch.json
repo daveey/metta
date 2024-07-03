@@ -139,5 +139,14 @@
                 "--env_max_steps=100",
             ],
         },
+
+        {
+            "name": "Run Mettagrid",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "env.mettagrid.grid",
+            "args": [
+            ],
+        },
     ]
 }

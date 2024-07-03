@@ -33,8 +33,7 @@ class RaylibRender:
             sprite_sheet_path=None, tile_size=16):
         '''Simple grid renderer for PufferLib grid environments'''
         if sprite_sheet_path is None:
-            sprite_sheet_path = os.path.join(
-                *self.__module__.split('.')[:-1], 'puffer-128-sprites.png')
+            sprite_sheet_path = os.path.join('./env/mettagrid/puffer-128-sprites.png')
 
         self.asset_map = None
         if asset_map is None:
@@ -71,7 +70,7 @@ class RaylibRender:
         cdata = self.ffi.buffer(data_pointer, data_size)
         return np.frombuffer(cdata, dtype=np.uint8
             ).reshape((height, width, channels))
- 
+
     def render(self, grid, agent_positions, actions, vision_range=None):
         colors = self.colors
         rl = self.rl
