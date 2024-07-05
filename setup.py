@@ -1,9 +1,22 @@
+import build
 from setuptools import Extension, setup, find_packages, Command
 import subprocess
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 from Cython.Build import cythonize
 import numpy
+import os
+
+# Create __init__.py in the build directories if they don't exist
+os.makedirs('build/env', exist_ok=True)
+if not os.path.exists('build/__init__.py'):
+    open('build/__init__.py', 'w').close()
+if not os.path.exists('build/env/__init__.py'):
+    open('build/env/__init__.py', 'w').close()
+if not os.path.exists('build/env/mettagrid/__init__.py'):
+    open('build/env/mettagrid/__init__.py', 'w').close()
+if not os.path.exists('build/env/puffergrid/__init__.py'):
+    open('build/env/puffergrid/__init__.py', 'w').close()
 
 class BuildGriddlyCommand(Command):
     description = 'Build Griddly'
@@ -56,10 +69,28 @@ class DevelopCommand(develop):
 
 ext_modules = [
     Extension(
-        "env.mettagrid.c_grid",  # Name of the resulting .so file
-        ["env/mettagrid/c_grid.pyx"],
+        "env.mettagrid.mettagrid_c",  # Name of the resulting .so file
+        [
+            "env/mettagrid/mettagrid.pyx",
+         ],
+        include_dirs=[numpy.get_include()],
+    ),
+    Extension(
+        "env.puffergrid.object",  # Name of the resulting .so file
+        [
+            "env/puffergrid/object.pyx",
+         ],
+        include_dirs=[numpy.get_include()],
+    ),
+    Extension(
+        "env.puffergrid.grid",  # Name of the resulting .so file
+        [
+            "env/puffergrid/grid.pyx",
+         ],
         include_dirs=[numpy.get_include()],
     )
+
+
 ]
 
 setup(
@@ -97,6 +128,11 @@ setup(
     },
     include_dirs=[numpy.get_include()],
     ext_modules=cythonize(
-        ext_modules, compiler_directives={'profile': True}, annotate=True
+        ext_modules,
+        compiler_directives={
+            'profile': True,
+        },
+        build_dir='build',
+        annotate=True,
     ),
 )

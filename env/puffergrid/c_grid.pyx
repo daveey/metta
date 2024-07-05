@@ -17,7 +17,7 @@ cdef:
     int EAST = 3
     int WEST = 4
 
-cdef class Environment:
+cdef class MettaGrid:
     cdef:
         int map_size
         int num_agents
@@ -32,7 +32,7 @@ cdef class Environment:
 
     def __init__(self, grid, agent_positions, spawn_position_cands, observations,
             int map_size, int num_agents, int horizon, int vision_range):
-        self.map_size = map_size 
+        self.map_size = map_size
         self.num_agents = num_agents
         self.horizon = horizon
         self.vision_range = vision_range

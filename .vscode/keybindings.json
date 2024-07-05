@@ -1,0 +1,8 @@
+[{
+    "key": "cmd+/",
+    "command": "editor.action.insertLineBefore",
+    "when": "editorTextFocus && resourceExtname == .pyx",
+    "args": {
+        "text": "# "
+    }
+}]

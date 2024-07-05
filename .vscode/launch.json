@@ -139,14 +139,25 @@
                 "--env_max_steps=100",
             ],
         },
-
         {
             "name": "Run Mettagrid",
             "type": "debugpy",
             "request": "launch",
-            "module": "env.mettagrid.grid",
-            "args": [
-            ],
-        },
+            "module": "env.mettagrid.mettagrid",
+            "preLaunchTask": "build_cython_extensions",
+            "stopOnEntry": false,
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+              "PYTHONPATH": "${workspaceFolder}"
+            },
+            "presentation": {
+              "hidden": false,
+              "panel": "shared",
+              "clear": true,
+              "group": "",
+              "order": 1
+            },
+          },
     ]
 }

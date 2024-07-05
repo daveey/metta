@@ -8,3 +8,5 @@ replays
 .DS_Store
 .task
 outputs
+*.so
+cython_debug
