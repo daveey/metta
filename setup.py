@@ -76,9 +76,9 @@ ext_modules = [
         include_dirs=[numpy.get_include()],
     ),
     Extension(
-        "env.puffergrid.object",  # Name of the resulting .so file
+        "env.puffergrid.grid_object",  # Name of the resulting .so file
         [
-            "env/puffergrid/object.pyx",
+            "env/puffergrid/grid_object.pyx",
          ],
         include_dirs=[numpy.get_include()],
     ),

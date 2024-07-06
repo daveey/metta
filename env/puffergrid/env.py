@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 
 import pettingzoo
-import gymnasium
+import gymnasium as gym
 
 from env.mettagrid import render
 import pufferlib
@@ -27,6 +27,7 @@ class PufferGridEnv(PufferEnv):
         self._num_agents = num_agents
         self._obs_width = obs_width
         self._obs_height = obs_height
+        self._max_timesteps = max_timesteps
 
         self._c_env = c_env_class(
             map_width,
@@ -41,32 +42,32 @@ class PufferGridEnv(PufferEnv):
         })
         self._grid = np.asarray(self._c_env.get_grid())
 
-        self.actions = np.zeros(num_agents, dtype=np.uint32)
         self.episode_rewards = np.zeros(num_agents, dtype=np.float32)
         self.dones = np.ones(num_agents, dtype=bool)
         self.not_done = np.zeros(num_agents, dtype=bool)
-        self.done = True
         self.infos = {}
 
-
-
-    # def observation_space(env, agent):
-    #     return gymnasium.spaces.Box(
-    #         low=0, high=255, shape=(env.obs_size, env.obs_size), dtype=np.uint8)
+    def observation_space(self, agent):
+        type_info = np.iinfo(self._buffers.observations.dtype)
+        return gym.spaces.Box(
+            low=type_info.min, high=type_info.max,
+            shape=(self._buffers.observations.shape[1:]),
+            dtype=self._buffers.observations.dtype
+        )
 
     def action_space(self, agent):
-        return gymnasium.spaces.MultiDiscrete(self._c_env.num_actions(), 255)
+        return gym.spaces.MultiDiscrete((self._c_env.num_actions(), 255))
 
-    def _compute_observations(self):
-        for agent_idx in range(self.num_agents):
-            r = self.agent_positions[agent_idx, 0]
-            c = self.agent_positions[agent_idx, 1]
-            for layer in range(self.grid.shape[0]):
-                self.buf.observations[agent_idx, :, :, layer] = self.grid[
-                    layer,
-                    r-self.vision_range:r+self.vision_range+1,
-                    c-self.vision_range:c+self.vision_range+1,
-                ]
+    def get_object_types(self):
+        return SimpleNamespace(**{
+            k: v["TypeId"] for k, v in self._c_env.get_object_types().items()
+        })
+
+    def grid_location_empty(self, r: int, c: int):
+        return self._grid[:, r, c].sum() == 0
+
+    def add_object(self, obj_type, r: int, c: int, **props):
+        return self._c_env.add_object(obj_type, r, c, **props)
 
     def _compute_rewards(self):
         '''-1 for each nearby agent'''
@@ -79,18 +80,9 @@ class PufferGridEnv(PufferEnv):
         raise NotImplementedError
 
     def reset(self, seed=0):
-        self.agents = [i+1 for i in range(self.num_agents)]
-        self.done = False
-        self.tick = 1
-
-        self.grid.fill(0)
-        self.episode_rewards.fill(0)
-        if use_c:
-            self.cenv.reset(self.buf.observations, seed)
-        else:
-            python_reset(self)
-
-        return self.buf.observations, self.infos
+        self.agents = [i+1 for i in range(self._num_agents)]
+        self._c_env.reset(seed)
+        return self._buffers.observations, self.infos
 
     def step(self, actions):
         self.actions = actions
@@ -104,7 +96,6 @@ class PufferGridEnv(PufferEnv):
         self.tick += 1
 
         if self.tick >= self.horizon:
-            self.done = True
             self.agents = []
             self.buf.terminals[:] = self.dones
             self.buf.truncations[:] = self.dones
@@ -116,57 +107,3 @@ class PufferGridEnv(PufferEnv):
 
         return (self.buf.observations, self.buf.rewards,
             self.buf.terminals, self.buf.truncations, infos)
-
-def python_reset(self):
-    # Add borders
-    left = self.vision_range
-    right = self.map_size - self.vision_range - 1
-    self.grid[0, :left, :] = WALL
-    self.grid[0, right:, :] = WALL
-    self.grid[0, :, :left] = WALL
-    self.grid[0, :, right:] = WALL
-
-    # Agent spawning
-    for agent_idx in range(self.num_agents):
-        r = 20 + agent_idx * 2
-        c = 20 + agent_idx * 2
-        if self.grid[0, r, c] == 0:
-            self.grid[1, r, c] = AGENT
-            self.agent_positions[agent_idx, 0] = r
-            self.agent_positions[agent_idx, 1] = c
-            agent_idx += 1
-            if agent_idx == self.num_agents:
-                break
-
-    self._compute_observations()
-
-def python_step(self, actions):
-    for agent_idx in range(self.num_agents):
-        r = self.agent_positions[agent_idx, 0]
-        c = self.agent_positions[agent_idx, 1]
-        atn = actions[agent_idx]
-        dr = 0
-        dc = 0
-        if atn == PASS:
-            continue
-        elif atn == NORTH:
-            dr = -1
-        elif atn == SOUTH:
-            dr = 1
-        elif atn == EAST:
-            dc = 1
-        elif atn == WEST:
-            dc = -1
-        else:
-            raise ValueError(f'Invalid action: {atn}')
-
-        dest_r = r + dr
-        dest_c = c + dc
-
-        if self.grid[1, dest_r, dest_c] == 0:
-            self.grid[1, r, c] = EMPTY
-            self.grid[1, dest_r, dest_c] = AGENT
-            self.agent_positions[agent_idx, 0] = dest_r
-            self.agent_positions[agent_idx, 1] = dest_c
-
-    self._compute_observations()
