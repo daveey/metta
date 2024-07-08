@@ -2,7 +2,7 @@
 from math import e
 from types import SimpleNamespace
 import numpy as np
-from env.puffergrid.env import PufferGridEnv
+from env.puffergrid.grid_env import PufferGridEnv
 from pufferlib.environment import PufferEnv
 
 
@@ -17,8 +17,8 @@ if __name__ == '__main__':
         max_timesteps=1000,
         obs_width=11,
         obs_height=11)
-    object_types = env.get_object_types()
 
+    object_types = env.object_types
 
     for c in range(0, env._map_width):
         if env.grid_location_empty(0, c):
@@ -37,9 +37,10 @@ if __name__ == '__main__':
             c = np.random.randint(0, env._map_width)
             r = np.random.randint(0, env._map_height)
             if env.grid_location_empty(r, c):
+                print("adding agent", agent_id, "at", r, c)
                 agent = env.add_object(
                     object_types.Agent, r, c,
-                    agent_id=agent_id,
+                    id=agent_id
                 )
                 break
 

@@ -8,7 +8,8 @@ import numpy
 import os
 
 # Create __init__.py in the build directories if they don't exist
-os.makedirs('build/env', exist_ok=True)
+os.makedirs('build/env/mettagrid', exist_ok=True)
+os.makedirs('build/env/puffergrid', exist_ok=True)
 if not os.path.exists('build/__init__.py'):
     open('build/__init__.py', 'w').close()
 if not os.path.exists('build/env/__init__.py'):

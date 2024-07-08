@@ -9,7 +9,41 @@
 import numpy as np
 
 from env.puffergrid.grid_object cimport GridObject
-from env.puffergrid.grid cimport PufferGrid, GridLayers
+from env.puffergrid.grid cimport PufferGrid, GridObjectType
+
+cdef class MettaGrid(PufferGrid):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            object_types=[
+                GridObjectType(
+                    name="Agent",
+                    grid_layer="agents",
+                    properties=[
+                        "id",
+                        "hp",
+                        "energy"
+                    ],
+                    is_observer=True
+                ),
+                GridObjectType(
+                    name="Wall",
+                    grid_layer="objects",
+                    properties=[ "hp" ]
+                ),
+                GridObjectType(
+                    name="Tree",
+                    grid_layer="objects",
+                    properties=[
+                        "has_food",
+                        "cooldown"
+                    ]
+                )
+            ],
+            *args, **kwargs
+        )
+
+
+
 
 cdef enum Actions:
     ACTION_PASS = 0
@@ -19,75 +53,3 @@ cdef enum Actions:
     ACTION_SHIELD = 4
     ACTION_DROP = 5
     ACTION_COUNT = 6
-
-cdef enum Objects:
-    OBJECT_EMPTY = 0
-    OBJECT_AGENT = 1
-    OBJECT_WALL = 2
-    OBJECT_TREE = 3
-
-cdef class Tree(GridObject):
-    def layer(self):
-        return GridLayers.LAYER_OBJECT
-
-    def __init__(self, id, r, c, has_food=0, cooldown=0):
-        super().__init__(
-            id,
-            np.dtype([
-                ("has_food", np.int32),
-                ("cooldown", np.int32)
-            ]),
-            (has_food, cooldown),
-            r, c
-        )
-
-cdef class Wall(GridObject):
-    def layer(self):
-        return GridLayers.LAYER_OBJECT
-
-    def __init__(self, id, r, c):
-        super().__init__(
-            id,
-            np.dtype([("hp", np.int32)]),
-            (1000,),
-            r, c
-        )
-
-cdef class Agent(GridObject):
-    def layer(self):
-        return GridLayers.LAYER_AGENT
-
-    def __init__(self, id, r, c, agent_id, hp=100, energy=100):
-        super().__init__(
-            id,
-            np.dtype([
-                ("id", np.int32),
-                ("hp", np.int32),
-                ("energy", np.int32),
-            ]),
-            (agent_id, hp, energy),
-            r, c
-        )
-
-cdef class MettaGrid(PufferGrid):
-    def __init__(self, *args, **kwargs):
-        super().__init__(OBJECT_AGENT, *args, **kwargs)
-
-    def get_object_types(self):
-        return {
-            "Agent": {
-                "TypeId": OBJECT_AGENT,
-                "Class": Agent,
-            },
-            "Wall": {
-                "TypeId": OBJECT_WALL,
-                "Class": Wall
-            },
-            "Tree": {
-                "TypeId": OBJECT_TREE,
-                "Class": Tree
-            }
-        }
-
-    def print_grid(self):
-        print(self.grid[0, 0, 0])

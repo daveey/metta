@@ -12,3 +12,10 @@ cdef class GridObject:
         cnp.dtype _props_dtype
         cnp.ndarray _props
 
+cdef class GridObjectType:
+    cdef:
+        unsigned int _id
+        str _name
+        str _grid_layer
+        list _properties
+        char _is_observer

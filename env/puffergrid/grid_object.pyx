@@ -7,6 +7,33 @@
 # cython: profile=False
 import numpy as np
 
+
+cdef class GridObjectType:
+    def __init__(self, name, grid_layer, properties, is_observer=False):
+        self._name = name
+        self._id = -1
+        self._grid_layer = grid_layer
+        self._properties = properties
+        self._is_observer = is_observer
+
+    def id(self):
+        return self._id
+
+    def set_id(self, int _id):
+        self._id = _id
+
+    def name(self):
+        return self._name
+
+    def grid_layer(self):
+        return self._grid_layer
+
+    def properties(self):
+        return self._properties
+
+    def is_observer(self):
+        return self._is_observer
+
 cdef class GridObject():
 
     def __init__(

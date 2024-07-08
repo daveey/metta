@@ -30,17 +30,22 @@ class PufferGridEnv(PufferEnv):
         self._max_timesteps = max_timesteps
 
         self._c_env = c_env_class(
-            map_width,
-            map_height,
-            num_agents,
-            max_timesteps,
-            obs_width,
-            obs_height)
+            map_width = map_width,
+            map_height = map_height,
+            num_agents = num_agents,
+            max_timesteps = max_timesteps,
+            obs_width = obs_width,
+            obs_height = obs_height)
+
+        self.object_types = SimpleNamespace(**{
+            ot.name(): ot for ot in self._c_env.get_object_types()
+        })
 
         self._buffers = SimpleNamespace(**{
             k: np.asarray(v) for k,v in self._c_env.get_buffers().items()
         })
         self._grid = np.asarray(self._c_env.get_grid())
+        self._layers = self._c_env.get_layers()
 
         self.episode_rewards = np.zeros(num_agents, dtype=np.float32)
         self.dones = np.ones(num_agents, dtype=bool)
@@ -58,13 +63,9 @@ class PufferGridEnv(PufferEnv):
     def action_space(self, agent):
         return gym.spaces.MultiDiscrete((self._c_env.num_actions(), 255))
 
-    def get_object_types(self):
-        return SimpleNamespace(**{
-            k: v["TypeId"] for k, v in self._c_env.get_object_types().items()
-        })
-
     def grid_location_empty(self, r: int, c: int):
-        return self._grid[:, r, c].sum() == 0
+        loc = self._grid[r, c]
+        return sum([loc[layer]["object_id"] for layer in self._layers]) == 0
 
     def add_object(self, obj_type, r: int, c: int, **props):
         return self._c_env.add_object(obj_type, r, c, **props)
