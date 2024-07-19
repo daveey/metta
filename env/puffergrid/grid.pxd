@@ -1,59 +1,112 @@
-# grid.pxd
-from env.puffergrid.grid_object cimport GridObject, GridObjectType
+# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+# cython: language_level=3
+# cython: boundscheck=False
+# cython: initializedcheck=False
+# cython: wraparound=False
+# cython: nonecheck=False
+# cython: profile=False
+# distutils: language = c++
+from libcpp.vector cimport vector
 cimport numpy as cnp
+from env.puffergrid.grid_object cimport GridObject, GridCoordinates, GridLocation
+from libc.stdlib cimport malloc, free
+from libcpp.queue cimport priority_queue
+from libcpp.pair cimport pair
+from libcpp cimport bool
 
+cdef extern from "grid.h":
+    cdef struct Event:
+        unsigned int timestamp
+        unsigned short event_id
+        unsigned short object_id
+        unsigned int arg
 
-cdef struct Observer:
-    unsigned int id
-    unsigned int object_id
-    unsigned int r
-    unsigned int c
-
+cdef struct TypeInfo:
+    unsigned int type_id
+    unsigned short grid_layer
+    unsigned int object_size
+    unsigned int num_properties
+    unsigned int obs_offset
 
 cdef class PufferGrid:
     cdef:
-        int _map_width
-        int _map_height
-        int _num_agents
-        int _max_timesteps
-        int _obs_width
-        int _obs_width_r
-        int _obs_height
-        int _obs_height_r
+        unsigned int _map_width
+        unsigned int _map_height
+        unsigned int _num_layers
+        unsigned int _max_timesteps
 
-        list _object_types
-        list _layers
         cnp.dtype _grid_dtype
 
-        int _num_features
-        int _current_timestep
+        unsigned int _num_features
+        unsigned int _current_timestep
 
         # cnp.ndarray _grid_data
-        cnp.ndarray _grid # width, height, layer
+        # vector[vector[vector[unsigned int]]] _grid # width, height, layer
+        cnp.ndarray _np_grid
+        unsigned int[:, :, :] _grid
 
-        # cnp.ndarray _observations_data
-        cnp.ndarray _observations # agent, width, height, data
+        dict _type_ids
+        dict _object_dtypes
+        list _object_data
+        vector[GridObject] _objects
+        vector[TypeInfo] _object_types
 
-        unsigned char[:, :] _actions # agent, action_and_args
-        float[:] _rewards
-        char[:] _terminals
-        char[:] _truncations
-        char[:] _masks
-
-        unsigned int[:] _agent_ids
-
-        Observer[:] _observers
-        unsigned int _num_observers
-        unsigned int _observer_type_id
-
-
-        list _objects
         dict _object_classes
         int _obserer_type_id
 
-    cdef int _allocate_object_id(self)
-    cdef void _add_observer(self, unsigned int id, unsigned int r, unsigned int c)
+        priority_queue[Event] _event_queue
 
-    cdef void _compute_observations(self)
-    cdef void _compute_observation(self, Observer observer)
+    cdef unsigned int _add_object(
+        self,
+        unsigned int object_id,
+        TypeInfo type_info,
+        unsigned int r, unsigned int c,
+        cnp.ndarray data)
+
+    cdef void _compute_observation(
+        self,
+        unsigned int observer_id,
+        unsigned short obs_width,
+        unsigned short obs_height,
+        unsigned int[:,:,:] observation)
+
+    cdef void _process_events(self)
+
+    cpdef get_grid(self)
+    cpdef unsigned int get_current_timestep(self)
+    cpdef unsigned int get_num_features(self)
+    cpdef void move_object(self, unsigned int obj_id, unsigned int new_r, unsigned int new_c)
+    cdef GridObject _get_object(self, unsigned int obj_id)
+    cpdef GridLocation location(self, int object_id)
+
+    cdef GridLocation _relative_location(self, GridLocation loc, unsigned short orientation)
+    cpdef void compute_observations(self,
+        unsigned int[:] observer_ids,
+        unsigned short obs_width,
+        unsigned short obs_height,
+        unsigned int[:,:,:,:] obs)
+
+    cpdef void step(
+        self,
+        unsigned int[:] actor_ids,
+        unsigned int[:,:] actions,
+        float[:] rewards,
+        char[:] dones)
+
+    cdef void handle_action(
+        self,
+        unsigned int actor_id,
+        unsigned short action_id,
+        unsigned short action_arg,
+        float *reward,
+        char *done)
+
+    cdef void _schedule_event(
+        self,
+        unsigned int delay,
+        unsigned short event_id,
+        unsigned short object_id,
+        int arg)
+
+    cdef void handle_event(self, Event event)
 

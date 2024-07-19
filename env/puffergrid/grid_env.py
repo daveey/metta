@@ -32,25 +32,21 @@ class PufferGridEnv(PufferEnv):
         self._c_env = c_env_class(
             map_width = map_width,
             map_height = map_height,
-            num_agents = num_agents,
-            max_timesteps = max_timesteps,
-            obs_width = obs_width,
-            obs_height = obs_height)
+            max_timesteps = max_timesteps)
 
-        self.object_types = SimpleNamespace(**{
-            ot.name(): ot for ot in self._c_env.get_object_types()
-        })
+        self._agent_ids_list = []
+        self._agent_ids = np.zeros(num_agents, dtype=np.uint32)
+        self.type_ids = SimpleNamespace(**self._c_env.get_types())
+        self.object_dtypes = SimpleNamespace(**self._c_env.get_dtypes())
+        self._num_features = self._c_env.get_num_features()
 
-        self._buffers = SimpleNamespace(**{
-            k: np.asarray(v) for k,v in self._c_env.get_buffers().items()
-        })
         self._grid = np.asarray(self._c_env.get_grid())
-        self._layers = self._c_env.get_layers()
 
         self.episode_rewards = np.zeros(num_agents, dtype=np.float32)
         self.dones = np.ones(num_agents, dtype=bool)
         self.not_done = np.zeros(num_agents, dtype=bool)
         self.infos = {}
+        self._buffers = self._make_buffers()
 
     def observation_space(self, agent):
         type_info = np.iinfo(self._buffers.observations.dtype)
@@ -63,48 +59,68 @@ class PufferGridEnv(PufferEnv):
     def action_space(self, agent):
         return gym.spaces.MultiDiscrete((self._c_env.num_actions(), 255))
 
+    def _make_buffers(self):
+        return SimpleNamespace(
+            observations=np.zeros((self._num_agents, self._obs_width, self._obs_height, self._num_features), dtype=np.uint32),
+            actions=np.zeros((self._num_agents, 2), dtype=np.uint32),
+            rewards=np.zeros(self._num_agents, dtype=np.float32),
+            dones=np.zeros(self._num_agents, dtype=bool),
+        )
+
     def grid_location_empty(self, r: int, c: int):
-        loc = self._grid[r, c]
-        return sum([loc[layer]["object_id"] for layer in self._layers]) == 0
+        return sum(self._grid[r, c]) == 0
 
-    def add_object(self, obj_type, r: int, c: int, **props):
+    def add_agent(self, obj_type, r: int, c: int, **props) -> int:
+        id = self._c_env.add_object(obj_type, r, c, **props)
+        self._agent_ids_list.append(id)
+        self._agent_ids[len(self._agent_ids_list)-1] = id
+        return id
+
+    def add_object(self, obj_type, r: int, c: int, **props) -> int:
         return self._c_env.add_object(obj_type, r, c, **props)
-
-    def _compute_rewards(self):
-        '''-1 for each nearby agent'''
-        # raw_rewards = 1 - (self.buf.observations==AGENT).sum(axis=(1,2))
-        # rewards = np.clip(raw_rewards/10, -1, 0)
-        # self.buf.rewards[:] = rewards
-        pass
 
     def render(self):
         raise NotImplementedError
 
     def reset(self, seed=0):
-        self.agents = [i+1 for i in range(self._num_agents)]
-        self._c_env.reset(seed)
+        assert self._c_env.get_current_timestep() == 0, "Reset not supported"
+        self._compute_observations()
         return self._buffers.observations, self.infos
 
     def step(self, actions):
-        self.actions = actions
-        if use_c:
-            self.cenv.step(actions.astype(np.uint32))
-        else:
-            python_step(self, actions)
+        # print("actions", self._agent_ids, actions)
+        self._buffers.rewards.fill(0)
+        self._buffers.dones.fill(False)
 
-        self._compute_rewards()
-        self.episode_rewards[self.tick] = self.buf.rewards
-        self.tick += 1
+        self._c_env.step(
+            self._agent_ids, actions,
+            self._buffers.rewards, self._buffers.dones)
 
-        if self.tick >= self.horizon:
-            self.agents = []
-            self.buf.terminals[:] = self.dones
-            self.buf.truncations[:] = self.dones
-            infos = {'episode_return': self.episode_rewards.sum(1).mean()}
-        else:
-            self.buf.terminals[:] = self.not_done
-            self.buf.truncations[:] = self.not_done
-            infos = self.infos
+        self._compute_observations()
 
-        return (self.buf.observations, self.buf.rewards,
-            self.buf.terminals, self.buf.truncations, infos)
+        # if self.tick >= self.horizon:
+        #     self.agents = []
+        #     self.buf.terminals[:] = self.dones
+        #     self.buf.truncations[:] = self.dones
+        #     infos = {'episode_return': self.episode_rewards.sum(1).mean()}
+        # else:
+        #     self.buf.terminals[:] = self.not_done
+        #     self.buf.truncations[:] = self.not_done
+        #     infos = self.infos
+
+        return (self._buffers.observations,
+                self._buffers.rewards,
+                self._buffers.dones,
+                self._buffers.dones,
+                self.infos)
+
+    def _compute_observations(self):
+        self._buffers.observations.fill(0)
+        self._c_env.compute_observations(
+            self._agent_ids,
+            self._obs_width, self._obs_height,
+            self._buffers.observations)
+
+    @property
+    def current_timestep(self):
+        return self._c_env.get_current_timestep()

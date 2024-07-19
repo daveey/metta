@@ -110,7 +110,7 @@ setup(
         "pynvml",
         "pytest",
         "PyYAML==6.0",
-        "raylib"
+        "raylib",
         "rich",
         "scipy",
         "tabulate",
