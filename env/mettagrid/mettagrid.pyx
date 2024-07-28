@@ -113,7 +113,7 @@ cdef class MettaGrid(PufferGrid):
         if orientation >= 4:
             return False
 
-        self._stats.agent_incr(action.agent_idx, b"action_rotate", 1)
+        self._stats.agent_incr(action.agent_idx, "action_rotate", 1)
         self._agent(action.actor_id).orientation = orientation
         return True
 
@@ -134,7 +134,7 @@ cdef class MettaGrid(PufferGrid):
             return False
         cdef char s = self.move_object(action.actor_id, new_loc.r, new_loc.c)
         if s:
-            self._stats.agent_incr(action.agent_idx, b"action_move", 1)
+            self._stats.agent_incr(action.agent_idx, "action_move", 1)
 
     cdef char _agent_eat(MettaGrid self, Action action, float *reward):
         cdef Agent * agent = self._agent(action.actor_id)
@@ -155,11 +155,11 @@ cdef class MettaGrid(PufferGrid):
 
         tree.has_food = 0
         agent.energy += 1
-        self._stats.agent_incr(action.agent_idx, b"action_eat", 1)
-        self._stats.agent_incr(action.agent_idx, b"energy_gained", 1)
-        self._stats.agent_incr(action.agent_idx, b"fruit_eaten", 1)
+        self._stats.agent_incr(action.agent_idx, "action_eat", 1)
+        self._stats.agent_incr(action.agent_idx, "energy_gained", 1)
+        self._stats.agent_incr(action.agent_idx, "fruit_eaten", 1)
         reward[0] += 1
-        self._schedule_event(1000, Events.TreeReset, target_id, 0)
+        self._schedule_event(100, Events.TreeReset, target_id, 0)
         return True
 
 

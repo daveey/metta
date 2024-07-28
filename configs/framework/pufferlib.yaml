@@ -63,3 +63,4 @@ pufferlib:
         - avg_action_rotate
         - avg_action_move
         - avg_action_eat
+        - avg_fruit_spawned

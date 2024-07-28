@@ -108,7 +108,8 @@ class MettaGridGymEnv(gym.Env):
             #                 num_obj = 1
             #             extra_stats[stat_name + "_pct"] = agent_stats[stat_name] / num_obj
 
-            # agent_stats.update(extra_stats)
+            agent_stats.update(extra_stats)
+            agent_stats.update(episode_stats["game_stats"])
             # agent_stats["level_max_energy"] = self._max_level_energy
             # agent_stats["level_max_energy_per_agent"] = self._max_level_energy_per_agent
             # agent_stats["level_max_reward_per_agent"] = self._max_level_reward_per_agent
