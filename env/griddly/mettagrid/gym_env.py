@@ -35,8 +35,8 @@ class MettaGridGymEnv(gym.Env):
             self._game_builder.num_agents,
             self._render_mode
         )
-
-        self._env = LastActionTracker(self._griddly_env)
+        self._env = self._griddly_env
+        self._env = LastActionTracker(self._env)
         self._env = Kinship(**sample_config(self._cfg.kinship), env=self._env)
         self._env = RewardTracker(self._env)
         self._env = FeatureMasker(self._env, self._cfg.hidden_features)

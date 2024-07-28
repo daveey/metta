@@ -13,11 +13,13 @@ import numpy as np
 cimport numpy as cnp
 
 from env.puffergrid.grid_object cimport GridLocation, GridObject
-from env.puffergrid.grid cimport PufferGrid, Event
+from env.puffergrid.grid cimport PufferGrid, Event, Action
+from env.puffergrid.stats_tracker cimport StatsTracker
+from omegaconf import OmegaConf
+from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
 
 cdef unsigned int GridLayer_Agent = 0
 cdef unsigned int GridLayer_Object = 1
-
 cdef struct Agent:
     unsigned int id
     unsigned int hp
@@ -31,130 +33,154 @@ cdef struct Tree:
     unsigned int has_food
     unsigned int cooldown
 
-cdef unsigned short ACTION_ROTATE = 0
-cdef unsigned short ACTION_MOVE = 1
-cdef unsigned short ACTION_EAT = 2
-cdef unsigned short ACTION_COUNT = 3
+cdef enum Actions:
+    Rotate = 0
+    Move = 1
+    Eat = 2
+    Count = 3
 
-cdef unsigned short EVENT_RESET_TREE = 0
+cdef enum Events:
+    TreeReset = 0
+
+cdef struct TypeIds:
+    unsigned int Agent
+    unsigned int Wall
+    unsigned int Tree
 
 cdef class MettaGrid(PufferGrid):
     cdef:
-        int AgentType
-        int WallType
-        int TreeType
+        TypeIds _type
+        StatsTracker _stats
+        object _cfg
 
-    cdef encode_object(
-        self,
-        int object_type,
-        int object_id,
-        cnp.ndarray destination):
-        pass
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, cfg: OmegaConf, map: np.ndarray):
+        self._cfg = cfg
 
         cdef Agent agent
-        agent_dtype = np.asarray(<Agent[:1]>&agent).dtype
         cdef Wall wall
-        wall_dtype = np.asarray(<Wall[:1]>&wall).dtype
         cdef Tree tree
-        tree_dtype = np.asarray(<Tree[:1]>&tree).dtype
 
         super().__init__(
             {
-                "Agent": (Agent(), agent_dtype, GridLayer_Agent),
-                "Wall": (Wall(), wall_dtype, GridLayer_Object),
-                "Tree": (Tree(), tree_dtype, GridLayer_Object),
+                "Agent": np.asarray(<Agent[:1]>&agent).dtype,
+                "Wall": np.asarray(<Wall[:1]>&wall).dtype,
+                "Tree": np.asarray(<Tree[:1]>&tree).dtype,
             },
-            *args,
             num_layers=2,
-            **kwargs
+            num_actions=Actions.Count,
+            map_width=map.shape[0],
+            map_height=map.shape[1]
         )
-        self.AgentType = self._type_ids["Agent"]
-        self.WallType = self._type_ids["Wall"]
-        self.TreeType = self._type_ids["Tree"]
+        self._type.Agent = self._type_ids["Agent"]
+        self._type.Wall = self._type_ids["Wall"]
+        self._type.Tree = self._type_ids["Tree"]
 
+        self._stats = StatsTracker(self._cfg.num_agents)
 
     ################
     # Python Interface
     ################
+    cpdef unsigned int layer(self, unsigned int type_id):
+        if type_id == self._type.Agent:
+            return GridLayer_Agent
+        return GridLayer_Object
+
+    cpdef get_episode_stats(self):
+        return self._stats.to_pydict()
 
     ################
     # Actions
     ################
     @cython.cdivision(True)
     cdef void handle_action(
-        self, unsigned int actor_id,
-        unsigned short action_id,
-        unsigned short action_arg,
+        self, Action action,
         float *reward, char *done):
 
-        action_id = action_id % ACTION_COUNT
+        action.id = action.id % Actions.Count
+        cdef char success = 0
 
-        if action_id == ACTION_MOVE:
-            self._agent_move(actor_id, action_arg)
-        elif action_id == ACTION_ROTATE:
-            self._agent_rotate(actor_id, action_arg)
-        elif action_id == ACTION_EAT:
-            self._agent_eat(actor_id, reward)
-
+        if action.id  == Actions.Move:
+            success = self._agent_move(action, reward)
+        elif action.id  == Actions.Rotate:
+            success = self._agent_rotate(action, reward)
+        elif action.id  == Actions.Eat:
+            success = self._agent_eat(action, reward)
         else:
-            printf("Unhandled Action: %d %d %d\n", actor_id, action_id, action_arg)
+            printf("Unhandled Action: %d: %d(%d)\n", action.actor_id, action.id , action.arg)
 
-    cdef void _agent_rotate(self, unsigned int agent_id, unsigned int orientation):
-        self._agent(agent_id).orientation = (orientation % 4)
-        cdef GridLocation loc = self._target_loc(agent_id)
-        # printf("action_rotate: %d -> %d %d\n", orientation, loc.r, loc.c)
+    cdef char _agent_rotate(self, Action action, float *reward):
+        cdef orientation = action.arg
+        if orientation >= 4:
+            return False
 
-    cdef void _agent_move(self, unsigned int agent_id, unsigned int direction):
+        self._stats.agent_incr(action.agent_idx, b"action_rotate", 1)
+        self._agent(action.actor_id).orientation = orientation
+        return True
+
+    cdef char _agent_move(self, Action action, float *reward):
         # direction can be forward (0) or backward (1)
-        cdef Agent * agent = <Agent *>self._agent(agent_id)
-        cdef unsigned short orientation = (agent.orientation + 2*(direction % 2)) % 4
-        cdef GridLocation loc = self.location(agent_id)
-        loc = self._relative_location(loc, orientation)
-        # printf("action_move: %d -> %d %d\n", direction, loc.r, loc.c)
-        self.move_object(agent_id, loc.r, loc.c)
+        cdef direction = action.arg
 
-    cdef void _agent_eat(MettaGrid self, unsigned int agent_id, float *reward):
-        cdef Agent * agent = self._agent(agent_id)
-        cdef unsigned int target_id = self._target(agent_id, GridLayer_Object)
+        if direction >= 2:
+            return False
+
+        cdef Agent * agent = <Agent *>self._agent(action.actor_id)
+        cdef unsigned short orientation = (agent.orientation + 2*(direction)) % 4
+        cdef GridLocation old_loc = self.location(action.actor_id)
+        cdef GridLocation new_loc = self._relative_location(old_loc, orientation)
+
+        if self._grid[new_loc.r, new_loc.c, GridLayer_Object] != 0 \
+            or self._grid[new_loc.r, new_loc.c, GridLayer_Agent] != 0:
+            return False
+        cdef char s = self.move_object(action.actor_id, new_loc.r, new_loc.c)
+        if s:
+            self._stats.agent_incr(action.agent_idx, b"action_move", 1)
+
+    cdef char _agent_eat(MettaGrid self, Action action, float *reward):
+        cdef Agent * agent = self._agent(action.actor_id)
+        cdef unsigned int target_id = self._target(action.actor_id, GridLayer_Object)
         cdef Tree *tree
 
         # printf("action_eat: %d\n", target_id)
         if target_id == 0:
-            return
+            return False
 
         target_obj = self._objects[target_id]
-        if target_obj.type_id != self.TreeType:
-            return
+        if target_obj.type_id != self._type.Tree:
+            return False
 
         tree = <Tree*>target_obj.data
-        if tree.has_food:
-            tree.has_food = 0
-            agent.energy += 1
-            reward += 1
-            self._schedule_event(10, EVENT_RESET_TREE, target_id, 0)
-            printf("Ate food\n")
+        if tree.has_food == 0:
+            return False
+
+        tree.has_food = 0
+        agent.energy += 1
+        self._stats.agent_incr(action.agent_idx, b"action_eat", 1)
+        self._stats.agent_incr(action.agent_idx, b"energy_gained", 1)
+        self._stats.agent_incr(action.agent_idx, b"fruit_eaten", 1)
+        reward[0] += 1
+        self._schedule_event(1000, Events.TreeReset, target_id, 0)
+        return True
 
 
-    cdef void _reset_tree(self, unsigned int tree_id):
-        cdef GridObject obj = self._objects[tree_id]
-        if obj.type_id != self.TreeType:
-            printf("Invalid tree id: %d\n", tree_id)
-            return
-
-        cdef Tree *tree = <Tree*>self._objects[tree_id].data
-        tree.has_food = 1
-        printf("Tree reset\n")
 
     ################
     # Events
     ################
 
     cdef void handle_event(self, Event event):
-        printf("Event: %d %d %d %d\n", event.timestamp, event.event_id, event.object_id, event.arg)
-        if event.event_id == EVENT_RESET_TREE:
+        if event.event_id == Events.TreeReset:
             self._reset_tree(event.object_id)
+
+    cdef void _reset_tree(self, unsigned int tree_id):
+        cdef GridObject obj = self._objects[tree_id]
+        if obj.type_id != self._type.Tree:
+            printf("Invalid tree id: %d\n", tree_id)
+            return
+
+        cdef Tree *tree = <Tree*>self._objects[tree_id].data
+        tree.has_food = 1
+        self._stats.game_incr("fruit_spawned", 1)
 
     ################
     # Helpers

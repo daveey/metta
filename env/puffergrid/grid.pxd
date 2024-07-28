@@ -8,11 +8,12 @@
 # distutils: language = c++
 from libcpp.vector cimport vector
 cimport numpy as cnp
-from env.puffergrid.grid_object cimport GridObject, GridCoordinates, GridLocation
-from libc.stdlib cimport malloc, free
+from env.puffergrid.grid_object cimport GridObject, GridLocation
 from libcpp.queue cimport priority_queue
-from libcpp.pair cimport pair
-from libcpp cimport bool
+from libcpp.map cimport map
+from libcpp.utility cimport pair
+from libcpp.string cimport string
+from libcpp.vector cimport vector
 
 cdef extern from "grid.h":
     cdef struct Event:
@@ -21,9 +22,14 @@ cdef extern from "grid.h":
         unsigned short object_id
         unsigned int arg
 
+cdef struct Action:
+        unsigned short id
+        unsigned int actor_id
+        unsigned int agent_idx
+        unsigned short arg
+
 cdef struct TypeInfo:
     unsigned int type_id
-    unsigned short grid_layer
     unsigned int object_size
     unsigned int num_properties
     unsigned int obs_offset
@@ -32,8 +38,8 @@ cdef class PufferGrid:
     cdef:
         unsigned int _map_width
         unsigned int _map_height
-        unsigned int _num_layers
-        unsigned int _max_timesteps
+        unsigned short _num_layers
+        unsigned int _num_actions
 
         cnp.dtype _grid_dtype
 
@@ -50,6 +56,7 @@ cdef class PufferGrid:
         list _object_data
         vector[GridObject] _objects
         vector[TypeInfo] _object_types
+        list[string] _grid_features
 
         dict _object_classes
         int _obserer_type_id
@@ -59,8 +66,8 @@ cdef class PufferGrid:
     cdef unsigned int _add_object(
         self,
         unsigned int object_id,
-        TypeInfo type_info,
-        unsigned int r, unsigned int c,
+        unsigned int type_id,
+        GridLocation location,
         cnp.ndarray data)
 
     cdef void _compute_observation(
@@ -71,15 +78,22 @@ cdef class PufferGrid:
         unsigned int[:,:,:] observation)
 
     cdef void _process_events(self)
+    cdef GridObject * _get_object(self, unsigned int obj_id)
 
-    cpdef get_grid(self)
-    cpdef unsigned int get_current_timestep(self)
-    cpdef unsigned int get_num_features(self)
-    cpdef void move_object(self, unsigned int obj_id, unsigned int new_r, unsigned int new_c)
-    cdef GridObject _get_object(self, unsigned int obj_id)
+    cpdef grid(self)
+    cpdef unsigned int current_timestep(self)
+    cpdef unsigned int num_features(self)
+    cpdef unsigned int num_actions(self)
+    cpdef unsigned int map_width(self)
+    cpdef unsigned int map_height(self)
+    cpdef list[str] grid_features(self)
+    cpdef list[str] global_features(self)
+
+    cpdef char move_object(self, unsigned int obj_id, unsigned int new_r, unsigned int new_c)
     cpdef GridLocation location(self, int object_id)
 
     cdef GridLocation _relative_location(self, GridLocation loc, unsigned short orientation)
+
     cpdef void compute_observations(self,
         unsigned int[:] observer_ids,
         unsigned short obs_width,
@@ -94,10 +108,7 @@ cdef class PufferGrid:
         char[:] dones)
 
     cdef void handle_action(
-        self,
-        unsigned int actor_id,
-        unsigned short action_id,
-        unsigned short action_arg,
+        self, Action action,
         float *reward,
         char *done)
 

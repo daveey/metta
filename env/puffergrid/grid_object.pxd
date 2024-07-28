@@ -31,10 +31,7 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Free
 cdef struct GridLocation:
     unsigned int r
     unsigned int c
-
-cdef struct GridCoordinates:
-    int r
-    int c
+    unsigned short layer
 
 cdef struct GridObject:
     unsigned int id

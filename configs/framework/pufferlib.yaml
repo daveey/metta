@@ -59,3 +59,7 @@ pufferlib:
         - avg_stats_agent_defeated
         - avg_stats_action_attack
         - avg_stats_altar_used
+        - avg_fruit_eaten
+        - avg_action_rotate
+        - avg_action_move
+        - avg_action_eat

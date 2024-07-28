@@ -9,13 +9,15 @@
             "type": "debugpy",
             "request": "launch",
             "module": "tools.run",
+            "preLaunchTask": "build_cython_extensions",
             "args": [
                 "experiment=mac.sf.1",
                 "framework=pufferlib",
                 "hardware=macbook",
                 "env=mettagrid/a20_b4_40x40",
+                // "env=mettagrid/a20_b4_40x40",
                 "cmd=train",
-
+                "env.game.max_steps=1000",
                 "env.kinship.team_size=5",
                 "env.kinship.team_reward=0.8",
                 // "env.substrate_name=running_with_scissors_in_the_matrix__arena",

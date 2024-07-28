@@ -70,23 +70,30 @@ class DevelopCommand(develop):
 
 ext_modules = [
     Extension(
-        "env.mettagrid.mettagrid_c",  # Name of the resulting .so file
+        "env.mettagrid.mettagrid_c",
         [
             "env/mettagrid/mettagrid.pyx",
          ],
         include_dirs=[numpy.get_include()],
     ),
     Extension(
-        "env.puffergrid.grid_object",  # Name of the resulting .so file
+        "env.puffergrid.grid_object",
         [
             "env/puffergrid/grid_object.pyx",
          ],
         include_dirs=[numpy.get_include()],
     ),
     Extension(
-        "env.puffergrid.grid",  # Name of the resulting .so file
+        "env.puffergrid.grid",
         [
             "env/puffergrid/grid.pyx",
+         ],
+        include_dirs=[numpy.get_include()],
+    ),
+        Extension(
+        "env.puffergrid.stats_tracker",
+        [
+            "env/puffergrid/stats_tracker.pyx",
          ],
         include_dirs=[numpy.get_include()],
     )

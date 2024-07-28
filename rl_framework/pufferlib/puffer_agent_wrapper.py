@@ -21,8 +21,8 @@ class PufferAgentWrapper(nn.Module):
         super().__init__()
         self.dtype = pufferlib.pytorch.nativize_dtype(env.emulated)
         # xcxc
-        self.atn_type = nn.Linear(agent.decoder_out_size(), 6)
-        self.atn_param = nn.Linear(agent.decoder_out_size(), 10)
+        self.atn_type = nn.Linear(agent.decoder_out_size(), env.action_space(1)[0].n)
+        self.atn_param = nn.Linear(agent.decoder_out_size(), env.action_space(1)[1].n)
         self._agent = agent
 
     def forward(self, obs):

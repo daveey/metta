@@ -22,7 +22,7 @@ class LastActionTracker(gym.Wrapper):
 
     def _augment_observations(self, obs):
         return [{
-            "last_action": np.array(self._last_actions[agent]),
+            "last_action": self._last_actions[agent],
             **agent_obs
         } for agent, agent_obs in enumerate(obs)]
 
