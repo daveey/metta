@@ -67,7 +67,6 @@ cdef class MettaGrid(PufferGrid):
                 "Tree": np.asarray(<Tree[:1]>&tree).dtype,
             },
             num_layers=2,
-            num_actions=Actions.Count,
             map_width=map.shape[0],
             map_height=map.shape[1]
         )
@@ -87,6 +86,9 @@ cdef class MettaGrid(PufferGrid):
 
     cpdef get_episode_stats(self):
         return self._stats.to_pydict()
+
+    cpdef unsigned int num_actions(self):
+        return Actions.Count
 
     ################
     # Actions

@@ -39,15 +39,10 @@ cdef class PufferGrid:
         unsigned int _map_width
         unsigned int _map_height
         unsigned short _num_layers
-        unsigned int _num_actions
-
-        cnp.dtype _grid_dtype
 
         unsigned int _num_features
         unsigned int _current_timestep
 
-        # cnp.ndarray _grid_data
-        # vector[vector[vector[unsigned int]]] _grid # width, height, layer
         cnp.ndarray _np_grid
         unsigned int[:, :, :] _grid
 
@@ -83,14 +78,13 @@ cdef class PufferGrid:
     cpdef grid(self)
     cpdef unsigned int current_timestep(self)
     cpdef unsigned int num_features(self)
-    cpdef unsigned int num_actions(self)
     cpdef unsigned int map_width(self)
     cpdef unsigned int map_height(self)
     cpdef list[str] grid_features(self)
     cpdef list[str] global_features(self)
 
-    cpdef char move_object(self, unsigned int obj_id, unsigned int new_r, unsigned int new_c)
-    cpdef GridLocation location(self, int object_id)
+    cdef char move_object(self, unsigned int obj_id, unsigned int new_r, unsigned int new_c)
+    cdef GridLocation location(self, int object_id)
 
     cdef GridLocation _relative_location(self, GridLocation loc, unsigned short orientation)
 

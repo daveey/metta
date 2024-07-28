@@ -74,12 +74,14 @@ class PufferGridEnv(PufferEnv):
 
     def add_agent(self, type_id: int, r: int, c: int, layer: int, **props) -> int:
         id = self._c_env.add_object(type_id, r, c, layer, **props)
+        assert id >= 0, "Failed to add object"
         self._agent_ids_list.append(id)
         self._agent_ids[len(self._agent_ids_list)-1] = id
         return id
 
     def add_object(self, type_id: int, r: int, c: int, layer: int, **props) -> int:
-        return self._c_env.add_object(type_id, r, c, layer, **props)
+        id =  self._c_env.add_object(type_id, r, c, layer, **props)
+        assert id >= 0, "Failed to add object"
 
     def render(self):
         raise NotImplementedError

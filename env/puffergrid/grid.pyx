@@ -22,14 +22,12 @@ cdef class PufferGrid:
             dict object_dtypes,
             unsigned int map_width,
             unsigned int map_height,
-            unsigned int num_actions,
             unsigned short num_layers = 1,
         ):
 
         self._map_width = map_width
         self._map_height = map_height
         self._num_layers = num_layers
-        self._num_actions = num_actions
 
         self._current_timestep = 0
 
@@ -68,32 +66,16 @@ cdef class PufferGrid:
 
         self._num_features = len(self._grid_features)
 
-
-    def type_ids(self):
-        return self._type_ids
-
-    def dtypes(self):
-        return {
-            name: self._object_dtypes[id]
-            for name, id in self._type_ids.items()
-        }
-
-    def add_object(self, int type_id, unsigned int r=-1, unsigned int c=-1, unsigned int layer=0, **props) -> int:
-        obj_data = np.zeros(1, dtype=self._object_dtypes[type_id])
-        for prop_name, prop_value in props.items():
-            obj_data[prop_name] = prop_value
-
-        object_id = self._objects.size()
-        self._object_data.append(obj_data)
-        self._add_object(object_id, type_id, GridLocation(r, c, layer), obj_data)
-        return object_id
-
     cdef unsigned int _add_object(
         self,
         unsigned int object_id,
         unsigned int type_id,
         GridLocation location,
         cnp.ndarray data):
+
+        if location.r >= 0 and location.c >= 0:
+            if self._grid[location.r, location.c, location.layer] != 0:
+                return 0
 
         object = GridObject(
             object_id,
@@ -104,26 +86,14 @@ cdef class PufferGrid:
         self._objects.push_back(object)
 
         if location.r >= 0 and location.c >= 0:
-            assert self._grid[location.r, location.c, location.layer] == 0, "Cannot place object at occupied location"
             self._grid[location.r, location.c, location.layer] = object_id
 
         return object_id
 
-    def get_object(self, object_id):
-        obj = self._objects[object_id]
-        obj_data = self._object_data[object_id]
-        return {
-            "object_id": object_id,
-            "type_id": obj.type_id,
-            "r": obj.location.r,
-            "c": obj.location.c,
-            "data": obj_data
-        }
-
-    cpdef GridLocation location(self, int object_id):
+    cdef GridLocation location(self, int object_id):
         return self._objects[object_id].location
 
-    cpdef char move_object(self, unsigned int obj_id, unsigned int new_r, unsigned int new_c):
+    cdef char move_object(self, unsigned int obj_id, unsigned int new_r, unsigned int new_c):
         cdef GridObject *obj = &self._objects[obj_id]
 
         cdef unsigned int old_r = obj.location.r
@@ -245,7 +215,6 @@ cdef class PufferGrid:
             rewards[idx] = reward
             dones[idx] = done
 
-
     cdef void _schedule_event(
         self,
         unsigned int delay,
@@ -311,5 +280,21 @@ cdef class PufferGrid:
     cpdef list[str] global_features(self):
         return []
 
-    cpdef unsigned int num_actions(self):
-        return self._num_actions
+    def type_ids(self):
+        return self._type_ids
+
+    def dtypes(self):
+        return {
+            name: self._object_dtypes[id]
+            for name, id in self._type_ids.items()
+        }
+
+    def add_object(self, int type_id, unsigned int r=-1, unsigned int c=-1, unsigned int layer=0, **props) -> int:
+        obj_data = np.zeros(1, dtype=self._object_dtypes[type_id])
+        for prop_name, prop_value in props.items():
+            obj_data[prop_name] = prop_value
+
+        object_id = self._objects.size()
+        self._object_data.append(obj_data)
+        self._add_object(object_id, type_id, GridLocation(r, c, layer), obj_data)
+        return object_id
