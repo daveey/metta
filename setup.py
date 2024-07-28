@@ -53,10 +53,10 @@ class BuildGriddlyCommand(Command):
 
 class DevelopCommand(develop):
     def run(self):
-        self.run_command('build_griddly')
-        subprocess.check_call(
-            ['pip', 'install', "-e", './third_party/griddly/python/'],
-        )
+        # self.run_command('build_griddly')
+        # subprocess.check_call(
+        #     ['pip', 'install', "-e", './third_party/griddly/python/'],
+        # )
         # subprocess.check_call(
         #     ['pip', 'install', "-e", './third_party/meltingpot/'],
         # ),
@@ -107,16 +107,16 @@ setup(
     packages=find_packages(),
     install_requires=[
         "boto3",
-        "chex",
-        "conan==1.59.0",
+        # "chex",
+        # "conan==1.59.0",
         "hydra-core",
         "jmespath",
         "matplotlib",
-        "numpy==2.0.0",
+        # "numpy==2.0.0",
         "pettingzoo",
         "pynvml",
         "pytest",
-        "PyYAML==6.0",
+        "PyYAML",
         "raylib",
         "rich",
         "scipy",
