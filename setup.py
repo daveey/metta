@@ -53,6 +53,7 @@ class BuildGriddlyCommand(Command):
 
 class DevelopCommand(develop):
     def run(self):
+        os.makedirs("build", exist_ok=True)
         # self.run_command('build_griddly')
         # subprocess.check_call(
         #     ['pip', 'install', "-e", './third_party/griddly/python/'],

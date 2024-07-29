@@ -111,7 +111,7 @@ cdef class MettaGrid(PufferGrid):
             printf("Unhandled Action: %d: %d(%d)\n", action.actor_id, action.id , action.arg)
 
     cdef char _agent_rotate(self, Action action, float *reward):
-        cdef orientation = action.arg
+        cdef unsigned short orientation = action.arg
         if orientation >= 4:
             return False
 
@@ -121,7 +121,7 @@ cdef class MettaGrid(PufferGrid):
 
     cdef char _agent_move(self, Action action, float *reward):
         # direction can be forward (0) or backward (1)
-        cdef direction = action.arg
+        cdef unsigned short direction = action.arg0
 
         if direction >= 2:
             return False
