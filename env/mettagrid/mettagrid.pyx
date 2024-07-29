@@ -121,7 +121,7 @@ cdef class MettaGrid(PufferGrid):
 
     cdef char _agent_move(self, Action action, float *reward):
         # direction can be forward (0) or backward (1)
-        cdef unsigned short direction = action.arg0
+        cdef unsigned short direction = action.arg
 
         if direction >= 2:
             return False
