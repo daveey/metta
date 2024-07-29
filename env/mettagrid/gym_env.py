@@ -4,7 +4,6 @@ import gymnasium as gym
 import numpy as np
 from omegaconf import OmegaConf
 import yaml
-from env.griddly.griddly_gym_env import GriddlyGymEnv
 from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
 from env.wrapper.feature_masker import FeatureMasker
 from env.wrapper.kinship import Kinship
