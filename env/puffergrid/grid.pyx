@@ -16,6 +16,7 @@ from env.puffergrid.grid_object cimport GridObject, GridLocation
 from env.puffergrid.grid_object cimport Orientation_Down, Orientation_Left, Orientation_Right, Orientation_Up
 from libcpp.string cimport string
 
+
 cdef class PufferGrid:
     def __init__(
             self,

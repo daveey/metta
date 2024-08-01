@@ -138,10 +138,10 @@ setup(
     include_dirs=[numpy.get_include()],
     ext_modules=cythonize(
         ext_modules,
-        compiler_directives={
-            'profile': True,
-        },
+        # compiler_directives={
+        #     'profile': True,
+        # },
         build_dir='build',
-        annotate=True,
+        # annotate=True,
     ),
 )
