@@ -104,7 +104,7 @@ cdef class PufferGrid:
         char[:] dones)
 
     cdef void handle_action(
-        self, Action action,
+        self, const Action &action,
         float *reward,
         char *done)
 

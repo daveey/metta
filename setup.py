@@ -142,6 +142,6 @@ setup(
         #     'profile': True,
         # },
         build_dir='build',
-        # annotate=True,
+        annotate=True,
     ),
 )

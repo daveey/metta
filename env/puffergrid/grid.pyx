@@ -201,6 +201,7 @@ cdef class PufferGrid:
             float reward
             char done
             unsigned int num_actors = actor_ids.shape[0]
+            Action action
 
         self._current_timestep += 1
         self._process_events()
@@ -208,13 +209,12 @@ cdef class PufferGrid:
         for idx in range(num_actors):
             reward = 0
             done = 0
-            self.handle_action(
-                Action(
-                    actor_id = actor_ids[idx],
-                    id = actions[idx][0],
-                    arg = actions[idx][1],
-                    agent_idx = idx
-                ), &reward, &done)
+            action.actor_id = actor_ids[idx]
+            action.id = actions[idx][0]
+            action.arg = actions[idx][1]
+            action.agent_idx = idx
+
+            self.handle_action(action, &reward, &done)
 
             rewards[idx] = reward
             dones[idx] = done
@@ -254,7 +254,7 @@ cdef class PufferGrid:
 
     cdef void handle_action(
         self,
-        Action action,
+        const Action &action,
         float *reward,
         char *done):
         printf("Unhandled Action: %d: %d(%d)\n", action.actor_id, action.id, action.arg)

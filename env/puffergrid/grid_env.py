@@ -93,7 +93,7 @@ class PufferGridEnv(PufferEnv):
 
     def step(self, actions):
         # print("actions", self._agent_ids, actions)
-        actions = np.array(actions, dtype=np.uint32)
+        # actions = np.array(actions, dtype=np.uint32)
         self._c_env.step(
             self._agent_ids, np.array(actions, dtype=np.uint32),
             self._buffers.rewards, self._buffers.terminals)
@@ -102,14 +102,14 @@ class PufferGridEnv(PufferEnv):
         obs = self._compute_observations()
 
         infos = {}
-        if self.current_timestep >= self._max_timesteps:
-            self._buffers.terminals.fill(True)
-            self._buffers.truncations.fill(True)
-            infos = {
-                "episode_return": self._episode_rewards.mean(),
-                "episode_length": self.current_timestep,
-                "episode_stats": self._c_env.get_episode_stats()
-            }
+        # if self.current_timestep >= self._max_timesteps:
+        #     self._buffers.terminals.fill(True)
+        #     self._buffers.truncations.fill(True)
+        #     infos = {
+        #         "episode_return": self._episode_rewards.mean(),
+        #         "episode_length": self.current_timestep,
+        #         "episode_stats": self._c_env.get_episode_stats()
+        #     }
 
         return (obs,
                 self._buffers.rewards,

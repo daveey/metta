@@ -96,10 +96,10 @@ cdef class MettaGrid(PufferGrid):
     ################
     @cython.cdivision(True)
     cdef void handle_action(
-        self, Action action,
+        self,
+        const Action &action,
         float *reward, char *done):
 
-        action.id = action.id % Actions.Count
         cdef char success = 0
 
         if action.id  == Actions.Move:
@@ -108,10 +108,8 @@ cdef class MettaGrid(PufferGrid):
             success = self._agent_rotate(action, reward)
         elif action.id  == Actions.Eat:
             success = self._agent_eat(action, reward)
-        else:
-            printf("Unhandled Action: %d: %d(%d)\n", action.actor_id, action.id , action.arg)
 
-    cdef char _agent_rotate(self, Action action, float *reward):
+    cdef char _agent_rotate(self, const Action &action, float *reward):
         cdef unsigned short orientation = action.arg
         if orientation >= 4:
             return False
@@ -120,7 +118,7 @@ cdef class MettaGrid(PufferGrid):
         self._agent(action.actor_id).orientation = orientation
         return True
 
-    cdef char _agent_move(self, Action action, float *reward):
+    cdef char _agent_move(self, const Action &action, float *reward):
         # direction can be forward (0) or backward (1)
         cdef unsigned short direction = action.arg
 
@@ -139,7 +137,7 @@ cdef class MettaGrid(PufferGrid):
         if s:
             self._stats.agent_incr(action.agent_idx, "action_move", 1)
 
-    cdef char _agent_eat(MettaGrid self, Action action, float *reward):
+    cdef char _agent_eat(MettaGrid self, const Action &action, float *reward):
         cdef Agent * agent = self._agent(action.actor_id)
         cdef unsigned int target_id = self._target(action.actor_id, GridLayer_Object)
         cdef Tree *tree
