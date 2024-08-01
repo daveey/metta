@@ -20,6 +20,7 @@ from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
 
 cdef unsigned int GridLayer_Agent = 0
 cdef unsigned int GridLayer_Object = 1
+
 cdef struct Agent:
     unsigned int id
     unsigned int hp
