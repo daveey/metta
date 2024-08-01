@@ -118,19 +118,20 @@ class PufferGridEnv(PufferEnv):
                 infos)
 
     def _compute_observations(self):
-        self._buffers.observations.fill(0)
+        # self._buffers.observations.fill(0)
         self._c_env.compute_observations(
             self._agent_ids,
             self._obs_width, self._obs_height,
             self._buffers.observations)
 
-        obs = []
-        for agent in range(self._num_agents):
-            obs.append({
-                "grid_obs": self._buffers.observations[agent],
-                "global_vars": np.zeros(0, dtype=np.uint32)
-            })
-        return obs
+        # obs = []
+        # for agent in range(self._num_agents):
+        #     obs.append({
+        #         "grid_obs": self._buffers.observations[agent],
+        #         "global_vars": np.zeros(0, dtype=np.uint32)
+        #     })
+        # return obs
+        return {}
 
     @property
     def current_timestep(self):

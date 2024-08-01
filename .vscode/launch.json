@@ -75,12 +75,16 @@
                 "experiment=mac.puffer.2",
                 "env=mettagrid/behaviors/resources/competition/10x10_2a",
             ],
-        },        {
-            "name": "Run Puffer",
+        },
+        {
+            "name": "Perf Env",
             "type": "debugpy",
             "request": "launch",
-            "module": "rl_framework.pufferlib.main",
+            "module": "env.mettagrid.test_perf",
             "args": [
+
+                "cmd=train",
+
                 "env=mettagrid/a20_b4_40x40",
 
                 // "train.device=cpu",

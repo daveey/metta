@@ -67,10 +67,11 @@ class MettaGridGymEnv(gym.Env):
             if env.grid_location_empty(r, c):
                 tree = env.add_object(env.type_ids.Tree, r, c, self._object_layer, has_food=1)
 
-        self._env = LastActionTracker(self._grid_env)
-        self._env = Kinship(**sample_config(self._cfg.kinship), env=self._env)
-        self._env = RewardTracker(self._env)
-        self._env = FeatureMasker(self._env, self._cfg.hidden_features)
+        self._env = self._grid_env
+        #self._env = LastActionTracker(self._grid_env)
+        #self._env = Kinship(**sample_config(self._cfg.kinship), env=self._env)
+        #self._env = RewardTracker(self._env)
+        #self._env = FeatureMasker(self._env, self._cfg.hidden_features)
 
     def reset(self, **kwargs):
         self.make_env()
@@ -92,6 +93,7 @@ class MettaGridGymEnv(gym.Env):
         return obs, list(rewards), terminated.all(), truncated.all(), info
 
     def process_episode_stats(self, episode_stats: Dict[str, Any]):
+        return # xcxc
         for agent_stats in episode_stats["agent_stats"]:
             extra_stats = {}
             for stat_name in agent_stats.keys():
