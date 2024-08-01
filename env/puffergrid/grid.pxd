@@ -45,6 +45,8 @@ cdef class PufferGrid:
 
         cnp.ndarray _np_grid
         unsigned int[:, :, :] _grid
+        cnp.ndarray _fake_props
+        const unsigned int[:] _fake_props_view
 
         dict _type_ids
         dict _object_dtypes

@@ -33,6 +33,8 @@ cdef class PufferGrid:
 
         self._np_grid = np.zeros((map_height, map_width, num_layers), dtype=np.uint32)
         self._grid = self._np_grid
+        self._fake_props = np.zeros(1, dtype=np.uint32)
+        self._fake_props_view = self._fake_props
 
         # self._object_types and self._objects are vectors, but their
         # 0 is not a valid index. so we add blanks to the start of the vector
@@ -156,7 +158,7 @@ cdef class PufferGrid:
 
         cdef unsigned short obs_width_r = obs_width // 2
         cdef unsigned short obs_height_r = obs_height // 2
-        cdef const unsigned int[::1] obj_props
+        cdef const unsigned int[:] obj_props
 
         for r in range(obs_height):
             grid_r = observer_r - obs_height_r + r
@@ -181,7 +183,8 @@ cdef class PufferGrid:
 
                     props_end = type_info.num_properties - 1
 
-                    obj_props = <const unsigned int[:props_end]>obj.data
+                    #obj_props = <const unsigned int[:props_end]>obj.data
+                    obj_props = self._fake_props_view
 
                     observation[obs_start, r, c] = 1
                     observation[obs_start+1:obs_end, r, c] = obj_props[0:props_end]

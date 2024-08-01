@@ -81,6 +81,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "env.mettagrid.test_perf",
+            "preLaunchTask": "build_cython_extensions",
             "args": [
 
                 "cmd=train",
