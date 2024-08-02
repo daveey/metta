@@ -62,7 +62,7 @@ class PufferLibFramework(RLFramework):
             zero_copy=pcfg.train.zero_copy,
             backend=vec,
         )
-        print(f"Vectorization Settings: {vecenv_args}")
+        print(f"Vectorization Settings: ", vecenv_args)
         vecenv = pufferlib.vector.make(make_env_func, **vecenv_args)
         policy = puffer_agent_wrapper.make_policy(vecenv.driver_env, self.cfg)
         data = clean_pufferl.create(pcfg.train, vecenv, policy, wandb=self.wandb)
