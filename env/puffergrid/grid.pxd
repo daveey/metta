@@ -44,9 +44,9 @@ cdef class PufferGrid:
         unsigned int _current_timestep
 
         cnp.ndarray _np_grid
-        unsigned int[:, :, :] _grid
+        int[:, :, :] _grid
         cnp.ndarray _fake_props
-        const unsigned int[:] _fake_props_view
+        const int[:] _fake_props_view
 
         dict _type_ids
         dict _object_dtypes
@@ -72,7 +72,7 @@ cdef class PufferGrid:
         unsigned int observer_id,
         unsigned short obs_width,
         unsigned short obs_height,
-        unsigned int[:,:,:] observation)
+        int[:,:,:] observation)
 
     cdef void _process_events(self)
     cdef GridObject * _get_object(self, unsigned int obj_id)
@@ -94,14 +94,17 @@ cdef class PufferGrid:
         unsigned int[:] observer_ids,
         unsigned short obs_width,
         unsigned short obs_height,
-        unsigned int[:,:,:,:] obs)
+        int[:,:,:,:] obs)
 
     cpdef void step(
         self,
         unsigned int[:] actor_ids,
         unsigned int[:,:] actions,
         float[:] rewards,
-        char[:] dones)
+        char[:] dones,
+        unsigned short obs_width,
+        unsigned short obs_height,
+        int[:,:,:,:] obs)
 
     cdef void handle_action(
         self, const Action &action,

@@ -32,9 +32,9 @@ cdef class PufferGrid:
 
         self._current_timestep = 0
 
-        self._np_grid = np.zeros((map_height, map_width, num_layers), dtype=np.uint32)
+        self._np_grid = np.zeros((map_height, map_width, num_layers), dtype=np.int32)
         self._grid = self._np_grid
-        self._fake_props = np.zeros(1, dtype=np.uint32)
+        self._fake_props = np.zeros(1, dtype=np.int32)
         self._fake_props_view = self._fake_props
 
         # self._object_types and self._objects are vectors, but their
@@ -132,7 +132,7 @@ cdef class PufferGrid:
         unsigned int[:] observer_ids,
         unsigned short obs_width,
         unsigned short obs_height,
-        unsigned int[:,:,:,:] obs):
+        int[:,:,:,:] obs):
         cdef unsigned int idx, obs_id
         cdef unsigned int num_obs = observer_ids.shape[0]
         for idx in range(num_obs):
@@ -145,7 +145,7 @@ cdef class PufferGrid:
         unsigned int observer_id,
         unsigned short obs_width,
         unsigned short obs_height,
-        unsigned int[:,:,:] observation):
+        int[:,:,:] observation):
 
         cdef unsigned int r, c, layer
         cdef int grid_r, grid_c
@@ -159,7 +159,7 @@ cdef class PufferGrid:
 
         cdef unsigned short obs_width_r = obs_width // 2
         cdef unsigned short obs_height_r = obs_height // 2
-        cdef const unsigned int[:] obj_props
+        cdef const int[:] obj_props
 
         for r in range(obs_height):
             grid_r = observer_r - obs_height_r + r
@@ -195,7 +195,11 @@ cdef class PufferGrid:
         unsigned int[:] actor_ids,
         unsigned int[:,:] actions,
         float[:] rewards,
-        char[:] dones):
+        char[:] dones,
+        unsigned short obs_width,
+        unsigned short obs_height,
+        int[:,:,:,:] obs):
+
         cdef:
             unsigned int idx
             float reward
@@ -218,6 +222,8 @@ cdef class PufferGrid:
 
             rewards[idx] = reward
             dones[idx] = done
+
+        # self.compute_observations(actor_ids, obs_width, obs_height, obs)
 
     cdef void _schedule_event(
         self,

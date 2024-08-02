@@ -20,10 +20,13 @@ from . import clean_pufferl
 
 def make_env_func(cfg: OmegaConf, render_mode='rgb_array'):
     env = hydra.utils.instantiate(cfg, render_mode=render_mode)
-    env = PettingZooEnvWrapper(env)
-    env = postprocess.MultiagentEpisodeStats(env)
-    env = postprocess.MeanOverAgents(env)
-    return pufferlib.emulation.PettingZooPufferEnv(env)
+    env.emulated = None
+    env.single_observation_space = env.observation_space
+    env.single_action_space = env.action_space
+    env.num_agents = env.player_count
+    env.done = False
+
+    return env
 
 class PufferLibFramework(RLFramework):
     def __init__(self, cfg: Dict, **puffer_args):

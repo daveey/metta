@@ -1,4 +1,5 @@
 from pdb import set_trace as T
+from tkinter import NO
 from types import SimpleNamespace
 from typing import Dict, List
 import numpy as np
@@ -38,23 +39,29 @@ class PufferGridEnv(PufferEnv):
         self._grid = np.asarray(self._c_env.grid())
 
         self._episode_rewards = np.zeros(num_agents, dtype=np.float32)
+
         self._buffers = self._make_buffers()
 
     @property
     def observation_space(self):
         type_info = np.iinfo(self._buffers.observations.dtype)
-        return gym.spaces.Dict({
-            "grid_obs": gym.spaces.Box(
-                low=type_info.min, high=type_info.max,
-                shape=(self._buffers.observations.shape[1:]),
-                dtype=self._buffers.observations.dtype
-            ),
-            "global_vars": gym.spaces.Box(
-                low=-np.inf, high=np.inf,
-                shape=[ 0 ],
-                dtype=np.int32
-            ),
-        })
+        # return gym.spaces.Dict({
+        #     "grid_obs": gym.spaces.Box(
+        #         low=type_info.min, high=type_info.max,
+        #         shape=(self._buffers.observations.shape[1:]),
+        #         dtype=self._buffers.observations.dtype
+        #     ),
+        #     "global_vars": gym.spaces.Box(
+        #         low=-np.inf, high=np.inf,
+        #         shape=[ 0 ],
+        #         dtype=np.int32
+        #     ),
+        return gym.spaces.Box(
+            low=type_info.min, high=type_info.max,
+            shape=(self._buffers.observations.shape[1:]),
+            dtype=self._buffers.observations.dtype
+        )
+
 
     @property
     def action_space(self):
@@ -62,11 +69,11 @@ class PufferGridEnv(PufferEnv):
 
     def _make_buffers(self):
         return SimpleNamespace(
-            observations=np.zeros((self._num_agents, self._num_features, self._obs_height,  self._obs_width), dtype=np.uint32),
-            actions=np.zeros((self._num_agents, 2), dtype=np.uint32),
+            observations=np.zeros((self._num_agents, self._num_features, self._obs_height,  self._obs_width), dtype=np.int32),
             rewards=np.zeros(self._num_agents, dtype=np.float32),
             terminals=np.zeros(self._num_agents, dtype=bool),
             truncations=np.zeros(self._num_agents, dtype=bool),
+            masks=np.ones(self._num_agents, dtype=bool),
         )
 
     def grid_location_empty(self, r: int, c: int):
@@ -92,46 +99,39 @@ class PufferGridEnv(PufferEnv):
         return obs, {}
 
     def step(self, actions):
-        # print("actions", self._agent_ids, actions)
-        # actions = np.array(actions, dtype=np.uint32)
         self._c_env.step(
-            self._agent_ids, np.array(actions, dtype=np.uint32),
-            self._buffers.rewards, self._buffers.terminals)
+            self._agent_ids,
+            actions.astype(np.uint32),
+            self._buffers.rewards, self._buffers.terminals,
+            self._obs_width, self._obs_height,
+            self._buffers.observations
+            )
 
         self._episode_rewards += self._buffers.rewards
-        obs = self._compute_observations()
-
+        self._compute_observations()
         infos = {}
-        # if self.current_timestep >= self._max_timesteps:
-        #     self._buffers.terminals.fill(True)
-        #     self._buffers.truncations.fill(True)
-        #     infos = {
-        #         "episode_return": self._episode_rewards.mean(),
-        #         "episode_length": self.current_timestep,
-        #         "episode_stats": self._c_env.get_episode_stats()
-        #     }
-
-        return (obs,
+        if self.current_timestep >= self._max_timesteps:
+            self._buffers.terminals.fill(True)
+            self._buffers.truncations.fill(True)
+            infos = {
+                "episode_return": self._episode_rewards.mean(),
+                "episode_length": self.current_timestep,
+                "episode_stats": self._c_env.get_episode_stats()
+            }
+        return (self._buffers.observations,
                 self._buffers.rewards,
                 self._buffers.terminals,
                 self._buffers.truncations,
                 infos)
 
     def _compute_observations(self):
-        # self._buffers.observations.fill(0)
+        self._buffers.observations.fill(0)
         self._c_env.compute_observations(
             self._agent_ids,
             self._obs_width, self._obs_height,
             self._buffers.observations)
 
-        # obs = []
-        # for agent in range(self._num_agents):
-        #     obs.append({
-        #         "grid_obs": self._buffers.observations[agent],
-        #         "global_vars": np.zeros(0, dtype=np.uint32)
-        #     })
-        # return obs
-        return {}
+        return self._buffers.observations
 
     @property
     def current_timestep(self):

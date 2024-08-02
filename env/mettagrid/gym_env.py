@@ -9,11 +9,12 @@ from env.wrapper.feature_masker import FeatureMasker
 from env.wrapper.kinship import Kinship
 from env.wrapper.last_action_tracker import LastActionTracker
 from env.wrapper.reward_tracker import RewardTracker
+import pufferlib
 from util.sample_config import sample_config
 from env.mettagrid.mettagrid_c import MettaGrid
 from env.puffergrid.grid_env import PufferGridEnv
 
-class MettaGridGymEnv(gym.Env):
+class MettaGridGymEnv(gym.Env, pufferlib.PufferEnv):
     def __init__(self, render_mode: str, **cfg):
         super().__init__()
 
@@ -75,6 +76,9 @@ class MettaGridGymEnv(gym.Env):
 
     def reset(self, **kwargs):
         self.make_env()
+        assert hasattr(self, "buf"), "Buffers not created"
+        self._grid_env._buffers = self.buf
+
         obs, infos = self._env.reset(**kwargs)
         self._compute_max_energy()
         return obs, infos
@@ -93,7 +97,6 @@ class MettaGridGymEnv(gym.Env):
         return obs, list(rewards), terminated.all(), truncated.all(), info
 
     def process_episode_stats(self, episode_stats: Dict[str, Any]):
-        return # xcxc
         for agent_stats in episode_stats["agent_stats"]:
             extra_stats = {}
             for stat_name in agent_stats.keys():

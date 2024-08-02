@@ -20,7 +20,7 @@ def test_performance(
         env.step(atns)
         tick += 1
 
-    print(f'SPS: %f', 10*num_envs*tick / (time.time() - start))
+    print(f'SPS: %f', atns.shape[0]*num_envs*tick / (time.time() - start))
 
 actions = {}
 env = {}
@@ -29,15 +29,19 @@ def main(cfg):
     # Run with c profile
     from cProfile import run
     global env
+
+    cfg.env.game.max_steps = np.inf
     env = hydra.utils.instantiate(cfg.env, render_mode="human")
     env.reset()
     global actions
+    num_agents = cfg.env.game.num_agents
     actions = np.random.randint(0, env.action_space.nvec, (1024, cfg.env.game.num_agents, 2))
 
-    # test_performance(env, actions, 20, 1024, 1)
-    # exit(0)
+    test_performance(env, actions, num_agents, 1024, 1)
+    exit(0)
 
-    run('test_performance(env, actions, 20, 1024, 1)', 'stats.profile')
+    run(f"test_performance(env, actions, {num_agents}, 1024, 1)",
+         'stats.profile')
     import pstats
     from pstats import SortKey
     p = pstats.Stats('stats.profile')
