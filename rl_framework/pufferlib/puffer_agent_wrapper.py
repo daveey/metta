@@ -32,6 +32,7 @@ class PufferAgentWrapper(nn.Module):
         return self.decode_actions(x, None)
 
     def encode_observations(self, flat_obs):
+        print("batch size", flat_obs.shape[0])
         obs = {
             "grid_obs": flat_obs.float(),
             "global_vars": torch.zeros(flat_obs.shape[0], dtype=float).to(flat_obs.device)
