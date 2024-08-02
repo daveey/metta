@@ -1,7 +1,5 @@
 from pdb import set_trace as T
-from tkinter import NO
 from types import SimpleNamespace
-from typing import Dict, List
 import numpy as np
 
 import pettingzoo
