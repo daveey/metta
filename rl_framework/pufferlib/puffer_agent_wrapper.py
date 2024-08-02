@@ -26,6 +26,7 @@ class PufferAgentWrapper(nn.Module):
         self.atn_type = nn.Linear(agent.decoder_out_size(), env.action_space[0].n)
         self.atn_param = nn.Linear(agent.decoder_out_size(), env.action_space[1].n)
         self._agent = agent
+        print(self)
 
     def forward(self, obs):
         x, _ = self.encode_observations(obs)

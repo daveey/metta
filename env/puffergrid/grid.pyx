@@ -184,8 +184,8 @@ cdef class PufferGrid:
 
                     props_end = type_info.num_properties - 1
 
-                    #obj_props = <const unsigned int[:props_end]>obj.data
-                    obj_props = self._fake_props_view
+                    obj_props = <const unsigned int[:props_end]>obj.data
+                    #obj_props = self._fake_props_view
 
                     observation[obs_start, r, c] = 1
                     observation[obs_start+1:obs_end, r, c] = obj_props[0:props_end]
