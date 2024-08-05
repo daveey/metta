@@ -29,7 +29,8 @@ cdef class GridEnv:
     cdef inline void add_action_handler(self, ActionHandler *handler):
         #self._action_handlers.push_back(<void*>(handler))
         cdef void * foo = <void*>(handler)
-        self._action_handler = foo
+        # THESE LINES BREAK
+        #self._action_handler = foo
         #self._action_handler = handler
         handler.init(self._grid, self._event_manager)
 

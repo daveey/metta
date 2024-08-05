@@ -18070,28 +18070,19 @@ static PyObject *__pyx_unpickle_Enum__set_state(struct __pyx_MemviewEnum_obj *__
  */
 
 static CYTHON_INLINE void __pyx_f_10puffergrid_8grid_env_7GridEnv_add_action_handler(struct __pyx_obj_10puffergrid_8grid_env_GridEnv *__pyx_v_self, ActionHandler *__pyx_v_handler) {
-  void *__pyx_v_foo;
+  CYTHON_UNUSED void *__pyx_v_foo;
 
   /* "puffergrid/grid_env.pxd":31
  *     cdef inline void add_action_handler(self, ActionHandler *handler):
  *         #self._action_handlers.push_back(<void*>(handler))
  *         cdef void * foo = <void*>(handler)             # <<<<<<<<<<<<<<
- *         self._action_handler = foo
+ *         #self._action_handler = foo
  *         #self._action_handler = handler
  */
   __pyx_v_foo = ((void *)__pyx_v_handler);
 
-  /* "puffergrid/grid_env.pxd":32
- *         #self._action_handlers.push_back(<void*>(handler))
- *         cdef void * foo = <void*>(handler)
- *         self._action_handler = foo             # <<<<<<<<<<<<<<
- *         #self._action_handler = handler
- *         handler.init(self._grid, self._event_manager)
- */
-  __pyx_v_self->_action_handler = __pyx_v_foo;
-
   /* "puffergrid/grid_env.pxd":34
- *         self._action_handler = foo
+ *         #self._action_handler = foo
  *         #self._action_handler = handler
  *         handler.init(self._grid, self._event_manager)             # <<<<<<<<<<<<<<
  * 
