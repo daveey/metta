@@ -7,6 +7,7 @@ def build_ext(srcs):
         sources=srcs,
         define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
         language="c++",
+        build_dir='build',
     )
 
 ext_modules = [
@@ -23,7 +24,28 @@ setup(
     name='puffergrid',
     version='0.1',
     packages=find_packages(),
-    ext_modules=cythonize(ext_modules),
+    ext_modules=cythonize(
+        ext_modules,
+        language="c++",
+        build_dir='build',
+        compiler_directives={
+            "language_level": "3",
+            "embedsignature": True,
+            "annotation_typing": True,
+            "cdivision": True,
+            "boundscheck": False,
+            "wraparound": False,
+            "initializedcheck": False,
+            "nonecheck": False,
+            "overflowcheck": False,
+            "overflowcheck.fold": True,
+            "profile": False,
+            "linetrace": False,
+            "c_string_encoding": "utf-8",
+            "c_string_type": "str",
+        },
+        annotate=True,
+    ),
     install_requires=[
         "numpy",
         "cython",

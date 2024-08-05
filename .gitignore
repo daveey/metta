@@ -5,6 +5,7 @@ train_dir
 replays
 *.egg-info
 /build/
+/third_party/puffergrid/build/
 .DS_Store
 .task
 outputs
