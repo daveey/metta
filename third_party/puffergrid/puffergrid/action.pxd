@@ -1,6 +1,6 @@
-from env.puffergrid.grid cimport Grid
-from env.puffergrid.event cimport EventManager
-from env.puffergrid.grid_object cimport GridObjectBase
+from puffergrid.grid cimport Grid
+from puffergrid.event cimport EventManager
+from puffergrid.grid_object cimport GridObjectBase
 
 cdef extern from "action.hpp":
     ctypedef unsigned int ActionArg

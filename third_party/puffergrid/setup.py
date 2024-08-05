@@ -10,13 +10,13 @@ def build_ext(srcs):
     )
 
 ext_modules = [
-    build_ext(["action.cpp"]),
-    build_ext(["event.pyx"]),
-    build_ext(["grid.cpp"]),
-    build_ext(["grid_env.pyx"]),
-    build_ext(["grid_object.pyx"]),
-    build_ext(["observation_encoder.pyx"]),
-    build_ext(["stats_tracker.pyx"]),
+    build_ext(["puffergrid/action.cpp"]),
+    build_ext(["puffergrid/event.pyx"]),
+    build_ext(["puffergrid/grid.cpp"]),
+    build_ext(["puffergrid/grid_env.pyx"]),
+    build_ext(["puffergrid/grid_object.pyx"]),
+    build_ext(["puffergrid/observation_encoder.pyx"]),
+    build_ext(["puffergrid/stats_tracker.pyx"]),
 ]
 
 setup(

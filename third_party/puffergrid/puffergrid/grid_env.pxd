@@ -1,13 +1,13 @@
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp.vector cimport vector
-from env.puffergrid.action cimport ActionHandler
-from env.puffergrid.event cimport EventManager
-from env.puffergrid.stats_tracker cimport StatsTracker
-from env.puffergrid.grid_object cimport GridObjectBase, GridObjectId, GridObject, GridLocation, Orientation, Layer
-from env.puffergrid.grid cimport Grid
-from env.puffergrid.event cimport EventManager
-from env.puffergrid.observation_encoder cimport ObservationEncoder
+from puffergrid.action cimport ActionHandler
+from puffergrid.event cimport EventManager
+from puffergrid.stats_tracker cimport StatsTracker
+from puffergrid.grid_object cimport GridObjectBase, GridObjectId, GridObject, GridLocation, Orientation, Layer
+from puffergrid.grid cimport Grid
+from puffergrid.event cimport EventManager
+from puffergrid.observation_encoder cimport ObservationEncoder
 
 from libc.stdio cimport printf
 

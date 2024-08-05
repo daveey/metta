@@ -1,8 +1,8 @@
 from libc.stdio cimport printf
 
 import numpy as np
-from env.puffergrid.action cimport ActionArg, ActionHandler
-from env.puffergrid.grid_object cimport Layer, GridLocation
+from puffergrid.action cimport ActionArg, ActionHandler
+from puffergrid.grid_object cimport Layer, GridLocation
 
 cdef class GridEnv:
     def __init__(

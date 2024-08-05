@@ -1,6 +1,6 @@
 from libcpp.vector cimport vector
-from env.puffergrid.grid_object cimport Layer, TypeId, GridObjectId, GridObjectBase
-from env.puffergrid.grid_object cimport GridLocation, Orientation
+from puffergrid.grid_object cimport Layer, TypeId, GridObjectId, GridObjectBase
+from puffergrid.grid_object cimport GridLocation, Orientation
 
 cdef extern from "grid.hpp":
     cdef cppclass Grid:

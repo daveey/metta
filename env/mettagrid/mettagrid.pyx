@@ -4,17 +4,17 @@ from libc.stdio cimport printf
 import numpy as np
 cimport numpy as cnp
 
-from env.puffergrid.grid_env cimport GridEnv
-from env.puffergrid.action cimport ActionHandler
-from env.puffergrid.grid_object cimport GridObjectBase, GridLocation, GridObjectId, Orientation
+from puffergrid.grid_env cimport GridEnv
+from puffergrid.action cimport ActionHandler
+from puffergrid.grid_object cimport GridObjectBase, GridLocation, GridObjectId, Orientation
 from omegaconf import OmegaConf
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from env.mettagrid.objects cimport ObjectType, Agent, Wall, Tree, GridLayer_Agent, GridLayer_Object
 from env.mettagrid.objects cimport MettaObservationEncoder
 from env.mettagrid.actions cimport MoveHandler
-from env.puffergrid.grid cimport Grid
-from env.puffergrid.action cimport ActionHandler, ActionArg
+from puffergrid.grid cimport Grid
+from puffergrid.action cimport ActionHandler, ActionArg
 ObjectLayers = {
     ObjectType.AgentT: GridLayer_Agent,
     ObjectType.WallT: GridLayer_Object,

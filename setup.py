@@ -1,3 +1,4 @@
+from sympy import li
 import build
 from setuptools import Extension, setup, find_packages, Command
 import subprocess
@@ -70,36 +71,22 @@ class DevelopCommand(develop):
         super().run()
 
 def build_ext(srcs, module_name=None):
+    subprocess.check_call(['python', 'setup.py', 'build_ext', '--inplace'], cwd='third_party/puffergrid')
+
     if module_name is None:
         module_name = srcs[0].replace("/", ".").replace(".pyx", "").replace(".cpp", "")
     return Extension(
         module_name,
         srcs,
-        #include_dirs=[ "env/mettagrid", "env/puffergrid"],
+        # include_dirs=["third_party/puffergrid"],
         define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
         language="c++",
     )
 
 ext_modules = [
-    build_ext(["env/puffergrid/action.cpp"]),
-    build_ext(["env/puffergrid/event.pyx"]),
-    build_ext(["env/puffergrid/grid.cpp"]),
-    build_ext(["env/puffergrid/grid_env.pyx"]),
-    build_ext(["env/puffergrid/grid_object.pyx"]),
-    build_ext(["env/puffergrid/observation_encoder.pyx"]),
-    build_ext(["env/puffergrid/stats_tracker.pyx"]),
-
     build_ext(["env/mettagrid/objects.pyx"]),
     build_ext(["env/mettagrid/actions.pyx"]),
-
-    Extension(
-        "env.mettagrid.mettagrid_c",
-        [
-            "env/mettagrid/mettagrid.pyx",
-        ],
-        define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
-        language="c++",
-    )
+    build_ext(["env/mettagrid/mettagrid.pyx"], "env.mettagrid.mettagrid_c"),
 ]
 
 setup(

@@ -3,10 +3,10 @@ from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libc.stdio cimport printf
 
-from env.puffergrid.grid cimport Grid
-from env.puffergrid.grid_object cimport GridObject, GridLocation
-from env.puffergrid.observation_encoder cimport ObservationEncoder
-from env.puffergrid.grid_object cimport GridObjectBase, GridLocation, GridObjectId
+from puffergrid.grid cimport Grid
+from puffergrid.grid_object cimport GridObject, GridLocation
+from puffergrid.observation_encoder cimport ObservationEncoder
+from puffergrid.grid_object cimport GridObjectBase, GridLocation, GridObjectId
 
 cdef unsigned int GridLayer_Agent = 0
 cdef unsigned int GridLayer_Object = 1
