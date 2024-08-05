@@ -12,9 +12,9 @@ from env.wrapper.reward_tracker import RewardTracker
 import pufferlib
 from util.sample_config import sample_config
 from env.mettagrid.mettagrid_c import MettaGrid
-from env.puffergrid.grid_env import PufferGridEnv
+from env.puffergrid.grid_env_wrapper import PufferGridEnv
 
-class MettaGridGymEnv(gym.Env, pufferlib.PufferEnv):
+class MettaGridEnv(pufferlib.PufferEnv):
     def __init__(self, render_mode: str, **cfg):
         super().__init__()
 
@@ -34,39 +34,31 @@ class MettaGridGymEnv(gym.Env, pufferlib.PufferEnv):
             max_timesteps=self._max_steps,
             obs_width=self._game_builder.obs_width,
             obs_height=self._game_builder.obs_height)
+
+
         env = self._grid_env
 
-        self._agent_layer = self._c_env.layer(env.type_ids.Agent)
-        self._object_layer = self._c_env.layer(env.type_ids.Wall)
-
         for c in range(0, env._map_width):
-            if env.grid_location_empty(0, c):
-                env.add_object(env.type_ids.Wall, 0, c, self._object_layer)
-            if env.grid_location_empty(env._map_height-1, c):
-                env.add_object(env.type_ids.Wall, env._map_height-1, c, self._object_layer)
+            self._grid_env._c_env.make_wall(0, c)
+            self._grid_env._c_env.make_wall(env._map_height-1, c)
 
         for r in range(0, env._map_height):
-            if env.grid_location_empty(r, 0):
-                env.add_object(env.type_ids.Wall, r, 0, self._object_layer)
-            if env.grid_location_empty(r, env._map_width-1):
-                env.add_object(env.type_ids.Wall, r, env._map_width-1, self._object_layer)
+            self._grid_env._c_env.make_wall(r, 0)
+            self._grid_env._c_env.make_wall(r, env._map_width-1)
 
-        for agent_id in range(env._num_agents):
+        for a in range(env._num_agents):
             while True:
                 c = np.random.randint(0, env._map_width)
                 r = np.random.randint(0, env._map_height)
-                if env.grid_location_empty(r, c):
-                    agent = env.add_agent(
-                        env.type_ids.Agent, r, c, self._agent_layer,
-                        id=agent_id
-                    )
+                agent_id = env._c_env.make_agent(r, c)
+                if agent_id != -1:
                     break
 
         for tree in range(50):
             c = np.random.randint(0, env._map_width)
             r = np.random.randint(0, env._map_height)
-            if env.grid_location_empty(r, c):
-                tree = env.add_object(env.type_ids.Tree, r, c, self._object_layer, has_food=1)
+            env._c_env.make_tree(r, c)
+
 
         self._env = self._grid_env
         #self._env = LastActionTracker(self._grid_env)

@@ -1,7 +1,7 @@
 # @package env
 
 name: "GDY-MettaGrid"
-_target_: env.mettagrid.gym_env.MettaGridGymEnv
+_target_: env.mettagrid.mettagrid_env.MettaGridEnv
 # _target_: env.griddly.mettagrid.gym_env.MettaGridGymEnv
 max_action_value: 10
 

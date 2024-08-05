@@ -69,37 +69,28 @@ class DevelopCommand(develop):
         )
         super().run()
 
-ext_modules = [
-    Extension(
-        "env.mettagrid.mettagrid_c",
-        [
-            "env/mettagrid/mettagrid.pyx",
-         ],
-        include_dirs=[numpy.get_include()],
-    ),
-    Extension(
-        "env.puffergrid.grid_object",
-        [
-            "env/puffergrid/grid_object.pyx",
-         ],
-        include_dirs=[numpy.get_include()],
-    ),
-    Extension(
-        "env.puffergrid.grid",
-        [
-            "env/puffergrid/grid.pyx",
-         ],
-        include_dirs=[numpy.get_include()],
-    ),
-        Extension(
-        "env.puffergrid.stats_tracker",
-        [
-            "env/puffergrid/stats_tracker.pyx",
-         ],
-        include_dirs=[numpy.get_include()],
+def build_ext(srcs, module_name=None):
+    if module_name is None:
+        module_name = srcs[0].replace("/", ".").replace(".pyx", "").replace(".cpp", "")
+    return Extension(
+        module_name,
+        srcs,
+        # include_dirs=[numpy.get_include()],
+        define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
+        language="c++",
     )
 
+ext_modules = [
+    build_ext(["env/puffergrid/action.cpp"]),
+    build_ext(["env/puffergrid/event.pyx"]),
+    build_ext(["env/puffergrid/grid.cpp"]),
+    build_ext(["env/puffergrid/grid_env.pyx"]),
+    build_ext(["env/puffergrid/grid_object.pyx"]),
+    build_ext(["env/puffergrid/observation_encoder.pyx"]),
+    build_ext(["env/puffergrid/stats_tracker.pyx"]),
 
+    build_ext(["env/mettagrid/objects.pyx"]),
+    build_ext(["env/mettagrid/mettagrid.pyx"], "env.mettagrid.mettagrid_c"),
 ]
 
 setup(
@@ -141,7 +132,29 @@ setup(
         # compiler_directives={
         #     'profile': True,
         # },
+        language="c++",
         build_dir='build',
+        compiler_directives={
+            "language_level": "3",
+            "embedsignature": True,
+            "annotation_typing": True,
+            "cdivision": True,
+            "boundscheck": False,
+            "wraparound": False,
+            "initializedcheck": False,
+            "nonecheck": False,
+            "overflowcheck": False,
+            "overflowcheck.fold": True,
+            "profile": False,
+            "linetrace": False,
+            "binding": True,
+            "emit_code_comments": True,
+                    "embedsignature": True,
+                        "c_string_encoding": "utf-8",
+    "c_string_type": "str",
+
+
+        },
         annotate=True,
     ),
 )

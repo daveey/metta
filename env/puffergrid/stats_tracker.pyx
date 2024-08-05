@@ -5,7 +5,6 @@
 # cython: wraparound=False
 # cython: nonecheck=False
 # cython: profile=False
-# distutils: language = c++
 
 from libc.stdio cimport printf
 

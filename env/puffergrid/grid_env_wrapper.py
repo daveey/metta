@@ -27,14 +27,13 @@ class PufferGridEnv(PufferEnv):
         self._max_timesteps = max_timesteps
 
         self._c_env = c_env
-
         self._agent_ids_list = []
         self._agent_ids = np.zeros(num_agents, dtype=np.uint32)
-        self.type_ids = SimpleNamespace(**self._c_env.type_ids())
-        self.object_dtypes = SimpleNamespace(**self._c_env.dtypes())
-        self._num_features = self._c_env.num_features()
+        # self.type_ids = SimpleNamespace(**self._c_env.type_ids())
+        # self.object_dtypes = SimpleNamespace(**self._c_env.dtypes())
+        self._num_features = 0
 
-        self._grid = np.asarray(self._c_env.grid())
+        # self._grid = np.asarray(self._c_env.grid())
 
         self._episode_rewards = np.zeros(num_agents, dtype=np.float32)
 

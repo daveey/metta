@@ -1,41 +1,39 @@
-# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-# cython: language_level=3
-# cython: boundscheck=False
-# cython: initializedcheck=False
-# cython: wraparound=False
-# cython: nonecheck=False
-# cython: profile=False
-# distutils: language = c++
-
-# Include grid.h for Orientation definitions
-cdef extern from "grid.h":
-    cdef unsigned short Orientation_Up
-    cdef unsigned short Orientation_Down
-    cdef unsigned short Orientation_Left
-    cdef unsigned short Orientation_Right
-
+from typing import Type
+from libcpp.string cimport string
 from libcpp.vector cimport vector
-from libc.stdint cimport uint32_t
-from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
-import numpy as np
-cimport numpy as cnp
+cdef extern from "grid_object.hpp":
+    ctypedef unsigned short Layer
+    ctypedef unsigned short TypeId
 
-from env.puffergrid.grid_object cimport GridLocation
+    cdef struct GridLocation:
+        unsigned int r
+        unsigned int c
+        Layer layer
 
+    ctypedef enum Orientation:
+        Up = 0
+        Down = 1
+        Left = 2
+        Right = 3
 
-from libcpp.vector cimport vector
-from libc.stdint cimport uint32_t
-from cpython.mem cimport PyMem_Malloc, PyMem_Free
+    ctypedef unsigned int GridObjectId
 
-cdef struct GridLocation:
-    unsigned int r
-    unsigned int c
-    unsigned short layer
+    cdef cppclass GridObjectBase:
+        GridObjectId id
+        GridLocation location
+        TypeId _type_id
 
-cdef struct GridObject:
-    unsigned int id
-    unsigned short type_id
-    GridLocation location
-    void * data
+        GridObjectBase(TypeId type_id)
+        void __dealloc__()
 
+    cdef cppclass GridObject[T] (GridObjectBase):
+        T* props
+
+        GridObject(TypeId type_id)
+        void __dealloc__()
+
+        @staticmethod
+        GridObject[T]* create(TypeId type_id)
+
+        void __dealloc__()

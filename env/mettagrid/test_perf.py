@@ -1,9 +1,5 @@
 import hydra
-from omegaconf import OmegaConf
-from env.mettagrid.mettagrid_c import MettaGrid
 import numpy as np
-
-from env.puffergrid.grid_env import PufferGridEnv
 
 def test_performance(
         env,
