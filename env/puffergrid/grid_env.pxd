@@ -15,7 +15,7 @@ cdef class GridEnv:
     cdef:
         Grid *_grid
         EventManager *_event_manager
-        vector[ActionHandler*] _action_handlers
+        vector[void*] _action_handlers
         ObservationEncoder _obs_encoder
 
         unsigned int _current_timestep
@@ -23,9 +23,14 @@ cdef class GridEnv:
         list[string] _grid_features
 
         StatsTracker _stats
+        void *_action_handler
+
 
     cdef inline void add_action_handler(self, ActionHandler *handler):
-        self._action_handlers.push_back(handler)
+        #self._action_handlers.push_back(<void*>(handler))
+        cdef void * foo = <void*>(handler)
+        self._action_handler = foo
+        #self._action_handler = handler
         handler.init(self._grid, self._event_manager)
 
     cdef inline void _compute_observation(

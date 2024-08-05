@@ -18,6 +18,7 @@ cdef class GridEnv:
         self._obs_encoder = observation_encoder
         self._current_timestep = 0
 
+
     cpdef void reset(
         self,
         GridObjectId[:] actor_ids,

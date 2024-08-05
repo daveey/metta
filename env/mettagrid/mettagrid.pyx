@@ -12,9 +12,9 @@ from libcpp.vector cimport vector
 from libcpp.string cimport string
 from env.mettagrid.objects cimport ObjectType, Agent, Wall, Tree, GridLayer_Agent, GridLayer_Object
 from env.mettagrid.objects cimport MettaObservationEncoder
-from env.puffergrid.action cimport ActionHandler, ActionArg
+from env.mettagrid.actions cimport MoveHandler
 from env.puffergrid.grid cimport Grid
-
+from env.puffergrid.action cimport ActionHandler, ActionArg
 ObjectLayers = {
     ObjectType.AgentT: GridLayer_Agent,
     ObjectType.WallT: GridLayer_Object,
@@ -27,29 +27,9 @@ ObjectBlocks = {
     ObjectType.TreeT: [GridLayer_Object, GridLayer_Agent]
 }
 
-cdef extern cppclass MoveHandler(ActionHandler):
-    MoveHandler():
-        pass
-
-    char handle_action(GridObjectBase* actor, ActionArg arg, float* reward, char* done):
-        # Your implementation here
-        cdef unsigned short direction = arg
-        if direction >= 2:
-            return False
-        cdef Agent* agent = <Agent*>actor
-        cdef Orientation orientation = <Orientation>((agent.props.orientation + 2*(direction)) % 4)
-        cdef GridLocation old_loc = agent.location
-        cdef GridLocation new_loc = this._grid.relative_location(old_loc, orientation)
-        if not this._grid.is_empty(new_loc.r, new_loc.c):
-            return False
-        cdef char s = this._grid.move_object(actor.id, new_loc)
-        return s
-
-
 cdef class MettaGrid(GridEnv):
     cdef:
         object _cfg
-        MoveHandler _move_handler
 
     def __init__(self, cfg: OmegaConf, map: np.ndarray):
         self._cfg = cfg
@@ -62,6 +42,8 @@ cdef class MettaGrid(GridEnv):
             MettaObservationEncoder()
         )
         cdef ActionHandler *move_handler = new MoveHandler()
+        move_handler.init(self._grid, self._event_manager)
+        cdef void *handler = <void*>move_handler
         self.add_action_handler(move_handler)
 
     cpdef make_agent(self, row: int, col: int):

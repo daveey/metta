@@ -36,3 +36,4 @@ cdef enum ObjectType:
 
 cdef class MettaObservationEncoder(ObservationEncoder):
     pass
+

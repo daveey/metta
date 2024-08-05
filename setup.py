@@ -75,7 +75,7 @@ def build_ext(srcs, module_name=None):
     return Extension(
         module_name,
         srcs,
-        # include_dirs=[numpy.get_include()],
+        #include_dirs=[ "env/mettagrid", "env/puffergrid"],
         define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
         language="c++",
     )
@@ -90,7 +90,16 @@ ext_modules = [
     build_ext(["env/puffergrid/stats_tracker.pyx"]),
 
     build_ext(["env/mettagrid/objects.pyx"]),
-    build_ext(["env/mettagrid/mettagrid.pyx"], "env.mettagrid.mettagrid_c"),
+    build_ext(["env/mettagrid/actions.pyx"]),
+
+    Extension(
+        "env.mettagrid.mettagrid_c",
+        [
+            "env/mettagrid/mettagrid.pyx",
+        ],
+        define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
+        language="c++",
+    )
 ]
 
 setup(
@@ -147,9 +156,6 @@ setup(
             "overflowcheck.fold": True,
             "profile": False,
             "linetrace": False,
-            "binding": True,
-            "emit_code_comments": True,
-                    "embedsignature": True,
                         "c_string_encoding": "utf-8",
     "c_string_type": "str",
 
