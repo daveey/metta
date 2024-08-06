@@ -102,7 +102,7 @@ class PufferGridEnv(PufferEnv):
             infos = {
                 "episode_return": self._episode_rewards.mean(),
                 "episode_length": self.current_timestep,
-                "episode_stats": self._c_env.get_episode_stats()
+                "episode_stats": self._c_env.stats()
             }
         return (self._buffers.observations,
                 self._buffers.rewards,

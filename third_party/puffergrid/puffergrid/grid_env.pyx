@@ -9,6 +9,7 @@ from puffergrid.grid_object cimport GridObjectBase, GridObjectId
 from puffergrid.event cimport EventManager, EventHandler
 from puffergrid.grid cimport Grid
 from libcpp.vector cimport vector
+from puffergrid.stats_tracker cimport StatsTracker
 
 cdef class GridEnv:
     def __init__(
@@ -100,6 +101,8 @@ cdef class GridEnv:
     # Python API
     ###############################
     cpdef void reset(self):
+
+        self._stats = StatsTracker(self._agents.size())
         self._compute_observations()
 
     cpdef void step(self, unsigned int[:,:] actions):
@@ -155,3 +158,6 @@ cdef class GridEnv:
 
         self._compute_observation(
             row, col, obs_width, obs_height, observation)
+
+    cpdef stats(self):
+        return self._stats.to_pydict()

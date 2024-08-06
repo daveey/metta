@@ -1,11 +1,3 @@
-# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-# cython: language_level=3
-# cython: boundscheck=False
-# cython: initializedcheck=False
-# cython: wraparound=False
-# cython: nonecheck=False
-# cython: profile=False
-
 from libc.stdio cimport printf
 
 from libcpp.string cimport string
@@ -14,11 +6,20 @@ cdef class StatsTracker:
     def __init__(self, unsigned int num_agents) -> None:
         self._agent_stats.resize(num_agents)
 
-    cdef void game_incr(self, const char * key_str, int value):
+    cdef void game_incr(self, const char * key_str):
+        cdef string key = string(key_str)
+        self._game_stats[key] += 1
+
+    cdef void game_add(self, const char * key_str, int value):
         cdef string key = string(key_str)
         self._game_stats[key] += value
 
     cdef void agent_incr(
+        self, unsigned int agent_idx, const char * key_str):
+        cdef string key = string(key_str)
+        self._agent_stats[agent_idx][key] += 1
+
+    cdef void agent_add(
         self, unsigned int agent_idx, const char * key_str, int value):
         cdef string key = string(key_str)
         self._agent_stats[agent_idx][key] += value

@@ -4,8 +4,28 @@ from libc.stdio cimport printf
 from puffergrid.grid_object cimport GridLocation, GridObjectId, Orientation
 from puffergrid.action cimport ActionHandler, ActionArg
 from env.mettagrid.objects cimport ObjectType, Agent, ResetTree, Tree
+cdef class MettaActionHandler(ActionHandler):
+    def __init__(self, name):
+        self.name = name
+        ActionHandler.__init__(self)
 
-cdef class Move(ActionHandler):
+    cdef char handle_action(
+        self,
+        unsigned int actor_id,
+        GridObjectId actor_object_id,
+        ActionArg arg):
+        self.env._stats.agent_incr(actor_id, "action." + self.name + ".attempted")
+        cdef char result = super().handle_action(actor_id, actor_object_id, arg)
+        if result:
+            self.env._stats.agent_incr(actor_id, "action." + self.name + ".success")
+        else:
+            self.env._stats.agent_incr(actor_id, "action." + self.name + ".failure")
+
+        return result
+cdef class Move(MettaActionHandler):
+    def __init__(self):
+        MettaActionHandler.__init__(self, "move")
+
     cdef char handle_action(
         self,
         unsigned int actor_id,

@@ -33,6 +33,7 @@ def main(cfg):
     num_agents = cfg.env.game.num_agents
     actions = np.random.randint(0, env.action_space.nvec, (1024, cfg.env.game.num_agents, 2))
 
+    env._c_env.stats()
     test_performance(env, actions, num_agents, 1024, 1)
     exit(0)
 

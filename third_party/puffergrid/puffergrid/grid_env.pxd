@@ -50,6 +50,10 @@ cdef class GridEnv:
         unsigned short obs_height,
         int[:,:,:] observation)
 
+    ############################################
+    # Python API
+    ############################################
+
     cpdef void set_buffers(
         self,
         cnp.ndarray[int, ndim=4] observations,
@@ -82,3 +86,5 @@ cdef class GridEnv:
         unsigned short obs_width,
         unsigned short obs_height,
         int[:,:,:] observation)
+
+    cpdef stats(self)
