@@ -1,5 +1,6 @@
 from setuptools import setup, Extension, find_packages
 from Cython.Build import cythonize
+import numpy
 
 def build_ext(srcs):
     return Extension(
@@ -8,10 +9,11 @@ def build_ext(srcs):
         define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
         language="c++",
         build_dir='build',
+        include_dirs=[numpy.get_include()],
     )
 
 ext_modules = [
-    build_ext(["puffergrid/action.cpp"]),
+    build_ext(["puffergrid/action.pyx"]),
     build_ext(["puffergrid/event.pyx"]),
     build_ext(["puffergrid/grid.cpp"]),
     build_ext(["puffergrid/grid_env.pyx"]),

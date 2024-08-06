@@ -1,21 +1,16 @@
-from puffergrid.grid cimport Grid
-from puffergrid.event cimport EventManager
-from puffergrid.grid_object cimport GridObjectBase
+from puffergrid.grid_object cimport GridObjectId
+from puffergrid.grid_env cimport GridEnv
 
-cdef extern from "action.hpp":
-    ctypedef unsigned int ActionArg
+ctypedef unsigned int ActionArg
 
-    cdef cppclass ActionHandler:
-        Grid* _grid
+cdef class ActionHandler:
+    cdef GridEnv env
 
-        ActionHandler() except +
+    cdef void init(self, GridEnv env)
 
-        void init(Grid* grid, EventManager* event_manager)
+    cdef char handle_action(
+        self,
+        unsigned int actor_id,
+        GridObjectId actor_object_id,
+        ActionArg arg)
 
-        char handle_action(
-            GridObjectBase* actor,
-            ActionArg arg,
-            float* reward,
-            char* done)
-
-        void foo()

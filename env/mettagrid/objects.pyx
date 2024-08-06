@@ -25,8 +25,7 @@ cdef class MettaObservationEncoder(ObservationEncoder):
         else:
             printf("Encoding object of unknown type: %d\n", obj._type_id)
 
-    @staticmethod
-    cdef vector[string] feature_names():
+    cdef vector[string] feature_names(self):
         return [
             "agent", "agent:hp", "agent:energy", "agent:orientation",
             "wall", "wall:hp",

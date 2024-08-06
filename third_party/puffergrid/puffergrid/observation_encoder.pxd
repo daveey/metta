@@ -7,5 +7,4 @@ cdef class ObservationEncoder:
 
     cdef encode(self, const GridObjectBase *obj, int[:] obs)
 
-    @staticmethod
-    cdef vector[string] feature_names()
+    cdef vector[string] feature_names(self)

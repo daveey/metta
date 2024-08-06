@@ -1,34 +1,28 @@
 
 from libc.stdio cimport printf
 
-import numpy as np
-cimport numpy as cnp
-
-from puffergrid.grid_env cimport GridEnv
 from puffergrid.action cimport ActionHandler
 from puffergrid.grid_object cimport GridObjectBase, GridLocation, GridObjectId, Orientation
-from omegaconf import OmegaConf
-from libcpp.vector cimport vector
-from libcpp.string cimport string
 from env.mettagrid.objects cimport ObjectType, Agent, Wall, Tree, GridLayer_Agent, GridLayer_Object
-from env.mettagrid.objects cimport MettaObservationEncoder
 from puffergrid.action cimport ActionHandler, ActionArg
-from puffergrid.grid cimport Grid
 
+cdef class MoveHandler(ActionHandler):
+    cdef char handle_action(
+        self,
+        unsigned int actor_id,
+        GridObjectId actor_object_id,
+        ActionArg arg):
 
-cdef cppclass MoveHandler(ActionHandler):
-
-    char handle_action(GridObjectBase* actor, ActionArg arg, float* reward, char* done):
-        # Your implementation here
         cdef unsigned short direction = arg
         if direction >= 2:
             return False
-        cdef Agent* agent = <Agent*>actor
+
+        cdef Agent* agent = self.env._grid.object[Agent](actor_object_id)
         cdef Orientation orientation = <Orientation>((agent.props.orientation + 2*(direction)) % 4)
         cdef GridLocation old_loc = agent.location
-        cdef GridLocation new_loc = this._grid.relative_location(old_loc, orientation)
-        if not this._grid.is_empty(new_loc.r, new_loc.c):
+        cdef GridLocation new_loc = self.env._grid.relative_location(old_loc, orientation)
+        if not self.env._grid.is_empty(new_loc.r, new_loc.c):
             return False
-        cdef char s = this._grid.move_object(actor.id, new_loc)
+        cdef char s = self.env._grid.move_object(actor_object_id, new_loc)
         return s
 

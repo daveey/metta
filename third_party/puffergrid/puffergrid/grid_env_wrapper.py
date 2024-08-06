@@ -5,6 +5,7 @@ import numpy as np
 import pettingzoo
 import gymnasium as gym
 
+from env.griddly.builder import action
 from env.mettagrid import render
 import pufferlib
 from pufferlib.environment import PufferEnv
@@ -27,16 +28,11 @@ class PufferGridEnv(PufferEnv):
         self._max_timesteps = max_timesteps
 
         self._c_env = c_env
-        self._agent_ids_list = []
-        self._agent_ids = np.zeros(num_agents, dtype=np.uint32)
-        # self.type_ids = SimpleNamespace(**self._c_env.type_ids())
-        # self.object_dtypes = SimpleNamespace(**self._c_env.dtypes())
-        self._num_features = 0
+        self._num_features = len(self.grid_features)
 
         # self._grid = np.asarray(self._c_env.grid())
 
         self._episode_rewards = np.zeros(num_agents, dtype=np.float32)
-
         self._buffers = self._make_buffers()
 
     @property
@@ -72,40 +68,31 @@ class PufferGridEnv(PufferEnv):
             truncations=np.zeros(self._num_agents, dtype=bool),
             masks=np.ones(self._num_agents, dtype=bool),
         )
+    def set_buffers(self, buffers):
+        self._buffers = buffers
 
-    def grid_location_empty(self, r: int, c: int):
-        return sum(self._grid[r, c]) == 0
-
-    def add_agent(self, type_id: int, r: int, c: int, layer: int, **props) -> int:
-        id = self._c_env.add_object(type_id, r, c, layer, **props)
-        assert id >= 0, "Failed to add object"
-        self._agent_ids_list.append(id)
-        self._agent_ids[len(self._agent_ids_list)-1] = id
-        return id
-
-    def add_object(self, type_id: int, r: int, c: int, layer: int, **props) -> int:
-        id =  self._c_env.add_object(type_id, r, c, layer, **props)
-        assert id >= 0, "Failed to add object"
 
     def render(self):
         raise NotImplementedError
 
     def reset(self, seed=0):
         assert self._c_env.current_timestep() == 0, "Reset not supported"
-        obs = self._compute_observations()
-        return obs, {}
+
+        self._c_env.set_buffers(
+            self._buffers.observations,
+            self._buffers.terminals,
+            self._buffers.rewards)
+
+        self._buffers.observations.fill(0)
+        self._c_env.reset()
+        return self._buffers.observations, {}
 
     def step(self, actions):
-        self._c_env.step(
-            self._agent_ids,
-            actions.astype(np.uint32),
-            self._buffers.rewards, self._buffers.terminals,
-            self._obs_width, self._obs_height,
-            self._buffers.observations
-            )
+        self._buffers.observations.fill(0)
+        self._c_env.step(actions.astype(np.uint32))
 
         self._episode_rewards += self._buffers.rewards
-        self._compute_observations()
+
         infos = {}
         if self.current_timestep >= self._max_timesteps:
             self._buffers.terminals.fill(True)
@@ -120,15 +107,6 @@ class PufferGridEnv(PufferEnv):
                 self._buffers.terminals,
                 self._buffers.truncations,
                 infos)
-
-    def _compute_observations(self):
-        self._buffers.observations.fill(0)
-        self._c_env.compute_observations(
-            self._agent_ids,
-            self._obs_width, self._obs_height,
-            self._buffers.observations)
-
-        return self._buffers.observations
 
     @property
     def current_timestep(self):

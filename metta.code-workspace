@@ -81,12 +81,17 @@
 			"vector": "cpp",
 			"algorithm": "cpp",
 			"__verbose_abort": "cpp",
-			"execution": "cpp"
+			"execution": "cpp",
+			"*.pxd": "cython",
 		},
 		"python.analysis.extraPaths": [
-			"./third_party/pufferlib"
+			"./third_party/pufferlib",
+			"./third_party/puffergrid"
 		],
-
+		"python.autoComplete.extraPaths": [
+			"./third_party/puffergrid",
+			"./third_party/pufferlib",
+		]
 	},
 
 

@@ -68,8 +68,8 @@ class MettaGridEnv(pufferlib.PufferEnv):
 
     def reset(self, **kwargs):
         self.make_env()
-        assert hasattr(self, "buf"), "Buffers not created"
-        self._grid_env._buffers = self.buf
+        if hasattr(self, "buf"):
+            self._grid_env.set_buffers(self.buf)
 
         obs, infos = self._env.reset(**kwargs)
         self._compute_max_energy()
