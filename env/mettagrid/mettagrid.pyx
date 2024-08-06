@@ -66,7 +66,7 @@ cdef class MettaGrid(GridEnv):
         agent.props.hp = 100
         agent.props.energy = 100
         agent.props.orientation = 0
-        print("Agent: id: ", agent.id, " hp: ", agent.props.hp, " energy: ", agent.props.energy, " orientation: ", agent.props.orientation)
+        # print("Agent: id: ", agent.id, " hp: ", agent.props.hp, " energy: ", agent.props.energy, " orientation: ", agent.props.orientation)
 
         self.add_agent(agent)
 
