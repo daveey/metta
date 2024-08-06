@@ -6,9 +6,10 @@ cdef extern from "grid_object.hpp":
     ctypedef unsigned short Layer
     ctypedef unsigned short TypeId
 
+    ctypedef unsigned int GridCoord
     cdef struct GridLocation:
-        unsigned int r
-        unsigned int c
+        GridCoord r
+        GridCoord c
         Layer layer
 
     ctypedef enum Orientation:

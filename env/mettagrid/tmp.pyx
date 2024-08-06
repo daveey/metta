@@ -13,20 +13,8 @@
         elif action.id  == Actions.Eat:
             success = self._agent_eat(action, reward)
 
-    cdef char _agent_rotate(self, const Action &action, float *reward):
-        cdef unsigned short orientation = action.arg
-        if orientation >= 4:
-            return False
-
-        self._stats.agent_incr(action.agent_idx, "action_rotate", 1)
-        self._agent(action.actor_id).orientation = orientation
-        return True
-
-    cdef char _agent_move(self, const Action &action, float *reward):
-
     cdef char _agent_eat(MettaGrid self, const Action &action, float *reward):
         cdef Agent * agent = self._agent(action.actor_id)
-        cdef unsigned int target_id = self._target(action.actor_id, GridLayer_Object)
         cdef Tree *tree
 
         # printf("action_eat: %d\n", target_id)

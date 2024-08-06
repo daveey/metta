@@ -1,12 +1,8 @@
 
-from libcpp.string cimport string
-from libcpp.vector cimport vector
-from libc.stdio cimport printf
-
-from puffergrid.grid cimport Grid
-from puffergrid.grid_object cimport GridObject, GridLocation
 from puffergrid.observation_encoder cimport ObservationEncoder
-from puffergrid.grid_object cimport GridObjectBase, GridLocation, GridObjectId
+from puffergrid.grid_object cimport GridObject
+from puffergrid.event cimport EventHandler
+from types import SimpleNamespace
 
 cdef unsigned int GridLayer_Agent = 0
 cdef unsigned int GridLayer_Object = 1
@@ -26,6 +22,9 @@ ctypedef GridObject[WallProps] Wall
 cdef struct TreeProps:
     unsigned int hp
     char has_fruit
+
+cdef class ResetTree(EventHandler):
+    pass
 
 ctypedef GridObject[TreeProps] Tree
 

@@ -82,6 +82,19 @@ class Grid {
             return dynamic_cast<T*>(objects[grid[loc.r][loc.c][loc.layer]]);
         }
 
+        inline GridObjectBase * object_at(GridCoord row, GridCoord col, TypeId type_id) {
+            return objects[grid[row][col][layer_for_type_id[type_id]]];
+        }
+
+        template <typename T>
+        inline T* object_at(GridCoord row, GridCoord col, TypeId type_id) {
+            GridObjectBase* obj = object_at(row, col, type_id);
+            if (obj == nullptr or obj->_type_id != type_id) {
+                return nullptr;
+            }
+            return dynamic_cast<T*>(obj);
+        }
+
         inline const GridLocation location(GridObjectId id) {
             return objects[id]->location;
         }

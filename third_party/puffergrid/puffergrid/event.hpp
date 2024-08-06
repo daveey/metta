@@ -4,28 +4,20 @@
 #include <queue>
 using namespace std;
 
+#include "grid_object.hpp"
+
+typedef unsigned short EventId;
+typedef int EventArg;
 struct Event {
     unsigned int timestamp;
-    unsigned short event_id;
-    unsigned short object_id;
-    unsigned int arg;
+    EventId event_id;
+    GridObjectId object_id;
+    EventArg arg;
 
     bool operator<(const Event& other) const {
         return timestamp > other.timestamp;
     }
 };
 
-class EventManager {
-    public:
-        priority_queue<Event> event_queue;
-
-        void schedule_event(
-            unsigned int delay,
-            unsigned short event_id,
-            unsigned short object_id,
-            int arg);
-
-        void process_events(unsigned int timestamp);
-};
 
 #endif // EVENT_H

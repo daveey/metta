@@ -1,5 +1,14 @@
+from libc.stdio cimport printf
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+
+from puffergrid.grid_object cimport GridObjectBase, GridObjectId
+from puffergrid.event cimport EventHandler, EventArg
+
+cdef class ResetTree(EventHandler):
+    cdef void handle_event(self, GridObjectId obj_id, EventArg arg):
+        self.env._grid.object[Tree](obj_id).props.has_fruit = True
+        # printf("Tree %d has been reset\n", obj_id)
 
 cdef class MettaObservationEncoder(ObservationEncoder):
     cdef encode(self, GridObjectBase *obj, int[:] obs):

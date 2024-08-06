@@ -1,19 +1,38 @@
 from libcpp.queue cimport priority_queue
 
+from puffergrid.grid_object cimport GridObjectId
+from puffergrid.grid_env cimport GridEnv
+
 cdef extern from "event.hpp":
+    ctypedef unsigned short EventId
+    ctypedef int EventArg
     cdef struct Event:
-        unsigned short event_id
-        unsigned short object_id
-        unsigned int arg
+        unsigned int timestamp
+        EventId event_id
+        GridObjectId object_id
+        EventArg arg
 
-    cdef cppclass EventManager:
-        priority_queue[Event] event_queue
-        unsigned int current_timestep
 
-        void schedule_event(
-            unsigned int delay,
-            unsigned short event_id,
-            unsigned short object_id,
-            int arg)
+cdef class EventManager:
+    cdef:
+        GridEnv env
+        priority_queue[Event] _event_queue
+        unsigned int _current_timestep
+        list[EventHandler] _event_handlers
 
-        void process_events(unsigned int current_timestep)
+    cdef void schedule_event(
+        self,
+        unsigned int delay,
+        EventId event_id,
+        GridObjectId object_id,
+        EventArg arg)
+
+    cdef void process_events(self, unsigned int current_timestep)
+
+cdef class EventHandler:
+    cdef GridEnv env
+    cdef EventId event_id
+
+    cdef void init(self, GridEnv env, EventId event_id)
+    cdef void schedule(self, unsigned int delay, GridObjectId object_id, EventArg arg)
+    cdef void handle_event(self, GridObjectId object_id, int arg)

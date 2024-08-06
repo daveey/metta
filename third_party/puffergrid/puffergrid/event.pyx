@@ -1,30 +1,48 @@
+from libc.stdio cimport printf
 
-cdef extern from "event.hpp":
-    cdef struct Event:
-        unsigned int timestamp
-        unsigned short event_id
-        unsigned short object_id
-        unsigned int arg
+from puffergrid.grid_object cimport GridObjectId
+from puffergrid.event cimport Event, EventArg, EventHandler, EventId
+from puffergrid.grid_env cimport GridEnv
 
-    cdef cppclass EventManager:
-        void schedule_event(
-            unsigned int delay,
-            unsigned short event_id,
-            unsigned short object_id,
-            int arg):
-            cdef Event event = Event(
-                this.current_timestep + delay,
-                event_id,
-                object_id,
-                arg
-            )
-            # printf("Scheduling Event: %d %d %d\n", event.timestamp, event.event_id, event.object_id)
-            this.event_queue.push(event)
+cdef class EventManager:
+    def __init__(self, GridEnv env, list[EventHandler] event_handlers):
+        self.env = env
 
-        void process_events():
-            cdef Event event
-            while not this.event_queue.empty():
-                event = this.event_queue.top()
-                if event.timestamp > this.current_timestep:
-                    break
-                this.event_queue.pop()
+        self._event_handlers = event_handlers
+        for idx in range(len(event_handlers)):
+            (<EventHandler>event_handlers[idx]).init(env, idx)
+        self._current_timestep = 0
+
+    cdef void schedule_event(
+        self, unsigned int delay, EventId event_id,
+        GridObjectId object_id, EventArg arg):
+
+        cdef Event event = Event(
+            self._current_timestep + delay,
+            event_id,
+            object_id,
+            arg
+        )
+        # printf("Scheduling event %d for timestep %d\n", event_id, event.timestamp)
+        self._event_queue.push(event)
+
+    cdef void process_events(self, unsigned int current_timestep):
+        self._current_timestep = current_timestep
+        cdef Event event
+        while not self._event_queue.empty():
+            event = self._event_queue.top()
+            if event.timestamp > self._current_timestep:
+                break
+            self._event_queue.pop()
+            (<EventHandler>self._event_handlers[event.event_id]).handle_event(event.object_id, event.arg)
+
+cdef class EventHandler:
+    cdef void init(self, GridEnv env, EventId event_id):
+        self.env = env
+        self.event_id = event_id
+
+    cdef void schedule(self, unsigned int delay, GridObjectId object_id, EventArg arg):
+        self.event_manager.schedule_event(delay, self.event_id, object_id, arg)
+
+    cdef void handle_event(self, GridObjectId object_id, int arg):
+        pass

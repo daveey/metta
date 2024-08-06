@@ -6,7 +6,21 @@ from puffergrid.grid_object cimport GridObjectBase, GridLocation, GridObjectId, 
 from env.mettagrid.objects cimport ObjectType, Agent, Wall, Tree, GridLayer_Agent, GridLayer_Object
 from puffergrid.action cimport ActionHandler, ActionArg
 
-cdef class MoveHandler(ActionHandler):
+cdef class Move(ActionHandler):
+    cdef char handle_action(
+        self,
+        unsigned int actor_id,
+        GridObjectId actor_object_id,
+        ActionArg arg)
+
+cdef class Rotate(ActionHandler):
+    cdef char handle_action(
+        self,
+        unsigned int actor_id,
+        GridObjectId actor_object_id,
+        ActionArg arg)
+
+cdef class Eat(ActionHandler):
     cdef char handle_action(
         self,
         unsigned int actor_id,

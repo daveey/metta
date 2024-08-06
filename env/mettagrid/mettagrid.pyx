@@ -10,16 +10,19 @@ from puffergrid.grid_object cimport GridObjectBase, GridLocation, GridObjectId, 
 from omegaconf import OmegaConf
 from libcpp.vector cimport vector
 from libcpp.string cimport string
-from env.mettagrid.objects cimport ObjectType, Agent, Wall, Tree, GridLayer_Agent, GridLayer_Object
+from env.mettagrid.objects cimport ObjectType, Agent, ResetTree, Wall, Tree, GridLayer_Agent, GridLayer_Object
 from env.mettagrid.objects cimport MettaObservationEncoder
 from puffergrid.grid cimport Grid
-from env.mettagrid.actions cimport MoveHandler
+from env.mettagrid.actions cimport Eat, Move, Rotate
 from puffergrid.action cimport ActionHandler, ActionArg
+
+
 ObjectLayers = {
     ObjectType.AgentT: GridLayer_Agent,
     ObjectType.WallT: GridLayer_Object,
     ObjectType.TreeT: GridLayer_Object
 }
+
 
 ObjectBlocks = {
     ObjectType.AgentT: GridLayer_Agent,
@@ -30,6 +33,7 @@ ObjectBlocks = {
 cdef class MettaGrid(GridEnv):
     cdef:
         object _cfg
+        object Events
 
     def __init__(self, cfg: OmegaConf, map: np.ndarray):
         self._cfg = cfg
@@ -42,7 +46,12 @@ cdef class MettaGrid(GridEnv):
             11,11,
             MettaObservationEncoder(),
             [
-                MoveHandler(),
+                Move(),
+                Rotate(),
+                Eat()
+            ],
+            [
+                ResetTree()
             ]
         )
 

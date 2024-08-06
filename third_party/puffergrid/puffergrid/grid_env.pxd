@@ -15,7 +15,7 @@ from libc.stdio cimport printf
 cdef class GridEnv:
     cdef:
         Grid *_grid
-        EventManager *_event_manager
+        EventManager _event_manager
         unsigned int _current_timestep
 
         list[ActionHandler] _action_handlers
@@ -44,7 +44,8 @@ cdef class GridEnv:
 
     cdef void _compute_observation(
         self,
-        GridObjectBase* observer,
+        unsigned int observer_r,
+        unsigned int observer_c,
         unsigned short obs_width,
         unsigned short obs_height,
         int[:,:,:] observation)
@@ -67,9 +68,17 @@ cdef class GridEnv:
 
     cpdef void step(self, unsigned int[:,:] actions)
 
-    cpdef compute_observation(
+    cpdef observe(
         self,
         GridObjectId observer_id,
+        unsigned short obs_width,
+        unsigned short obs_height,
+        int[:,:,:] observation)
+
+    cpdef observe_at(
+        self,
+        unsigned short row,
+        unsigned short col,
         unsigned short obs_width,
         unsigned short obs_height,
         int[:,:,:] observation)

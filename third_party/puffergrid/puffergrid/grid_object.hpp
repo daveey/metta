@@ -8,6 +8,7 @@ using namespace std;
 
 typedef unsigned short Layer;
 typedef unsigned short TypeId;
+typedef unsigned int GridCoord;
 
 struct GridObjectType {
     TypeId type_id;
@@ -17,8 +18,8 @@ struct GridObjectType {
 };
 
 struct GridLocation {
-    unsigned int r;
-    unsigned int c;
+    GridCoord r;
+    GridCoord c;
     Layer layer;
 };
 

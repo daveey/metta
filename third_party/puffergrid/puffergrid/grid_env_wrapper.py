@@ -84,6 +84,8 @@ class PufferGridEnv(PufferEnv):
             self._buffers.rewards)
 
         self._buffers.observations.fill(0)
+        self._buffers.rewards.fill(0)
+        self._buffers.terminals.fill(False)
         self._c_env.reset()
         return self._buffers.observations, {}
 

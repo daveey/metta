@@ -6,7 +6,7 @@ from puffergrid.action cimport ActionArg, ActionHandler
 from puffergrid.grid_object cimport Layer, GridLocation
 from puffergrid.observation_encoder cimport ObservationEncoder
 from puffergrid.grid_object cimport GridObjectBase, GridObjectId
-from puffergrid.event cimport EventManager
+from puffergrid.event cimport EventManager, EventHandler
 from puffergrid.grid cimport Grid
 from libcpp.vector cimport vector
 
@@ -19,34 +19,33 @@ cdef class GridEnv:
             unsigned short obs_width,
             unsigned short obs_height,
             ObservationEncoder observation_encoder,
-            list[ActionHandler] action_handlers
+            list[ActionHandler] action_handlers,
+            list[EventHandler] event_handlers
         ):
-
-        self._grid = new Grid(map_width, map_height, layer_for_type_id)
-        self._event_manager = new EventManager()
-
         self.obs_width = obs_width
         self.obs_height = obs_height
+        self._current_timestep = 0
 
+        self._grid = new Grid(map_width, map_height, layer_for_type_id)
         self._obs_encoder = observation_encoder
+
+
         self._action_handlers = action_handlers
         for handler in action_handlers:
             (<ActionHandler>handler).init(self)
 
-        self._current_timestep = 0
+        self._event_manager = EventManager(self, event_handlers)
 
     cdef void add_agent(self, GridObjectBase* agent):
         self._agents.push_back(agent)
 
     cdef void _compute_observation(
         self,
-        GridObjectBase* observer,
-        unsigned short obs_width,
-        unsigned short obs_height,
+        unsigned int observer_r, unsigned int observer_c,
+        unsigned short obs_width, unsigned short obs_height,
         int[:,:,:] observation):
 
         cdef:
-            GridLocation observer_loc = observer.location
             GridLocation object_loc
             GridObjectBase *obj
             unsigned short obs_width_r = obs_width >> 1
@@ -54,10 +53,10 @@ cdef class GridEnv:
             cdef unsigned int obs_r, obs_c
             cdef int[:] agent_ob
 
-        for object_loc.r in range(observer_loc.r - obs_height_r, observer_loc.r + obs_height_r + 1):
+        for object_loc.r in range(observer_r - obs_height_r, observer_r + obs_height_r + 1):
             if object_loc.r < 0 or object_loc.r >= self._grid.height:
                 continue
-            for object_loc.c in range(observer_loc.c - obs_width_r, observer_loc.c + obs_width_r + 1):
+            for object_loc.c in range(observer_c - obs_width_r, observer_c + obs_width_r + 1):
                 if object_loc.c < 0 or object_loc.c >= self._grid.width:
                     continue
                 for object_loc.layer in range(self._grid.num_layers):
@@ -65,14 +64,18 @@ cdef class GridEnv:
                     if obj == NULL:
                         continue
 
-                    obs_r = object_loc.r - (observer_loc.r - obs_height_r)
-                    obs_c = object_loc.c - (observer_loc.c - obs_width_r)
+                    obs_r = object_loc.r - (observer_r - obs_height_r)
+                    obs_c = object_loc.c - (observer_c - obs_width_r)
                     agent_ob = observation[:, obs_r, obs_c]
                     self._obs_encoder.encode(obj, agent_ob)
 
     cdef void _compute_observations(self):
+        cdef GridObjectBase *agent
         for idx in range(self._agents.size()):
-            self._compute_observation(self._agents[idx], self.obs_width, self.obs_height, self._observations[idx])
+            agent = self._agents[idx]
+            self._compute_observation(
+                agent.location.r, agent.location.c,
+                self.obs_width, self.obs_height, self._observations[idx])
 
     cdef void _step(self, unsigned int[:,:] actions):
         cdef:
@@ -83,11 +86,9 @@ cdef class GridEnv:
             ActionHandler handler
 
         self._current_timestep += 1
-        # self._process_events()
+        self._event_manager.process_events(self._current_timestep)
 
         for idx in range(self._agents.size()):
-            self._rewards[idx] = 0
-            self._dones[idx] = 0
             action = actions[idx][0]
             arg = actions[idx][1]
             agent = self._agents[idx]
@@ -132,10 +133,25 @@ cdef class GridEnv:
     cpdef list[str] grid_features(self):
         return self._obs_encoder.feature_names()
 
-    cpdef compute_observation(
+    cpdef observe(
         self,
         GridObjectId observer_id,
         unsigned short obs_width,
         unsigned short obs_height,
         int[:,:,:] observation):
-        self._compute_observation(self._grid.object(observer_id), obs_width, obs_height, observation)
+
+        cdef GridObjectBase* observer = self._grid.object(observer_id)
+        self._compute_observation(
+            observer.location.r, observer.location.c, obs_width, obs_height, observation)
+
+
+    cpdef observe_at(
+        self,
+        unsigned short row,
+        unsigned short col,
+        unsigned short obs_width,
+        unsigned short obs_height,
+        int[:,:,:] observation):
+
+        self._compute_observation(
+            row, col, obs_width, obs_height, observation)
