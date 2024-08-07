@@ -23,8 +23,7 @@ cdef struct TreeProps:
     unsigned int hp
     char has_fruit
 
-cdef class ResetTree(EventHandler):
-    pass
+
 
 ctypedef GridObject[TreeProps] Tree
 
@@ -32,6 +31,12 @@ cdef enum ObjectType:
     AgentT = 0
     WallT = 1
     TreeT = 2
+
+cdef class ResetTreeHandler(EventHandler):
+    pass
+
+cdef enum Events:
+    ResetTree = 0
 
 cdef class MettaObservationEncoder(ObservationEncoder):
     pass

@@ -2,7 +2,6 @@ from puffergrid.grid_object cimport GridObjectId
 from puffergrid.grid_env cimport GridEnv
 
 ctypedef unsigned int ActionArg
-
 cdef class ActionHandler:
     cdef GridEnv env
 

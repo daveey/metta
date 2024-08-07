@@ -14,7 +14,7 @@ cdef class EventManager:
         self._current_timestep = 0
 
     cdef void schedule_event(
-        self, unsigned int delay, EventId event_id,
+        self, EventId event_id, unsigned int delay,
         GridObjectId object_id, EventArg arg):
 
         cdef Event event = Event(
@@ -42,7 +42,7 @@ cdef class EventHandler:
         self.event_id = event_id
 
     cdef void schedule(self, unsigned int delay, GridObjectId object_id, EventArg arg):
-        self.event_manager.schedule_event(delay, self.event_id, object_id, arg)
+        self.event_manager.schedule_event(self.event_id, delay, object_id, arg)
 
     cdef void handle_event(self, GridObjectId object_id, int arg):
         pass

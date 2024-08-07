@@ -22,8 +22,8 @@ cdef class EventManager:
 
     cdef void schedule_event(
         self,
-        unsigned int delay,
         EventId event_id,
+        unsigned int delay,
         GridObjectId object_id,
         EventArg arg)
 

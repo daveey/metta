@@ -40,10 +40,10 @@ cdef class StatsTracker:
         # pufferlib won't average correctly.
         return {
             "game_stats": {
-                k.decode(): v for k, v in self._game_stats
+                k: v for k, v in self._game_stats
             },
             "agent_stats": [{
-                    k.decode(): a.get(k, 0) for k in agent_stat_names
+                    k: a.get(k, 0) for k in agent_stat_names
                 } for a in new_agent_stats
             ]
         }
