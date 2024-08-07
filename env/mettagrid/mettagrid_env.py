@@ -12,7 +12,7 @@ from env.wrapper.reward_tracker import RewardTracker
 import pufferlib
 from util.sample_config import sample_config
 from env.mettagrid.mettagrid_c import MettaGrid
-from puffergrid.grid_env_wrapper import PufferGridEnv
+from puffergrid.wrappers.grid_env_wrapper import PufferGridEnv
 
 class MettaGridEnv(pufferlib.PufferEnv):
     def __init__(self, render_mode: str, **cfg):

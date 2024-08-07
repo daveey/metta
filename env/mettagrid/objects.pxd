@@ -2,7 +2,6 @@
 from puffergrid.observation_encoder cimport ObservationEncoder
 from puffergrid.grid_object cimport GridObject
 from puffergrid.event cimport EventHandler
-from types import SimpleNamespace
 
 cdef unsigned int GridLayer_Agent = 0
 cdef unsigned int GridLayer_Object = 1
