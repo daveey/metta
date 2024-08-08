@@ -76,9 +76,11 @@ ext_modules = [
     build_ext(["env/mettagrid/mettagrid.pyx"], "env.mettagrid.mettagrid_c"),
 ]
 
-optimized = True
+debug = os.getenv('DEBUG', '0') == '1'
+annotate = os.getenv('ANNOTATE', '0') == '1'
+
 build_dir = 'build'
-if not optimized:
+if debug:
     build_dir = 'build_debug'
 
 os.makedirs(build_dir, exist_ok=True)
@@ -119,26 +121,23 @@ setup(
     include_dirs=[numpy.get_include()],
     ext_modules=cythonize(
         ext_modules,
-        # compiler_directives={
-        #     'profile': True,
-        # },
         build_dir='build',
         compiler_directives={
             "language_level": "3",
-            "embedsignature": not optimized,
-            "annotation_typing": not optimized,
-            "cdivision":  not optimized,
-            "boundscheck":  not optimized,
-            "wraparound":  not optimized,
-            "initializedcheck":  not optimized,
-            "nonecheck":  not optimized,
-            "overflowcheck":  not optimized,
-            "overflowcheck.fold":  not optimized,
-            "profile":  not optimized,
-            "linetrace":  not optimized,
+            "embedsignature": debug,
+            "annotation_typing": debug,
+            "cdivision": debug,
+            "boundscheck": debug,
+            "wraparound": debug,
+            "initializedcheck": debug,
+            "nonecheck": debug,
+            "overflowcheck": debug,
+            "overflowcheck.fold": debug,
+            "profile": debug,
+            "linetrace": debug,
             "c_string_encoding": "utf-8",
             "c_string_type": "str",
         },
-        annotate=not optimized,
+        annotate=debug or annotate,
     ),
 )

@@ -31,8 +31,6 @@ cdef class MettaObservationEncoder(ObservationEncoder):
         self._feature_names = features
 
     cdef encode(self, GridObjectBase *obj, int[:] obs):
-        cdef vector[int] object_obs
-
         if obj._type_id == ObjectType.AgentT:
             (<Agent*>obj).props.obs(obs[self._offsets[ObjectType.AgentT]:])
         elif obj._type_id == ObjectType.WallT:

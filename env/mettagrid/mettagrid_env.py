@@ -28,14 +28,9 @@ class MettaGridEnv(pufferlib.PufferEnv):
         self._game_builder = MettaGridGameBuilder(**game_cfg)
         level = self._game_builder.level()
         self._c_env = MettaGrid(game_cfg, level)
-        self._grid_env = PufferGridEnv(
-            self._c_env,
-            num_agents=self._game_builder.num_agents,
-            max_timesteps=self._max_steps,
-            obs_width=self._game_builder.obs_width,
-            obs_height=self._game_builder.obs_height)
+        self._grid_env = self._c_env
 
-
+        # self._grid_env = PufferGridEnv(self._c_env)
         env = self._grid_env
 
         self._env = self._grid_env
@@ -47,22 +42,24 @@ class MettaGridEnv(pufferlib.PufferEnv):
     def reset(self, **kwargs):
         self.make_env()
         if hasattr(self, "buf"):
-            self._grid_env.set_buffers(self.buf)
+            self._c_env.set_buffers(self.buf)
 
-        obs, infos = self._env.reset(**kwargs)
-        self._compute_max_energy()
-        return obs, infos
+        # obs, infos = self._env.reset(**kwargs)
+        # self._compute_max_energy()
+        # return obs, infos
+        obs = self._c_env.reset()
+        return obs, {}
 
     def step(self, actions):
-        obs, rewards, terminated, truncated, info = self._env.step(actions.astype(np.uint32))
+        obs, rewards, terminated, truncated = self._c_env.step(actions.astype(np.uint32))
 
-        rewards = np.array(rewards) # xcxc / self._max_level_reward_per_agent
-
-        if terminated.all() or truncated.all():
-            self.process_episode_stats(info["episode_stats"])
-            info = {
-                "episode_extra_stats": info["episode_stats"]["agent_stats"]
-            }
+        # rewards = np.array(rewards) # xcxc / self._max_level_reward_per_agent
+        info = {}
+        # if terminated.all() or truncated.all():
+        #     self.process_episode_stats(info["episode_stats"])
+        #     info = {
+        #         "episode_extra_stats": info["episode_stats"]["agent_stats"]
+        #     }
 
         return obs, list(rewards), terminated.all(), truncated.all(), info
 

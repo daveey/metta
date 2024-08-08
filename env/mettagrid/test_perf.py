@@ -1,22 +1,25 @@
+import time
+
 import hydra
 import numpy as np
+from tqdm import tqdm
 
-def test_performance(
-        env,
-        actions,
-        timeout=20,
-        atn_cache=1024,
-        num_envs=400):
+global actions
+global env
+
+def test_performance(env, actions, duration):
     tick = 0
-
-    import time
+    num_actions = actions.shape[0]
     start = time.time()
-    while time.time() - start < timeout:
-        atns = actions[tick % atn_cache]
-        env.step(atns)
-        tick += 1
+    with tqdm(total=duration, desc="Running performance test") as pbar:
+        while time.time() - start < duration:
+            atns = actions[tick % num_actions]
+            env.step(atns)
+            tick += 1
+            if tick % 100 == 0:
+                pbar.update(time.time() - start - pbar.n)
 
-    print(f'SPS: %f', atns.shape[0]*num_envs*tick / (time.time() - start))
+    print(f'SPS: {atns.shape[0] * tick / (time.time() - start):.2f}')
 
 actions = {}
 env = {}
@@ -31,14 +34,12 @@ def main(cfg):
     env.reset()
     global actions
     num_agents = cfg.env.game.num_agents
-    actions = np.random.randint(0, env.action_space.nvec, (1024, cfg.env.game.num_agents, 2))
+    actions = np.random.randint(0, env.action_space.nvec, (1024, num_agents, 2), dtype=np.uint32)
 
-    env._c_env.stats()
-    test_performance(env, actions, num_agents, 1024, 1)
-    exit(0)
+    # test_performance(env, actions, 10)
+    # exit(0)
 
-    run(f"test_performance(env, actions, {num_agents}, 1024, 1)",
-         'stats.profile')
+    run("test_performance(env, actions, 10)", 'stats.profile')
     import pstats
     from pstats import SortKey
     p = pstats.Stats('stats.profile')
