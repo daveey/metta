@@ -44,6 +44,7 @@ cdef class MettaGrid(GridEnv):
             self,
             map.shape[0],
             map.shape[1],
+            0, # max_steps
             ObjectLayers.values(),
             11,11,
             MettaObservationEncoder(),

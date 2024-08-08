@@ -52,7 +52,9 @@ cdef class Eat(ActionHandler):
             agent.location,
             <Orientation>agent.props.orientation
         )
-        tree = self.env._grid.object_at[Tree](target_loc.r, target_loc.c, ObjectType.TreeT)
+        tree = self.env._grid.object_at[Tree](
+            self.env._grid.type_location(target_loc.r, target_loc.c, ObjectType.TreeT))
+
         if tree == NULL or tree.props.has_fruit == 0:
             return False
 

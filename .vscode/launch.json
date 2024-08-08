@@ -95,6 +95,23 @@
             ],
         },
         {
+            "name": "Puffergrid Forage Perf",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "test_perf",
+            "preLaunchTask": "build_cython_extensions",
+            "args": [
+                // "--profile"
+                "--num_agents=50",
+                // "env.game.num_agents=40",
+                // "train.device=cpu",
+                // "mode=eval",
+                // "env=grid",
+                // "render-mode=human",
+            ],
+            "cwd": "${workspaceFolder}/third_party/puffergrid"
+        },
+        {
             "name": "Dump Griddly Config",
             "type": "debugpy",
             "request": "launch",
