@@ -10,3 +10,6 @@
 [submodule "third_party/pufferlib"]
 	path = third_party/pufferlib
 	url = https://github.com/daveey/PufferLib.git
+[submodule "third_party/puffergrid"]
+	path = third_party/puffergrid
+	url = git@github.com:daveey/puffergrid.git
