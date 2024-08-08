@@ -38,28 +38,6 @@ class MettaGridEnv(pufferlib.PufferEnv):
 
         env = self._grid_env
 
-        for c in range(0, env._map_width):
-            self._grid_env._c_env.make_wall(0, c)
-            self._grid_env._c_env.make_wall(env._map_height-1, c)
-
-        for r in range(0, env._map_height):
-            self._grid_env._c_env.make_wall(r, 0)
-            self._grid_env._c_env.make_wall(r, env._map_width-1)
-
-        for a in range(env._num_agents):
-            while True:
-                c = np.random.randint(0, env._map_width)
-                r = np.random.randint(0, env._map_height)
-                agent_id = env._c_env.make_agent(r, c)
-                if agent_id != -1:
-                    break
-
-        for tree in range(50):
-            c = np.random.randint(0, env._map_width)
-            r = np.random.randint(0, env._map_height)
-            env._c_env.make_tree(r, c)
-
-
         self._env = self._grid_env
         #self._env = LastActionTracker(self._grid_env)
         #self._env = Kinship(**sample_config(self._cfg.kinship), env=self._env)
@@ -76,7 +54,7 @@ class MettaGridEnv(pufferlib.PufferEnv):
         return obs, infos
 
     def step(self, actions):
-        obs, rewards, terminated, truncated, info = self._env.step(actions)
+        obs, rewards, terminated, truncated, info = self._env.step(actions.astype(np.uint32))
 
         rewards = np.array(rewards) # xcxc / self._max_level_reward_per_agent
 

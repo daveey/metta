@@ -8,18 +8,6 @@ from Cython.Build import cythonize
 import numpy
 import os
 
-# Create __init__.py in the build directories if they don't exist
-os.makedirs('build/env/mettagrid', exist_ok=True)
-os.makedirs('build/env/puffergrid', exist_ok=True)
-if not os.path.exists('build/__init__.py'):
-    open('build/__init__.py', 'w').close()
-if not os.path.exists('build/env/__init__.py'):
-    open('build/env/__init__.py', 'w').close()
-if not os.path.exists('build/env/mettagrid/__init__.py'):
-    open('build/env/mettagrid/__init__.py', 'w').close()
-if not os.path.exists('build/env/puffergrid/__init__.py'):
-    open('build/env/puffergrid/__init__.py', 'w').close()
-
 class BuildGriddlyCommand(Command):
     description = 'Build Griddly'
     user_options = []
@@ -80,7 +68,6 @@ def build_ext(srcs, module_name=None):
         srcs,
         # include_dirs=["third_party/puffergrid"],
         define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
-        language="c++",
     )
 
 ext_modules = [
@@ -88,6 +75,13 @@ ext_modules = [
     build_ext(["env/mettagrid/actions.pyx"]),
     build_ext(["env/mettagrid/mettagrid.pyx"], "env.mettagrid.mettagrid_c"),
 ]
+
+optimized = True
+build_dir = 'build'
+if not optimized:
+    build_dir = 'build_debug'
+
+os.makedirs(build_dir, exist_ok=True)
 
 setup(
     name='metta',
@@ -128,26 +122,23 @@ setup(
         # compiler_directives={
         #     'profile': True,
         # },
-        language="c++",
         build_dir='build',
         compiler_directives={
             "language_level": "3",
-            "embedsignature": True,
-            "annotation_typing": True,
-            "cdivision": True,
-            "boundscheck": False,
-            "wraparound": False,
-            "initializedcheck": False,
-            "nonecheck": False,
-            "overflowcheck": False,
-            "overflowcheck.fold": True,
-            "profile": False,
-            "linetrace": False,
-                        "c_string_encoding": "utf-8",
-    "c_string_type": "str",
-
-
+            "embedsignature": not optimized,
+            "annotation_typing": not optimized,
+            "cdivision":  not optimized,
+            "boundscheck":  not optimized,
+            "wraparound":  not optimized,
+            "initializedcheck":  not optimized,
+            "nonecheck":  not optimized,
+            "overflowcheck":  not optimized,
+            "overflowcheck.fold":  not optimized,
+            "profile":  not optimized,
+            "linetrace":  not optimized,
+            "c_string_encoding": "utf-8",
+            "c_string_type": "str",
         },
-        annotate=True,
+        annotate=not optimized,
     ),
 )

@@ -3,7 +3,7 @@ from libc.stdio cimport printf
 
 from puffergrid.grid_object cimport GridLocation, GridObjectId, Orientation
 from puffergrid.action cimport ActionHandler, ActionArg
-from env.mettagrid.objects cimport ObjectType, Agent, Events, Tree
+from env.mettagrid.objects cimport ObjectType, Agent, Events
 
 cdef class Move(ActionHandler):
     cdef char handle_action(
@@ -40,28 +40,37 @@ cdef class Rotate(ActionHandler):
         agent.props.orientation = orientation
         return True
 
-cdef class Eat(ActionHandler):
+cdef class Use(ActionHandler):
     cdef char handle_action(
         self,
         unsigned int actor_id,
         GridObjectId actor_object_id,
         ActionArg arg):
-        cdef Tree *tree = NULL
-        cdef Agent* agent = self.env._grid.object[Agent](actor_object_id)
-        cdef GridLocation target_loc = self.env._grid.relative_location(
-            agent.location,
-            <Orientation>agent.props.orientation
-        )
-        tree = self.env._grid.object_at[Tree](
-            self.env._grid.type_location(target_loc.r, target_loc.c, ObjectType.TreeT))
+        return False
 
-        if tree == NULL or tree.props.has_fruit == 0:
-            return False
+cdef class Attack(ActionHandler):
+    cdef char handle_action(
+        self,
+        unsigned int actor_id,
+        GridObjectId actor_object_id,
+        ActionArg arg):
+        return False
 
-        tree.props.has_fruit = 0
-        agent.props.energy += 10
-        self.env._rewards[actor_id] += 10
-        self.env._stats.agent_incr(actor_id, "fruit_eaten")
-        # printf("Agent %d ate a fruit\n", actor_id)
-        self.env._event_manager.schedule_event(Events.ResetTree, 100, tree.id, 0)
-        return True
+cdef class ToggleShield(ActionHandler):
+    cdef char handle_action(
+        self,
+        unsigned int actor_id,
+        GridObjectId actor_object_id,
+        ActionArg arg):
+        return False
+
+cdef class Gift(ActionHandler):
+    cdef char handle_action(
+        self,
+        unsigned int actor_id,
+        GridObjectId actor_object_id,
+        ActionArg arg):
+        return False
+
+
+
