@@ -1,15 +1,42 @@
 # distutils: language=c++
 from libcpp.vector cimport vector
 from libcpp.string cimport string
+from puffergrid.grid_env import StatsTracker
+from libc.stdio cimport printf
 
 from puffergrid.observation_encoder cimport ObservationEncoder
 from puffergrid.grid_object cimport GridObject
 from puffergrid.event cimport EventHandler
 
-cdef unsigned int GridLayer_Agent = 0
-cdef unsigned int GridLayer_Object = 1
+cdef enum GridLayer:
+    Agent_Layer = 0
+    Object_Layer = 1
 
-cdef cppclass AgentProps:
+cdef cppclass MettaObjectProps:
+    inline char usable():
+        return False
+    inline char attackable():
+        return False
+ctypedef GridObject[MettaObjectProps] MettaObject
+
+cdef cppclass Attackable(MettaObjectProps):
+    unsigned int hp
+    inline char attackable():
+        return True
+
+cdef cppclass UsableProps(MettaObjectProps):
+    unsigned int energy_cost
+    unsigned int cooldown
+    unsigned char ready
+
+    inline char usable():
+        return True
+    inline char on_use():
+        printf("object used\n")
+
+ctypedef GridObject[UsableProps] UsableObject
+
+cdef cppclass AgentProps(Attackable):
     unsigned int hp
     unsigned int energy
     unsigned int orientation
@@ -26,9 +53,7 @@ cdef cppclass AgentProps:
 
 ctypedef GridObject[AgentProps] Agent
 
-cdef cppclass WallProps:
-    unsigned int hp
-
+cdef cppclass WallProps(Attackable):
     inline void obs(int[:] obs):
         obs[0] = 1
         obs[1] = hp
@@ -39,10 +64,8 @@ cdef cppclass WallProps:
 
 ctypedef GridObject[WallProps] Wall
 
-cdef cppclass GeneratorProps:
-    unsigned int hp
+cdef cppclass GeneratorProps(Attackable, UsableProps):
     unsigned int r1
-    char ready
 
     inline void obs(int[:] obs):
         obs[0] = 1
@@ -56,12 +79,10 @@ cdef cppclass GeneratorProps:
 
 ctypedef GridObject[GeneratorProps] Generator
 
-cdef cppclass ConverterProps:
-    unsigned int hp
+cdef cppclass ConverterProps(Attackable, UsableProps):
     char input_resource
     char output_resource
     char output_energy
-    char ready
 
     inline obs(int[:] obs):
         obs[0] = 1
@@ -77,10 +98,7 @@ cdef cppclass ConverterProps:
 
 ctypedef GridObject[ConverterProps] Converter
 
-cdef cppclass AltarProps:
-    unsigned int hp
-    char ready
-
+cdef cppclass AltarProps(Attackable, UsableProps):
     inline void obs(int[:] obs):
         obs[0] = 1
         obs[1] = hp

@@ -1,9 +1,9 @@
 
 from libc.stdio cimport printf
 
-from puffergrid.grid_object cimport GridLocation, GridObjectId, Orientation
+from puffergrid.grid_object cimport GridLocation, GridObjectId, Orientation, GridObject, GridObjectBase
 from puffergrid.action cimport ActionHandler, ActionArg
-from env.mettagrid.objects cimport ObjectType, Agent, Events
+from env.mettagrid.objects cimport  UsableProps, MettaObject, MettaObjectProps, UsableObject, Altar, Attackable, Agent, Events, GridLayer
 
 cdef class Move(ActionHandler):
     cdef char handle_action(
@@ -20,10 +20,17 @@ cdef class Move(ActionHandler):
         cdef Orientation orientation = <Orientation>((agent.props.orientation + 2*(direction)) % 4)
         cdef GridLocation old_loc = agent.location
         cdef GridLocation new_loc = self.env._grid.relative_location(old_loc, orientation)
+        if actor_id == 0:
+            print("moving ", old_loc, new_loc, orientation)
         if not self.env._grid.is_empty(new_loc.r, new_loc.c):
+            if actor_id == 0:
+                print("failed, not empty")
             return False
-        cdef char s = self.env._grid.move_object(actor_object_id, new_loc)
-        return s
+        self.env._grid.move_object(actor_object_id, new_loc)
+        if actor_id == 0:
+            print("move success")
+
+        return True
 
 cdef class Rotate(ActionHandler):
     cdef char handle_action(
@@ -38,6 +45,9 @@ cdef class Rotate(ActionHandler):
 
         cdef Agent* agent = self.env._grid.object[Agent](actor_object_id)
         agent.props.orientation = orientation
+        if actor_id == 0:
+            print("rotating", orientation)
+        #self.env._stats.agent_incr(actor_id, "action.rotate")
         return True
 
 cdef class Use(ActionHandler):
@@ -46,6 +56,29 @@ cdef class Use(ActionHandler):
         unsigned int actor_id,
         GridObjectId actor_object_id,
         ActionArg arg):
+
+        cdef Agent* agent = self.env._grid.object[Agent](actor_object_id)
+        cdef GridLocation target_loc = self.env._grid.relative_location(
+            agent.location,
+            <Orientation>agent.props.orientation
+        )
+        target_loc.layer = GridLayer.Object_Layer
+        cdef GridObjectBase *target = self.env._grid.object_at(target_loc)
+        cdef UsableProps *usable
+        if target != NULL:
+            if (<MettaObjectProps>target.props).usable():
+                printf("object usable")
+                usable = <UsableProps*>target.props
+                usable.on_use()
+            self.env._stats.agent_incr(actor_id, "action.use")
+        elif target == NULL:
+            if actor_id == 0:
+                print("failed null")
+            pass
+            #self.env._stats.agent_incr(actor_id, "action.use.null")
+        else:
+            self.env._stats.agent_incr(actor_id, "action.use." + target._type_id)
+
         return False
 
 cdef class Attack(ActionHandler):

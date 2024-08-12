@@ -19,6 +19,7 @@ def test_performance(env, actions, duration):
             if tick % 100 == 0:
                 pbar.update(time.time() - start - pbar.n)
 
+    print(env._c_env.stats())
     print(f'SPS: {atns.shape[0] * tick / (time.time() - start):.2f}')
 
 actions = {}
@@ -36,8 +37,8 @@ def main(cfg):
     num_agents = cfg.env.game.num_agents
     actions = np.random.randint(0, env.action_space.nvec, (1024, num_agents, 2), dtype=np.uint32)
 
-    # test_performance(env, actions, 10)
-    # exit(0)
+    test_performance(env, actions, 5)
+    exit(0)
 
     run("test_performance(env, actions, 10)", 'stats.profile')
     import pstats
