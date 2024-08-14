@@ -105,7 +105,7 @@
             "preLaunchTask": "build_cython_extensions",
             "args": [
                 // "--profile"
-                "--num_agents=50",
+                "--num_agents=5",
                 // "env.game.num_agents=40",
                 // "train.device=cpu",
                 // "mode=eval",
