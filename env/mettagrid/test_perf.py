@@ -20,7 +20,7 @@ def test_performance(env, actions, duration):
             if tick % 100 == 0:
                 pbar.update(time.time() - start - pbar.n)
 
-    print_stats(env._c_env.stats())
+    print_stats(env._c_env.get_episode_stats())
     print(f'SPS: {atns.shape[0] * tick / (time.time() - start):.2f}')
 
 actions = {}

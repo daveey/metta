@@ -57,12 +57,14 @@ class MettaGridEnv(pufferlib.PufferEnv):
     def step(self, actions):
         obs, rewards, terminated, truncated, infos = self._c_env.step(actions.astype(np.int32))
 
-        # rewards = np.array(rewards) # xcxc / self._max_level_reward_per_agent
-        # if terminated.all() or truncated.all():
-        #     self.process_episode_stats(info["episode_stats"])
-        #     info = {
-        #         "episode_extra_stats": info["episode_stats"]["agent_stats"]
-        #     }
+        rewards = np.array(rewards) # xcxc / self._max_level_reward_per_agent
+        if terminated.all() or truncated.all():
+            stats = self._c_env.get_episode_stats()
+            game_reward = stats["game_stats"].get("reward", 0)
+            infos = {
+                "reward.sum": game_reward,
+                "reward.mean": game_reward / self._c_env.num_agents(),
+            }
 
         return obs, list(rewards), terminated.all(), truncated.all(), infos
 
