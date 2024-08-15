@@ -59,12 +59,24 @@ class MettaGridEnv(pufferlib.PufferEnv):
 
         rewards = np.array(rewards) # xcxc / self._max_level_reward_per_agent
         if terminated.all() or truncated.all():
+            num_agents = self._c_env.num_agents()
             stats = self._c_env.get_episode_stats()
             episode_return = stats["game_stats"].get("reward", 0)
+
             infos = {
-                "episode_return.sum": episode_return,
-                "episode_return.mean": episode_return / self._c_env.num_agents(),
+                "episode_return": float(episode_return) / num_agents,
+                "episode_length": self._c_env.current_timestep(),
             }
+
+            agent_stats = {}
+            for a_stats in stats["agent_stats"]:
+                for k, v in a_stats.items():
+                    if k not in agent_stats:
+                        agent_stats[k] = 0
+                    agent_stats[k] += v
+
+            for k, v in agent_stats.items():
+                infos[f"agent_stats/{k}"] = float(v) / num_agents
 
         return obs, list(rewards), terminated.all(), truncated.all(), infos
 
