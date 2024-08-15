@@ -13,6 +13,7 @@
             "args": [
                 "experiment=mac.sf.1",
                 "framework=pufferlib",
+                "agent=small",
                 "hardware=macbook",
                 "env=mettagrid/a20_b4_40x40",
                 // "env=mettagrid/a20_b4_40x40",
