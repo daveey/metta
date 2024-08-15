@@ -15,7 +15,7 @@ def test_performance(env, actions, duration):
     with tqdm(total=duration, desc="Running performance test") as pbar:
         while time.time() - start < duration:
             atns = actions[tick % num_actions]
-            env.step(atns)
+            obs, rewards, terminated, truncated, infos = env.step(atns)
             tick += 1
             if tick % 100 == 0:
                 pbar.update(time.time() - start - pbar.n)
