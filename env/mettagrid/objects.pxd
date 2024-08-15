@@ -8,9 +8,10 @@ from libcpp.map cimport map
 from libcpp.string cimport string
 from puffergrid.grid_env import StatsTracker
 from libc.stdio cimport printf
-from puffergrid.observation_encoder cimport ObservationEncoder
+from puffergrid.observation_encoder cimport ObservationEncoder, ObsType
 from puffergrid.grid_object cimport GridObject, TypeId, GridCoord, GridLocation, GridObjectId
 from puffergrid.event cimport EventHandler, EventArg
+
 cdef enum GridLayer:
     Agent_Layer = 0
     Object_Layer = 1
@@ -76,7 +77,7 @@ cdef cppclass Agent(MettaObject):
     inline void update_inventory(InventoryItem item, short amount):
         this.inventory[<InventoryItem>item] += amount
 
-    inline void obs(int[:] obs):
+    inline void obs(ObsType[:] obs):
         obs[0] = 1
         obs[1] = this.hp
         obs[2] = this.frozen
@@ -102,7 +103,7 @@ cdef cppclass Wall(MettaObject):
         GridObject.init(ObjectType.WallT, GridLocation(r, c, GridLayer.Object_Layer))
         MettaObject.init_mo(5)
 
-    inline void obs(int[:] obs):
+    inline void obs(ObsType[:] obs):
         obs[0] = 1
         obs[1] = hp
 
@@ -122,7 +123,7 @@ cdef cppclass Generator(Usable):
     inline char usable(const Agent *actor):
         return Usable.usable(actor) and this.r1 > 0
 
-    inline void obs(int[:] obs):
+    inline void obs(ObsType[:] obs):
         obs[0] = 1
         obs[1] = this.hp
         obs[2] = this.r1
@@ -149,7 +150,7 @@ cdef cppclass Converter(Usable):
     inline char usable(const Agent *actor):
         return Usable.usable(actor) and actor.inventory[this.input_resource] > 0
 
-    inline obs(int[:] obs):
+    inline obs(ObsType[:] obs):
         obs[0] = 1
         obs[1] = hp
         obs[2] = input_resource
@@ -167,7 +168,7 @@ cdef cppclass Altar(Usable):
         MettaObject.init_mo(20)
         Usable.init_usable(10, 5)
 
-    inline void obs(int[:] obs):
+    inline void obs(ObsType[:] obs):
         obs[0] = 1
         obs[1] = hp
         obs[2] = ready

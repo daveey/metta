@@ -3,10 +3,7 @@
 from libc.stdio cimport printf
 from libcpp.string cimport string
 from libcpp.vector cimport vector
-cimport cython
-
 from puffergrid.grid_object cimport GridObject, GridObjectId
-from puffergrid.event cimport EventHandler, EventArg
 
 cdef vector[string] ObjectTypeNames = [
     "agent",
@@ -52,7 +49,7 @@ cdef class MettaObservationEncoder(ObservationEncoder):
 
         self._feature_names = features
 
-    cdef encode(self, GridObject *obj, int[:] obs):
+    cdef encode(self, GridObject *obj, ObsType[:] obs):
         if obj._type_id == ObjectType.AgentT:
             (<Agent*>obj).obs(obs[self._offsets[ObjectType.AgentT]:])
         elif obj._type_id == ObjectType.WallT:

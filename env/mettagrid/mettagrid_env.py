@@ -42,7 +42,11 @@ class MettaGridEnv(pufferlib.PufferEnv):
     def reset(self, **kwargs):
         self.make_env()
         if hasattr(self, "buf"):
-            self._c_env.set_buffers(self.buf)
+            self._c_env.set_buffers(
+                self.buf.observations,
+                self.buf.terminals,
+                self.buf.truncations,
+                self.buf.rewards)
 
         # obs, infos = self._env.reset(**kwargs)
         # self._compute_max_energy()
@@ -51,7 +55,7 @@ class MettaGridEnv(pufferlib.PufferEnv):
         return obs, infos
 
     def step(self, actions):
-        obs, rewards, terminated, truncated, infos = self._c_env.step(actions)
+        obs, rewards, terminated, truncated, infos = self._c_env.step(actions.astype(np.int32))
 
         # rewards = np.array(rewards) # xcxc / self._max_level_reward_per_agent
         # if terminated.all() or truncated.all():
@@ -120,15 +124,15 @@ class MettaGridEnv(pufferlib.PufferEnv):
 
     @property
     def player_count(self):
-        return self._env.unwrapped.player_count
+        return self._env.num_agents()
 
     def render(self, *args, **kwargs):
         return self._env.render(*args, **kwargs)
 
     @property
     def grid_features(self):
-        return self._env.unwrapped.grid_features
+        return self._env.grid_features()
 
     @property
     def global_features(self):
-        return self._env.unwrapped.global_features
+        return []

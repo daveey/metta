@@ -47,7 +47,7 @@ class PufferAgentWrapper(nn.Module):
         return action, value
 
 def make_policy(env: PufferEnv, cfg: OmegaConf):
-    cfg.agent.observation_encoders.grid_obs.feature_names = env._grid_env.grid_features
+    cfg.agent.observation_encoders.grid_obs.feature_names = env._grid_env.grid_features()
     cfg.agent.observation_encoders.global_vars.feature_names = []
     obs_space = gym.spaces.Dict({
         "grid_obs": env.single_observation_space,
