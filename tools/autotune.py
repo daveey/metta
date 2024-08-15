@@ -16,7 +16,7 @@ def make_env():
 def main(cfg):
     global env_config
     env_config = cfg
-    pufferlib.vector.autotune(make_env, batch_size=4080//20)
+    pufferlib.vector.autotune(make_env, batch_size=16384//20)
 
 if __name__ == "__main__":
     main()

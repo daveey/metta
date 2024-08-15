@@ -6,7 +6,7 @@ observation_encoders:
   grid_obs:
     feature_names: []
 
-    normalize_features: True
+    normalize_features: False
     label_dim: 4
     output_dim: 128
     layers: 2

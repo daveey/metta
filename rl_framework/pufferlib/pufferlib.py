@@ -57,7 +57,7 @@ class PufferLibFramework(RLFramework):
         vecenv_args = dict(
             env_kwargs=dict(cfg = dict(**self.cfg.env)),
             num_envs=batch_size * pcfg.train.async_factor,
-            num_workers=pcfg.train.num_workers,
+            num_workers=pcfg.train.num_workerps,
             batch_size=batch_size,
             zero_copy=pcfg.train.zero_copy,
             backend=vec,
