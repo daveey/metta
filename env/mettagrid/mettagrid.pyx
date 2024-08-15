@@ -7,7 +7,7 @@ cimport numpy as cnp
 from puffergrid.grid_env cimport GridEnv
 from puffergrid.action cimport ActionHandler
 from omegaconf import OmegaConf
-from env.mettagrid.objects cimport ObjectType, Agent, Wall, GridLayer, Generator, Converter, Altar
+from env.mettagrid.objects cimport ObjectType, Agent, ResetHandler, Wall, GridLayer, Generator, Converter, Altar
 from env.mettagrid.objects cimport MettaObservationEncoder
 from env.mettagrid.actions cimport Move, Rotate, Use, Attack, ToggleShield, Gift
 from puffergrid.action cimport ActionHandler, ActionArg
@@ -46,6 +46,7 @@ cdef class MettaGrid(GridEnv):
                 Gift(),
             ],
             [
+                ResetHandler()
             ]
         )
 

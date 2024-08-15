@@ -110,11 +110,10 @@ cdef class Use(MettaActionHandler):
             return False
 
         cdef Usable *usable = <Usable*> target
-        cdef Generator *generator
-        cdef Converter *converter
-
         actor.energy -= usable.energy_cost
+
         usable.ready = 0
+        self.env._event_manager.schedule_event(Events.Reset, usable.cooldown, usable.id, 0)
 
         self.env._stats.agent_incr(actor_id, self._stats.target[target._type_id].c_str())
         self.env._stats.agent_add(actor_id, self._stats.target_energy[target._type_id].c_str(), usable.energy_cost + self.action_cost)
@@ -124,6 +123,7 @@ cdef class Use(MettaActionHandler):
             self.env._stats.agent_add(actor_id, "reward", 10)
             self.env._stats.game_add("reward", 10)
 
+        cdef Generator *generator
         if target._type_id == ObjectType.GeneratorT:
             generator = <Generator*>target
             generator.r1 -= 1
@@ -131,6 +131,7 @@ cdef class Use(MettaActionHandler):
             self.env._stats.agent_incr(actor_id, "r1.gained")
             self.env._stats.game_incr("r1.harvested")
 
+        cdef Converter *converter
         if target._type_id == ObjectType.ConverterT:
             converter = <Converter*>target
             actor.update_inventory(converter.input_resource, -1)

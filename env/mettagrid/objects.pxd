@@ -5,10 +5,8 @@ from puffergrid.grid_env import StatsTracker
 from libc.stdio cimport printf
 
 from puffergrid.observation_encoder cimport ObservationEncoder
-from puffergrid.grid_object cimport GridObject, TypeId, GridCoord, GridLocation
-from puffergrid.event cimport EventHandler
-from puffergrid.action cimport ActionArg
-
+from puffergrid.grid_object cimport GridObject, TypeId, GridCoord, GridLocation, GridObjectId
+from puffergrid.event cimport EventHandler, EventArg
 cdef enum GridLayer:
     Agent_Layer = 0
     Object_Layer = 1
@@ -16,7 +14,7 @@ cdef enum GridLayer:
 cdef cppclass MettaObject(GridObject):
     unsigned int hp
 
-    inline void init_m(unsigned int hp):
+    inline void init_mo(unsigned int hp):
         this.hp = hp
 
     inline char usable(const Agent *actor):
@@ -30,7 +28,7 @@ cdef cppclass Usable(MettaObject):
     unsigned int cooldown
     unsigned char ready
 
-    inline void init_u(unsigned int energy_cost, unsigned int cooldown):
+    inline void init_usable(unsigned int energy_cost, unsigned int cooldown):
         this.energy_cost = energy_cost
         this.cooldown = cooldown
         this.ready = 1
@@ -66,7 +64,7 @@ cdef cppclass Agent(MettaObject):
 
     inline Agent(GridCoord r, GridCoord c):
         GridObject.init(ObjectType.AgentT, GridLocation(r, c, GridLayer.Agent_Layer))
-        MettaObject.init_m(1)
+        MettaObject.init_mo(1)
         this.energy = 100
         this.orientation = 0
         this.inventory.resize(InventoryItem.InventoryCount)
@@ -98,7 +96,7 @@ cdef cppclass Agent(MettaObject):
 cdef cppclass Wall(MettaObject):
     inline Wall(GridCoord r, GridCoord c):
         GridObject.init(ObjectType.WallT, GridLocation(r, c, GridLayer.Object_Layer))
-        MettaObject.init_m(1)
+        MettaObject.init_mo(1)
 
     inline void obs(int[:] obs):
         obs[0] = 1
@@ -113,8 +111,8 @@ cdef cppclass Generator(Usable):
 
     inline Generator(GridCoord r, GridCoord c):
         GridObject.init(ObjectType.GeneratorT, GridLocation(r, c, GridLayer.Object_Layer))
-        MettaObject.init_m(1)
-        Usable.init_u(0, 0)
+        MettaObject.init_mo(1)
+        Usable.init_usable(0, 10)
         this.r1 = 10
 
     inline char usable(const Agent *actor):
@@ -138,8 +136,8 @@ cdef cppclass Converter(Usable):
 
     inline Converter(GridCoord r, GridCoord c):
         GridObject.init(ObjectType.ConverterT, GridLocation(r, c, GridLayer.Object_Layer))
-        MettaObject.init_m(1)
-        Usable.init_u(0, 3)
+        MettaObject.init_mo(1)
+        Usable.init_usable(0, 3)
         this.input_resource = InventoryItem.r1
         this.output_resource = InventoryItem.r2
         this.output_energy = 10
@@ -162,8 +160,8 @@ cdef cppclass Converter(Usable):
 cdef cppclass Altar(Usable):
     inline Altar(GridCoord r, GridCoord c):
         GridObject.init(ObjectType.AltarT, GridLocation(r, c, GridLayer.Object_Layer))
-        MettaObject.init_m(1)
-        Usable.init_u(10, 5)
+        MettaObject.init_mo(1)
+        Usable.init_usable(10, 5)
 
     inline void obs(int[:] obs):
         obs[0] = 1
@@ -175,11 +173,13 @@ cdef cppclass Altar(Usable):
         return ["altar", "altar:hp", "altar:ready"]
 
 
-cdef class ResetTreeHandler(EventHandler):
-    pass
-
+cdef class ResetHandler(EventHandler):
+    cdef inline void handle_event(self, GridObjectId obj_id, EventArg arg):
+        cdef Usable *usable = <Usable*>self.env._grid.object(obj_id)
+        usable.ready = True
+        self.env._stats.game_incr("resets." + ObjectTypeNames[usable._type_id])
 cdef enum Events:
-    ResetTree = 0
+    Reset = 0
 
 cdef class MettaObservationEncoder(ObservationEncoder):
     cdef vector[short] _offsets

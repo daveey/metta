@@ -9,11 +9,11 @@ from puffergrid.grid_object cimport GridObject, GridObjectId
 from puffergrid.event cimport EventHandler, EventArg
 
 cdef vector[string] ObjectTypeNames = [
-    "Agent",
-    "Wall",
-    "Generator",
-    "Converter",
-    "Altar"
+    "agent",
+    "wall",
+    "generator",
+    "converter",
+    "altar"
 ]
 
 cdef vector[string] InventoryItemNames = [
