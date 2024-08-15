@@ -49,7 +49,7 @@ observation_encoders:
 
 fc:
   layers: 1
-  output_dim: 256
+  output_dim: 128
 
 decoder:
   _target_: agent.decoder.Decoder
@@ -57,5 +57,5 @@ decoder:
 core:
   rnn_type: gru
   rnn_num_layers: 1
-  rnn_size: 256
+  rnn_size: 128
 
