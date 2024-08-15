@@ -61,9 +61,9 @@ class FeatureSetEncoder(nn.Module):
     def forward(self, obs_dict):
         batch_size = obs_dict[self._obs_key].size(0)
 
-        fake_obs = obs_dict[self._obs_key].view(batch_size, -1, np.prod(self._obs_shape)).to(torch.float32)
-        x = torch.sum(self.fake_embedding_net(fake_obs), dim=1)
-        return x
+        # fake_obs = obs_dict[self._obs_key].view(batch_size, -1, np.prod(self._obs_shape)).to(torch.float32)
+        # x = torch.sum(self.fake_embedding_net(fake_obs), dim=1)
+        # return x
 
         self._labels_emb = self._labels_emb.to(obs_dict[self._obs_key].device)
         obs = obs_dict[self._obs_key].view(batch_size, -1, *self._obs_shape).to(torch.float32)
