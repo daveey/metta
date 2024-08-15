@@ -89,7 +89,7 @@
 
                 "cmd=train",
 
-                "env=mettagrid/a20_b4_40x40",
+                "env=mettagrid/a5_25x25",
                 // "env.game.num_agents=40",
                 // "train.device=cpu",
                 // "mode=eval",

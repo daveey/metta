@@ -7,6 +7,10 @@ from puffergrid.action cimport ActionHandler, ActionArg
 from env.mettagrid.objects cimport Agent
 from libcpp.string cimport string
 from libcpp.map cimport map
+from puffergrid.grid_object cimport GridLocation, GridObjectId, GridObject
+from puffergrid.action cimport ActionHandler, ActionArg
+from env.mettagrid.objects cimport MettaObject, ObjectType, Usable, Altar, Agent, Events, GridLayer
+from env.mettagrid.objects cimport Generator, Converter, InventoryItem, ObjectTypeNames, InventoryItemNames
 
 cdef struct StatNames:
     string action
@@ -31,17 +35,3 @@ cdef class MettaActionHandler(ActionHandler):
         unsigned int actor_id,
         Agent * actor,
         ActionArg arg)
-
-cdef class Move(MettaActionHandler):
-    pass
-
-cdef class Rotate(MettaActionHandler):
-    pass
-cdef class Use(MettaActionHandler):
-    pass
-cdef class Attack(MettaActionHandler):
-    pass
-cdef class ToggleShield(MettaActionHandler):
-    pass
-cdef class Gift(MettaActionHandler):
-    pass

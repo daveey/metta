@@ -7,19 +7,15 @@ cimport numpy as cnp
 from puffergrid.grid_env cimport GridEnv
 from puffergrid.action cimport ActionHandler
 from omegaconf import OmegaConf
-from env.mettagrid.objects cimport ObjectType, Agent, ResetHandler, Wall, GridLayer, Generator, Converter, Altar
+from env.mettagrid.objects cimport ObjectLayers, Agent, ResetHandler, Wall, GridLayer, Generator, Converter, Altar
 from env.mettagrid.objects cimport MettaObservationEncoder
-from env.mettagrid.actions cimport Move, Rotate, Use, Attack, ToggleShield, Gift
 from puffergrid.action cimport ActionHandler, ActionArg
-
-
-ObjectLayers = {
-    ObjectType.AgentT: GridLayer.Agent_Layer,
-    ObjectType.WallT: GridLayer.Object_Layer,
-    ObjectType.GeneratorT: GridLayer.Object_Layer,
-    ObjectType.ConverterT: GridLayer.Object_Layer,
-    ObjectType.AltarT: GridLayer.Object_Layer,
-}
+from env.mettagrid.actions.move import Move
+from env.mettagrid.actions.rotate import Rotate
+from env.mettagrid.actions.use import Use
+from env.mettagrid.actions.attack import Attack
+from env.mettagrid.actions.shield import Shield
+from env.mettagrid.actions.gift import Gift
 
 cdef class MettaGrid(GridEnv):
     cdef:
@@ -34,7 +30,7 @@ cdef class MettaGrid(GridEnv):
             map.shape[1],
             map.shape[0],
             0, # max_steps
-            ObjectLayers.values(),
+            dict(ObjectLayers).values(),
             11,11,
             MettaObservationEncoder(),
             [
@@ -42,7 +38,7 @@ cdef class MettaGrid(GridEnv):
                 Rotate(),
                 Use(),
                 Attack(),
-                ToggleShield(),
+                Shield(),
                 Gift(),
             ],
             [

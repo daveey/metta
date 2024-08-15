@@ -72,7 +72,13 @@ def build_ext(srcs, module_name=None):
 
 ext_modules = [
     build_ext(["env/mettagrid/objects.pyx"]),
-    build_ext(["env/mettagrid/actions.pyx"]),
+    build_ext(["env/mettagrid/actions/actions.pyx"]),
+    build_ext(["env/mettagrid/actions/attack.pyx"]),
+    build_ext(["env/mettagrid/actions/gift.pyx"]),
+    build_ext(["env/mettagrid/actions/move.pyx"]),
+    build_ext(["env/mettagrid/actions/rotate.pyx"]),
+    build_ext(["env/mettagrid/actions/shield.pyx"]),
+    build_ext(["env/mettagrid/actions/use.pyx"]),
     build_ext(["env/mettagrid/mettagrid.pyx"], "env.mettagrid.mettagrid_c"),
 ]
 

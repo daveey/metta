@@ -1,9 +1,13 @@
 # distutils: language=c++
+# cython: warn.undeclared=False
+
+cimport cython
+
 from libcpp.vector cimport vector
+from libcpp.map cimport map
 from libcpp.string cimport string
 from puffergrid.grid_env import StatsTracker
 from libc.stdio cimport printf
-
 from puffergrid.observation_encoder cimport ObservationEncoder
 from puffergrid.grid_object cimport GridObject, TypeId, GridCoord, GridLocation, GridObjectId
 from puffergrid.event cimport EventHandler, EventArg
@@ -55,16 +59,16 @@ cdef enum InventoryItem:
 cdef vector[string] InventoryItemNames # defined in objects.pyx
 
 cdef cppclass Agent(MettaObject):
-    unsigned int hp
+    char frozen
     unsigned int energy
     unsigned int orientation
     char shield
-    char energy_upkeep
     vector[unsigned short] inventory
 
     inline Agent(GridCoord r, GridCoord c):
         GridObject.init(ObjectType.AgentT, GridLocation(r, c, GridLayer.Agent_Layer))
         MettaObject.init_mo(1)
+        this.frozen = False
         this.energy = 100
         this.orientation = 0
         this.inventory.resize(InventoryItem.InventoryCount)
@@ -75,11 +79,12 @@ cdef cppclass Agent(MettaObject):
     inline void obs(int[:] obs):
         obs[0] = 1
         obs[1] = this.hp
-        obs[2] = this.energy
-        obs[3] = this.orientation
-        obs[4] = this.shield
+        obs[2] = this.frozen
+        obs[3] = this.energy
+        obs[4] = this.orientation
+        obs[5] = this.shield
 
-        cdef unsigned short idx = 5
+        cdef unsigned short idx = 6
         cdef unsigned short i
         for i in range(InventoryItem.InventoryCount):
             obs[idx + i] = this.inventory[i]
@@ -87,16 +92,15 @@ cdef cppclass Agent(MettaObject):
     @staticmethod
     inline vector[string] feature_names():
         return [
-            "agent", "agent:hp", "agent:energy", "agent:orientation",
+            "agent", "agent:hp", "agent:frozen", "agent:energy", "agent:orientation",
             "agent:shield"
-
         ] + [
             "agent:inv:" + n for n in InventoryItemNames]
 
 cdef cppclass Wall(MettaObject):
     inline Wall(GridCoord r, GridCoord c):
         GridObject.init(ObjectType.WallT, GridLocation(r, c, GridLayer.Object_Layer))
-        MettaObject.init_mo(1)
+        MettaObject.init_mo(5)
 
     inline void obs(int[:] obs):
         obs[0] = 1
@@ -111,7 +115,7 @@ cdef cppclass Generator(Usable):
 
     inline Generator(GridCoord r, GridCoord c):
         GridObject.init(ObjectType.GeneratorT, GridLocation(r, c, GridLayer.Object_Layer))
-        MettaObject.init_mo(1)
+        MettaObject.init_mo(10)
         Usable.init_usable(0, 10)
         this.r1 = 10
 
@@ -136,7 +140,7 @@ cdef cppclass Converter(Usable):
 
     inline Converter(GridCoord r, GridCoord c):
         GridObject.init(ObjectType.ConverterT, GridLocation(r, c, GridLayer.Object_Layer))
-        MettaObject.init_mo(1)
+        MettaObject.init_mo(10)
         Usable.init_usable(0, 3)
         this.input_resource = InventoryItem.r1
         this.output_resource = InventoryItem.r2
@@ -160,7 +164,7 @@ cdef cppclass Converter(Usable):
 cdef cppclass Altar(Usable):
     inline Altar(GridCoord r, GridCoord c):
         GridObject.init(ObjectType.AltarT, GridLocation(r, c, GridLayer.Object_Layer))
-        MettaObject.init_mo(1)
+        MettaObject.init_mo(20)
         Usable.init_usable(10, 5)
 
     inline void obs(int[:] obs):
@@ -172,12 +176,14 @@ cdef cppclass Altar(Usable):
     inline vector[string] feature_names():
         return ["altar", "altar:hp", "altar:ready"]
 
+cdef map[TypeId, GridLayer] ObjectLayers
 
 cdef class ResetHandler(EventHandler):
     cdef inline void handle_event(self, GridObjectId obj_id, EventArg arg):
         cdef Usable *usable = <Usable*>self.env._grid.object(obj_id)
         usable.ready = True
         self.env._stats.game_incr("resets." + ObjectTypeNames[usable._type_id])
+
 cdef enum Events:
     Reset = 0
 

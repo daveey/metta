@@ -21,6 +21,15 @@ cdef vector[string] InventoryItemNames = [
     "r2",
     "r3"
 ]
+
+ObjectLayers = {
+    ObjectType.AgentT: GridLayer.Agent_Layer,
+    ObjectType.WallT: GridLayer.Object_Layer,
+    ObjectType.GeneratorT: GridLayer.Object_Layer,
+    ObjectType.ConverterT: GridLayer.Object_Layer,
+    ObjectType.AltarT: GridLayer.Object_Layer,
+}
+
 cdef class MettaObservationEncoder(ObservationEncoder):
     def __init__(self) -> None:
         self._offsets.resize(ObjectType.Count)
