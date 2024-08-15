@@ -1,5 +1,6 @@
 
 from libc.stdio cimport printf
+from omegaconf import OmegaConf
 
 from puffergrid.grid_object cimport GridLocation, GridObjectId, Orientation, GridObject
 from puffergrid.action cimport ActionHandler, ActionArg
@@ -8,16 +9,14 @@ from env.mettagrid.objects cimport Generator, Converter, InventoryItem, ObjectTy
 from env.mettagrid.actions.actions cimport MettaActionHandler
 
 cdef class Attack(MettaActionHandler):
-    def __init__(self):
-        MettaActionHandler.__init__(self, "attack")
+    def __init__(self, cfg: OmegaConf):
+        MettaActionHandler.__init__(self, cfg, "attack")
 
     cdef char _handle_action(
         self,
         unsigned int actor_id,
         Agent * actor,
         ActionArg arg):
-
-        cdef short attack_damage = 10
 
         if arg > 9 or arg < 1:
             return False
@@ -36,9 +35,9 @@ cdef class Attack(MettaActionHandler):
         cdef Agent * agent_target = <Agent *>self.env._grid.object_at(target_loc)
         if agent_target:
             self.env._stats.agent_incr(actor_id, self._stats.target[agent_target._type_id].c_str())
-            if agent_target.shield and agent_target.energy >= attack_damage:
-                    agent_target.energy -= attack_damage
-                    self.env._stats.agent_add(actor_id, "shield_damage", attack_damage)
+            if agent_target.shield and agent_target.energy >= self.damage:
+                    agent_target.energy -= self.damage
+                    self.env._stats.agent_add(actor_id, "shield_damage", self.damage)
             else:
                 self.env._stats.agent_add(actor_id, "shield_damage", agent_target.energy)
                 agent_target.energy = 0

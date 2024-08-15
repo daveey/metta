@@ -1,6 +1,8 @@
 
 from libc.stdio cimport printf
 
+from omegaconf import OmegaConf
+
 from puffergrid.grid_object cimport GridLocation, GridObjectId, GridObject, Orientation
 from puffergrid.action cimport ActionHandler, ActionArg
 from env.mettagrid.objects cimport MettaObject, ObjectType, Usable, Altar, Agent, Events, GridLayer
@@ -8,8 +10,8 @@ from env.mettagrid.objects cimport Generator, Converter, InventoryItem, ObjectTy
 from env.mettagrid.actions.actions cimport MettaActionHandler
 
 cdef class Move(MettaActionHandler):
-    def __init__(self):
-        MettaActionHandler.__init__(self, "move")
+    def __init__(self, cfg: OmegaConf):
+        MettaActionHandler.__init__(self, cfg, "move")
 
     cdef char _handle_action(
         self,

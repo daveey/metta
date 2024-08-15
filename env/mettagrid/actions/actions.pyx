@@ -1,6 +1,8 @@
 
 from libc.stdio cimport printf
 
+from omegaconf import OmegaConf
+
 from puffergrid.grid_object cimport GridLocation, GridObjectId, Orientation, GridObject
 from puffergrid.action cimport ActionHandler, ActionArg
 from env.mettagrid.objects cimport MettaObject, ObjectType, Usable, Altar, Agent, Events, GridLayer
@@ -10,7 +12,7 @@ cdef extern from "<string>" namespace "std":
     string to_string(int val)
 
 cdef class MettaActionHandler(ActionHandler):
-    def __init__(self, action_name, action_cost=0):
+    def __init__(self, cfg: OmegaConf, action_name, action_cost=0):
         self.action_name = action_name
 
         self._stats.action = "action." + action_name
@@ -20,7 +22,7 @@ cdef class MettaActionHandler(ActionHandler):
             self._stats.target[t] = self._stats.action + "." + n
             self._stats.target_energy[t] = self._stats.action_energy + "." + n
 
-        self.action_cost = action_cost
+        self.action_cost = cfg.cost
 
     cdef char handle_action(
         self,

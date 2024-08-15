@@ -1,6 +1,8 @@
 
 from libc.stdio cimport printf
 
+from omegaconf import OmegaConf
+
 from puffergrid.grid_object cimport GridLocation, GridObjectId, Orientation, GridObject
 from puffergrid.action cimport ActionHandler, ActionArg
 from env.mettagrid.objects cimport MettaObject, ObjectType, Usable, Altar, Agent, Events, GridLayer
@@ -8,8 +10,8 @@ from env.mettagrid.objects cimport Generator, Converter, InventoryItem, ObjectTy
 from env.mettagrid.actions.actions cimport MettaActionHandler
 
 cdef class Use(MettaActionHandler):
-    def __init__(self):
-        MettaActionHandler.__init__(self, "use")
+    def __init__(self, cfg: OmegaConf):
+        MettaActionHandler.__init__(self, cfg, "use")
 
     cdef char _handle_action(
         self,
@@ -30,18 +32,18 @@ cdef class Use(MettaActionHandler):
             return False
 
         cdef Usable *usable = <Usable*> target
-        actor.energy -= usable.energy_cost
+        actor.energy -= usable.use_cost
 
         usable.ready = 0
         self.env._event_manager.schedule_event(Events.Reset, usable.cooldown, usable.id, 0)
 
         self.env._stats.agent_incr(actor_id, self._stats.target[target._type_id].c_str())
-        self.env._stats.agent_add(actor_id, self._stats.target_energy[target._type_id].c_str(), usable.energy_cost + self.action_cost)
+        self.env._stats.agent_add(actor_id, self._stats.target_energy[target._type_id].c_str(), usable.use_cost + self.action_cost)
 
         if target._type_id == ObjectType.AltarT:
-            self.env._rewards[actor_id] += 10
-            self.env._stats.agent_add(actor_id, "reward", 10)
-            self.env._stats.game_add("reward", 10)
+            self.env._rewards[actor_id] += usable.use_cost
+            self.env._stats.agent_add(actor_id, "reward", usable.use_cost)
+            self.env._stats.game_add("reward", usable.use_cost)
 
         cdef Generator *generator
         if target._type_id == ObjectType.GeneratorT:

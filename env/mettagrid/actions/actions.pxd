@@ -23,7 +23,6 @@ cdef class MettaActionHandler(ActionHandler):
     cdef string action_name
     cdef int action_cost
 
-
     cdef char handle_action(
         self,
         unsigned int actor_id,
