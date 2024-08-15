@@ -54,6 +54,8 @@ pufferlib:
 
     dashboard:
       user_stats:
+        - episode_return.sum
+        - episode_return.mean
         - avg_episode_return
         - avg_episode_length
         - avg_stats_agent_defeated
