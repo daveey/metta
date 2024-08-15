@@ -71,7 +71,6 @@ cdef class MettaGrid(GridEnv):
                     self._grid.add_object(agent)
                     self.add_agent(agent)
                     self._stats.game_incr("objects.agent")
-                    print("agent", r, c)
 
 
     def render(self):
