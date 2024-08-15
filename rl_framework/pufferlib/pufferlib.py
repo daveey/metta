@@ -104,13 +104,14 @@ class PufferLibFramework(RLFramework):
         )
 
     def process_stats(self, data):
-        new_stats = {}
-        for k, v in data.stats.items():
-            new_stats["avg_" + k] = v
-        if "episode_return" in data.stats:
-            new_stats["episode_return"] = data.stats["episode_return"]
-            new_stats["episode_length"] = data.stats["episode_length"]
-        data.stats = new_stats
+        pass
+        # new_stats = {}
+        # for k, v in data.stats.items():
+        #     new_stats["avg_" + k] = v
+        # if "episode_return" in data.stats:
+        #     new_stats["episode_return"] = data.stats["episode_return"]
+        #     new_stats["episode_length"] = data.stats["episode_length"]
+        # data.stats = new_stats
 
 
 def init_wandb(cfg: OmegaConf, resume=True):
