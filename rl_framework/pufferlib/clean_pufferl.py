@@ -1,28 +1,30 @@
+from pdb import set_trace as T
+import numpy as np
+
 import os
 import random
+import psutil
 import time
-from collections import defaultdict
 
-import imageio
-import numpy as np
-import pufferlib
-import pufferlib.pytorch
-import pufferlib.utils
+from threading import Thread
+from collections import defaultdict, deque
+
+import rich
+from rich.console import Console
+from rich.table import Table
+
 import torch
-from omegaconf import OmegaConf
 
-from . import checkpoint, dashboard
-from .experience import Experience
-from .profile import Profile
-from .utilization import Utilization
+import pufferlib
+import pufferlib.utils
+import pufferlib.pytorch
 
 torch.set_float32_matmul_precision('high')
 
 # Fast Cython GAE implementation
-import pyximport
-
-pyximport.install(setup_args={"include_dirs": np.get_include()})
-from .c_gae import compute_gae
+#import pyximport
+#pyximport.install(setup_args={"include_dirs": np.get_include()})
+from pufferlib.c_gae import compute_gae
 
 
 def create(config, vecenv, policy, optimizer=None, wandb=None):
@@ -31,18 +33,20 @@ def create(config, vecenv, policy, optimizer=None, wandb=None):
     losses = make_losses()
 
     utilization = Utilization()
-    msg = f'Model Size: {dashboard.abbreviate(count_params(policy))} parameters'
-    dashboard.print_dashboard(config, utilization, 0, 0, profile, losses, {}, msg, clear=True)
+    msg = f'Model Size: {abbreviate(count_params(policy))} parameters'
+    print_dashboard(config.env, utilization, 0, 0, profile, losses, {}, msg, clear=True)
 
     vecenv.async_reset(config.seed)
     obs_shape = vecenv.single_observation_space.shape
     obs_dtype = vecenv.single_observation_space.dtype
     atn_shape = vecenv.single_action_space.shape
+    atn_dtype = vecenv.single_action_space.dtype
     total_agents = vecenv.num_agents
 
     lstm = policy.lstm if hasattr(policy, 'lstm') else None
     experience = Experience(config.batch_size, config.bptt_horizon,
-        config.minibatch_size, obs_shape, obs_dtype, atn_shape, config.cpu_offload, config.device, lstm, total_agents)
+        config.minibatch_size, obs_shape, obs_dtype, atn_shape, atn_dtype,
+        config.cpu_offload, config.device, lstm, total_agents)
 
     uncompiled_policy = policy
 
@@ -64,7 +68,7 @@ def create(config, vecenv, policy, optimizer=None, wandb=None):
         wandb=wandb,
         global_step=0,
         epoch=0,
-        stats={},
+        stats=defaultdict(list),
         msg=msg,
         last_log_time=0,
         utilization=utilization,
@@ -122,18 +126,38 @@ def evaluate(data):
             data.vecenv.send(actions)
 
     with profile.eval_misc:
-        data.stats = {}
+        # Moves into models... maybe. Definitely moves.
+        # You could also just return infos and have it in demo
+        if 'pokemon_exploration_map' in infos:
+            for pmap in infos['pokemon_exploration_map']:
+                if not hasattr(data, 'pokemon_map'):
+                    import pokemon_red_eval
+                    data.map_updater = pokemon_red_eval.map_updater()
+                    data.pokemon_map = pmap
+
+                data.pokemon_map = np.maximum(data.pokemon_map, pmap)
+
+            if len(infos['pokemon_exploration_map']) > 0:
+                rendered = data.map_updater(data.pokemon_map)
+                data.stats['Media/exploration_map'] = data.wandb.Image(rendered)
 
         for k, v in infos.items():
             if '_map' in k and data.wandb is not None:
                 data.stats[f'Media/{k}'] = data.wandb.Image(v[0])
                 continue
 
-            try: # TODO: Better checks on log data types
-                data.stats[k] = np.mean(v)
-            except:
-                continue
+            if isinstance(v, np.ndarray):
+                v = v.tolist()
+            try:
+                iter(v)
+            except TypeError:
+                data.stats[k].append(v)
+            else:
+                data.stats[k] += v
 
+    # TODO: Better way to enable multiple collects
+    data.experience.ptr = 0
+    data.experience.step = 0
     return data.stats, infos
 
 @pufferlib.utils.profile
@@ -153,6 +177,7 @@ def train(data):
         experience.flatten_batch(advantages_np)
 
     # Optimizing the policy and value network
+    total_minibatches = experience.num_minibatches * config.update_epochs
     mean_pg_loss, mean_v_loss, mean_entropy_loss = 0, 0, 0
     mean_old_kl, mean_kl, mean_clipfrac = 0, 0, 0
     for epoch in range(config.update_epochs):
@@ -229,12 +254,12 @@ def train(data):
                     torch.cuda.synchronize()
 
             with profile.train_misc:
-                losses.policy_loss += pg_loss.item() / experience.num_minibatches
-                losses.value_loss += v_loss.item() / experience.num_minibatches
-                losses.entropy += entropy_loss.item() / experience.num_minibatches
-                losses.old_approx_kl += old_approx_kl.item() / experience.num_minibatches
-                losses.approx_kl += approx_kl.item() / experience.num_minibatches
-                losses.clipfrac += clipfrac.item() / experience.num_minibatches
+                losses.policy_loss += pg_loss.item() / total_minibatches
+                losses.value_loss += v_loss.item() / total_minibatches
+                losses.entropy += entropy_loss.item() / total_minibatches
+                losses.old_approx_kl += old_approx_kl.item() / total_minibatches
+                losses.approx_kl += approx_kl.item() / total_minibatches
+                losses.clipfrac += clipfrac.item() / total_minibatches
 
         if config.target_kl is not None:
             if approx_kl > config.target_kl:
@@ -254,35 +279,41 @@ def train(data):
         data.epoch += 1
 
         done_training = data.global_step >= config.total_timesteps
-        if profile.update(data) or (
-                'episode_return' in data.stats or done_training):
-            dashboard.print_dashboard(config, data.utilization, data.global_step, data.epoch,
+        # TODO: beter way to get episode return update without clogging dashboard
+        # TODO: make this appear faster
+        if profile.update(data):
+            mean_and_log(data)
+            print_dashboard(config.env, data.utilization, data.global_step, data.epoch,
                 profile, data.losses, data.stats, data.msg)
-
-            if data.wandb is not None and data.global_step > 0 and time.time() - data.last_log_time > 3.0:
-                data.last_log_time = time.time()
-                data.wandb.log({
-                    '0verview/SPS': profile.SPS,
-                    '0verview/agent_steps': data.global_step,
-                    '0verview/epoch': data.epoch,
-                    '0verview/learning_rate': data.optimizer.param_groups[0]["lr"],
-                    'train/actual_lr': data.optimizer.param_groups[0]["lr"],
-                    'train/lr': data.optimizer.param_groups[0]["lr"],
-                    'perf/_sample_throughput': profile.SPS,
-                    'len/len': data.stats.get('episode_length', 0),
-                    'policy_stats/avg_true_objective': data.stats.get('episode_return', 0),
-                    **{f'policy_stats/{k}': v for k, v in data.stats.items()},
-                    **{f'losses/{k}': v for k, v in data.losses.items()},
-                    'train/policy_loss': data.losses.policy_loss,
-                    'train/value_loss': data.losses.value_loss,
-                    'train/entropy_loss': data.losses.entropy,
-                    **{f'performance/{k}': v for k, v in data.profile},
-                    "global_step": data.global_step,
-                })
+            data.stats = defaultdict(list)
 
         if data.epoch % config.checkpoint_interval == 0 or done_training:
-            checkpoint.save_checkpoint(data)
+            save_checkpoint(data)
             data.msg = f'Checkpoint saved at update {data.epoch}'
+
+def mean_and_log(data):
+    for k in list(data.stats.keys()):
+        v = data.stats[k]
+        try:
+            v = np.mean(v)
+        except:
+            del data.stats[k]
+
+        data.stats[k] = v
+
+    if data.wandb is None:
+        return
+
+    data.last_log_time = time.time()
+    data.wandb.log({
+        '0verview/SPS': data.profile.SPS,
+        '0verview/agent_steps': data.global_step,
+        '0verview/epoch': data.epoch,
+        '0verview/learning_rate': data.optimizer.param_groups[0]["lr"],
+        **{f'environment/{k}': v for k, v in data.stats.items()},
+        **{f'losses/{k}': v for k, v in data.losses.items()},
+        **{f'performance/{k}': v for k, v in data.profile},
+    })
 
 def close(data):
     data.vecenv.close()
@@ -291,12 +322,73 @@ def close(data):
     if data.wandb is not None:
         artifact_name = f"{config.exp_id}_model"
         artifact = data.wandb.Artifact(artifact_name, type="model")
-        model_path = checkpoint.save_checkpoint(data)
+        model_path = save_checkpoint(data)
         artifact.add_file(model_path)
         data.wandb.run.log_artifact(artifact)
         data.wandb.finish()
 
+class Profile:
+    SPS: ... = 0
+    uptime: ... = 0
+    remaining: ... = 0
+    eval_time: ... = 0
+    env_time: ... = 0
+    eval_forward_time: ... = 0
+    eval_misc_time: ... = 0
+    train_time: ... = 0
+    train_forward_time: ... = 0
+    learn_time: ... = 0
+    train_misc_time: ... = 0
+    def __init__(self):
+        self.start = time.time()
+        self.env = pufferlib.utils.Profiler()
+        self.eval_forward = pufferlib.utils.Profiler()
+        self.eval_misc = pufferlib.utils.Profiler()
+        self.train_forward = pufferlib.utils.Profiler()
+        self.learn = pufferlib.utils.Profiler()
+        self.train_misc = pufferlib.utils.Profiler()
+        self.prev_steps = 0
 
+    def __iter__(self):
+        yield 'SPS', self.SPS
+        yield 'uptime', self.uptime
+        yield 'remaining', self.remaining
+        yield 'eval_time', self.eval_time
+        yield 'env_time', self.env_time
+        yield 'eval_forward_time', self.eval_forward_time
+        yield 'eval_misc_time', self.eval_misc_time
+        yield 'train_time', self.train_time
+        yield 'train_forward_time', self.train_forward_time
+        yield 'learn_time', self.learn_time
+        yield 'train_misc_time', self.train_misc_time
+
+    @property
+    def epoch_time(self):
+        return self.train_time + self.eval_time
+
+    def update(self, data, interval_s=1):
+        global_step = data.global_step
+        if global_step == 0:
+            return True
+
+        uptime = time.time() - self.start
+        if uptime - self.uptime < interval_s:
+            return False
+
+        self.SPS = (global_step - self.prev_steps) / (uptime - self.uptime)
+        self.prev_steps = global_step
+        self.uptime = uptime
+
+        self.remaining = (data.config.total_timesteps - global_step) / self.SPS
+        self.eval_time = data._timers['evaluate'].elapsed
+        self.eval_forward_time = self.eval_forward.elapsed
+        self.env_time = self.env.elapsed
+        self.eval_misc_time = self.eval_misc.elapsed
+        self.train_time = data._timers['train'].elapsed
+        self.train_forward_time = self.train_forward.elapsed
+        self.learn_time = self.learn.elapsed
+        self.train_misc_time = self.train_misc.elapsed
+        return True
 
 def make_losses():
     return pufferlib.namespace(
@@ -309,20 +401,193 @@ def make_losses():
         explained_variance=0,
     )
 
+class Experience:
+    '''Flat tensor storage and array views for faster indexing'''
+    def __init__(self, batch_size, bptt_horizon, minibatch_size, obs_shape, obs_dtype, atn_shape, atn_dtype,
+                 cpu_offload=False, device='cuda', lstm=None, lstm_total_agents=0):
+        if minibatch_size is None:
+            minibatch_size = batch_size
+
+        obs_dtype = pufferlib.pytorch.numpy_to_torch_dtype_dict[obs_dtype]
+        atn_dtype = pufferlib.pytorch.numpy_to_torch_dtype_dict[atn_dtype]
+        pin = device == 'cuda' and cpu_offload
+        obs_device = device if not pin else 'cpu'
+        self.obs=torch.zeros(batch_size, *obs_shape, dtype=obs_dtype,
+            pin_memory=pin, device=device if not pin else 'cpu')
+        self.actions=torch.zeros(batch_size, *atn_shape, dtype=atn_dtype, pin_memory=pin)
+        self.logprobs=torch.zeros(batch_size, pin_memory=pin)
+        self.rewards=torch.zeros(batch_size, pin_memory=pin)
+        self.dones=torch.zeros(batch_size, pin_memory=pin)
+        self.truncateds=torch.zeros(batch_size, pin_memory=pin)
+        self.values=torch.zeros(batch_size, pin_memory=pin)
+
+        #self.obs_np = np.asarray(self.obs)
+        self.actions_np = np.asarray(self.actions)
+        self.logprobs_np = np.asarray(self.logprobs)
+        self.rewards_np = np.asarray(self.rewards)
+        self.dones_np = np.asarray(self.dones)
+        self.truncateds_np = np.asarray(self.truncateds)
+        self.values_np = np.asarray(self.values)
+
+        self.lstm_h = self.lstm_c = None
+        if lstm is not None:
+            assert lstm_total_agents > 0
+            shape = (lstm.num_layers, lstm_total_agents, lstm.hidden_size)
+            self.lstm_h = torch.zeros(shape).to(device)
+            self.lstm_c = torch.zeros(shape).to(device)
+
+        num_minibatches = batch_size / minibatch_size
+        self.num_minibatches = int(num_minibatches)
+        if self.num_minibatches != num_minibatches:
+            raise ValueError('batch_size must be divisible by minibatch_size')
+
+        minibatch_rows = minibatch_size / bptt_horizon
+        self.minibatch_rows = int(minibatch_rows)
+        if self.minibatch_rows != minibatch_rows:
+            raise ValueError('minibatch_size must be divisible by bptt_horizon')
+
+        self.batch_size = batch_size
+        self.bptt_horizon = bptt_horizon
+        self.minibatch_size = minibatch_size
+        self.device = device
+        self.sort_keys = []
+        self.ptr = 0
+        self.step = 0
+
+    @property
+    def full(self):
+        return self.ptr >= self.batch_size
+
+    def store(self, obs, value, action, logprob, reward, done, env_id, mask):
+        # Mask learner and Ensure indices do not exceed batch size
+        ptr = self.ptr
+        indices = torch.where(mask)[0].numpy()[:self.batch_size - ptr]
+        end = ptr + len(indices)
+
+        self.obs[ptr:end] = obs.to(self.obs.device)[indices]
+        self.values_np[ptr:end] = value.cpu().numpy()[indices]
+        self.actions_np[ptr:end] = action[indices]
+        self.logprobs_np[ptr:end] = logprob.cpu().numpy()[indices]
+        self.rewards_np[ptr:end] = reward.cpu().numpy()[indices]
+        self.dones_np[ptr:end] = done.cpu().numpy()[indices]
+        self.sort_keys.extend([(env_id[i], self.step) for i in indices])
+        self.ptr = end
+        self.step += 1
+
+    def sort_training_data(self):
+        idxs = np.asarray(sorted(
+            range(len(self.sort_keys)), key=self.sort_keys.__getitem__))
+        self.b_idxs_obs = torch.as_tensor(idxs.reshape(
+                self.minibatch_rows, self.num_minibatches, self.bptt_horizon
+            ).transpose(1,0,-1)).to(self.obs.device).long()
+        self.b_idxs = self.b_idxs_obs.to(self.device)
+        self.b_idxs_flat = self.b_idxs.reshape(
+            self.num_minibatches, self.minibatch_size)
+        self.sort_keys = []
+        return idxs
+
+    def flatten_batch(self, advantages_np):
+        advantages = torch.as_tensor(advantages_np).to(self.device)
+        b_idxs, b_flat = self.b_idxs, self.b_idxs_flat
+        self.b_actions = self.actions.to(self.device, non_blocking=True, dtype=torch.long)
+        self.b_logprobs = self.logprobs.to(self.device, non_blocking=True)
+        self.b_dones = self.dones.to(self.device, non_blocking=True)
+        self.b_values = self.values.to(self.device, non_blocking=True)
+        self.b_advantages = advantages.reshape(self.minibatch_rows,
+            self.num_minibatches, self.bptt_horizon).transpose(0, 1).reshape(
+            self.num_minibatches, self.minibatch_size)
+        self.returns_np = advantages_np + self.values_np
+        self.b_obs = self.obs[self.b_idxs_obs]
+        self.b_actions = self.b_actions[b_idxs].contiguous()
+        self.b_logprobs = self.b_logprobs[b_idxs]
+        self.b_dones = self.b_dones[b_idxs]
+        self.b_values = self.b_values[b_flat]
+        self.b_returns = self.b_advantages + self.b_values
+
+class Utilization(Thread):
+    def __init__(self, delay=1, maxlen=20):
+        super().__init__()
+        self.cpu_mem = deque(maxlen=maxlen)
+        self.cpu_util = deque(maxlen=maxlen)
+        self.gpu_util = deque(maxlen=maxlen)
+        self.gpu_mem = deque(maxlen=maxlen)
+
+        self.delay = delay
+        self.stopped = False
+        self.start()
+
+    def run(self):
+        while not self.stopped:
+            self.cpu_util.append(psutil.cpu_percent())
+            mem = psutil.virtual_memory()
+            self.cpu_mem.append(mem.active / mem.total)
+            if torch.cuda.is_available():
+                self.gpu_util.append(torch.cuda.utilization())
+                free, total = torch.cuda.mem_get_info()
+                self.gpu_mem.append(free / total)
+            else:
+                self.gpu_util.append(0)
+                self.gpu_mem.append(0)
+            time.sleep(self.delay)
+
+    def stop(self):
+        self.stopped = True
+
+def save_checkpoint(data):
+    config = data.config
+    path = os.path.join(config.data_dir, config.exp_id)
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    model_name = f'model_{data.epoch:06d}.pt'
+    model_path = os.path.join(path, model_name)
+    if os.path.exists(model_path):
+        return model_path
+
+    torch.save(data.uncompiled_policy, model_path)
+
+    state = {
+        'optimizer_state_dict': data.optimizer.state_dict(),
+        'global_step': data.global_step,
+        'agent_step': data.global_step,
+        'update': data.epoch,
+        'model_name': model_name,
+        'exp_id': config.exp_id,
+    }
+    state_path = os.path.join(path, 'trainer_state.pt')
+    torch.save(state, state_path + '.tmp')
+    os.rename(state_path + '.tmp', state_path)
+    return model_path
+
+def try_load_checkpoint(data):
+    config = data.config
+    path = os.path.join(config.data_dir, config.exp_id)
+    if not os.path.exists(path):
+        print('No checkpoints found. Assuming new experiment')
+        return
+
+    trainer_path = os.path.join(path, 'trainer_state.pt')
+    resume_state = torch.load(trainer_path)
+    model_path = os.path.join(path, resume_state['model_name'])
+    data.policy.uncompiled.load_state_dict(model_path, map_location=config.device)
+    data.optimizer.load_state_dict(resume_state['optimizer_state_dict'])
+    print(f'Loaded checkpoint {resume_state["model_name"]}')
+
 def count_params(policy):
     return sum(p.numel() for p in policy.parameters() if p.requires_grad)
 
-def rollout(cfg: OmegaConf, env_creator, env_kwargs, agent_creator, agent_kwargs,
-        model_path=None, render_mode='auto', device='cuda', verbose=True):
+def rollout(env_creator, env_kwargs, policy_cls, rnn_cls, agent_creator, agent_kwargs,
+        backend, render_mode='auto', model_path=None, device='cuda'):
+
     # We are just using Serial vecenv to give a consistent
     # single-agent/multi-agent API for evaluation
     if render_mode != 'auto':
-        env_kwargs["render_mode"] = render_mode
+        env_kwargs['render_mode'] = render_mode
 
-    env = pufferlib.vector.make(env_creator, env_kwargs=env_kwargs)
+    env = pufferlib.vector.make(env_creator, env_kwargs=env_kwargs, backend=backend)
 
     if model_path is None:
-        agent = agent_creator(env, **agent_kwargs)
+        agent = agent_creator(env, policy_cls, rnn_cls, agent_kwargs).to(device)
     else:
         agent = torch.load(model_path, map_location=device)
 
@@ -333,24 +598,24 @@ def rollout(cfg: OmegaConf, env_creator, env_kwargs, agent_creator, agent_kwargs
 
     frames = []
     tick = 0
-    while tick <= cfg.eval.max_steps:
+    while tick <= 1000:
         if tick % 1 == 0:
             render = driver.render()
             if driver.render_mode == 'ansi':
                 print('\033[0;0H' + render + '\n')
-                time.sleep(0.6)
+                time.sleep(0.05)
             elif driver.render_mode == 'rgb_array':
                 frames.append(render)
                 import cv2
                 render = cv2.cvtColor(render, cv2.COLOR_RGB2BGR)
                 cv2.imshow('frame', render)
                 cv2.waitKey(1)
-                #time.sleep(1/24)
-            elif driver.render_mode == 'human' and render is not None:
+                time.sleep(1/24)
+            elif driver.render_mode in ('human', 'raylib') and render is not None:
                 frames.append(render)
 
         with torch.no_grad():
-            ob = torch.from_numpy(ob).to(device)
+            ob = torch.as_tensor(ob).to(device)
             if hasattr(agent, 'lstm'):
                 action, _, _, _, state = agent(ob, state)
             else:
@@ -360,11 +625,13 @@ def rollout(cfg: OmegaConf, env_creator, env_kwargs, agent_creator, agent_kwargs
 
         ob, reward = env.step(action)[:2]
         reward = reward.mean()
-        if tick % 100 == 0:
+        if tick % 128 == 0:
             print(f'Reward: {reward:.4f}, Tick: {tick}')
         tick += 1
 
-    return {'reward': reward, 'frames': frames}
+    # Save frames as gif
+    import imageio
+    imageio.mimsave('../docker/eval.gif', frames, fps=15, loop=0)
 
 def seed_everything(seed, torch_deterministic):
     random.seed(seed)
@@ -372,3 +639,140 @@ def seed_everything(seed, torch_deterministic):
     if seed is not None:
         torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = torch_deterministic
+
+ROUND_OPEN = rich.box.Box(
+    "╭──╮\n"
+    "│  │\n"
+    "│  │\n"
+    "│  │\n"
+    "│  │\n"
+    "│  │\n"
+    "│  │\n"
+    "╰──╯\n"
+)
+
+c1 = '[bright_cyan]'
+c2 = '[white]'
+c3 = '[cyan]'
+b1 = '[bright_cyan]'
+b2 = '[bright_white]'
+
+def abbreviate(num):
+    if num < 1e3:
+        return f'{b2}{num:.0f}'
+    elif num < 1e6:
+        return f'{b2}{num/1e3:.1f}{c2}k'
+    elif num < 1e9:
+        return f'{b2}{num/1e6:.1f}{c2}m'
+    elif num < 1e12:
+        return f'{b2}{num/1e9:.1f}{c2}b'
+    else:
+        return f'{b2}{num/1e12:.1f}{c2}t'
+
+def duration(seconds):
+    seconds = int(seconds)
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    return f"{b2}{h}{c2}h {b2}{m}{c2}m {b2}{s}{c2}s" if h else f"{b2}{m}{c2}m {b2}{s}{c2}s" if m else f"{b2}{s}{c2}s"
+
+def fmt_perf(name, time, uptime):
+    percent = 0 if uptime == 0 else int(100*time/uptime - 1e-5)
+    return f'{c1}{name}', duration(time), f'{b2}{percent:2d}%'
+
+# TODO: Add env name to print_dashboard
+def print_dashboard(env_name, utilization, global_step, epoch,
+        profile, losses, stats, msg, clear=False, max_stats=[0]):
+    console = Console()
+    if clear:
+        console.clear()
+
+    dashboard = Table(box=ROUND_OPEN, expand=True,
+        show_header=False, border_style='bright_cyan')
+
+    table = Table(box=None, expand=True, show_header=False)
+    dashboard.add_row(table)
+    cpu_percent = np.mean(utilization.cpu_util)
+    dram_percent = np.mean(utilization.cpu_mem)
+    gpu_percent = np.mean(utilization.gpu_util)
+    vram_percent = np.mean(utilization.gpu_mem)
+    table.add_column(justify="left", width=30)
+    table.add_column(justify="center", width=12)
+    table.add_column(justify="center", width=12)
+    table.add_column(justify="center", width=13)
+    table.add_column(justify="right", width=13)
+    table.add_row(
+        f':blowfish: {c1}PufferLib {b2}1.0.0',
+        f'{c1}CPU: {c3}{cpu_percent:.1f}%',
+        f'{c1}GPU: {c3}{gpu_percent:.1f}%',
+        f'{c1}DRAM: {c3}{dram_percent:.1f}%',
+        f'{c1}VRAM: {c3}{vram_percent:.1f}%',
+    )
+
+    s = Table(box=None, expand=True)
+    s.add_column(f"{c1}Summary", justify='left', vertical='top', width=16)
+    s.add_column(f"{c1}Value", justify='right', vertical='top', width=8)
+    s.add_row(f'{c2}Environment', f'{b2}{env_name}')
+    s.add_row(f'{c2}Agent Steps', abbreviate(global_step))
+    s.add_row(f'{c2}SPS', abbreviate(profile.SPS))
+    s.add_row(f'{c2}Epoch', abbreviate(epoch))
+    s.add_row(f'{c2}Uptime', duration(profile.uptime))
+    s.add_row(f'{c2}Remaining', duration(profile.remaining))
+
+    p = Table(box=None, expand=True, show_header=False)
+    p.add_column(f"{c1}Performance", justify="left", width=10)
+    p.add_column(f"{c1}Time", justify="right", width=8)
+    p.add_column(f"{c1}%", justify="right", width=4)
+    p.add_row(*fmt_perf('Evaluate', profile.eval_time, profile.uptime))
+    p.add_row(*fmt_perf('  Forward', profile.eval_forward_time, profile.uptime))
+    p.add_row(*fmt_perf('  Env', profile.env_time, profile.uptime))
+    p.add_row(*fmt_perf('  Misc', profile.eval_misc_time, profile.uptime))
+    p.add_row(*fmt_perf('Train', profile.train_time, profile.uptime))
+    p.add_row(*fmt_perf('  Forward', profile.train_forward_time, profile.uptime))
+    p.add_row(*fmt_perf('  Learn', profile.learn_time, profile.uptime))
+    p.add_row(*fmt_perf('  Misc', profile.train_misc_time, profile.uptime))
+
+    l = Table(box=None, expand=True, )
+    l.add_column(f'{c1}Losses', justify="left", width=16)
+    l.add_column(f'{c1}Value', justify="right", width=8)
+    for metric, value in losses.items():
+        l.add_row(f'{c2}{metric}', f'{b2}{value:.3f}')
+
+    monitor = Table(box=None, expand=True, pad_edge=False)
+    monitor.add_row(s, p, l)
+    dashboard.add_row(monitor)
+
+    table = Table(box=None, expand=True, pad_edge=False)
+    dashboard.add_row(table)
+    left = Table(box=None, expand=True)
+    right = Table(box=None, expand=True)
+    table.add_row(left, right)
+    left.add_column(f"{c1}User Stats", justify="left", width=20)
+    left.add_column(f"{c1}Value", justify="right", width=10)
+    right.add_column(f"{c1}User Stats", justify="left", width=20)
+    right.add_column(f"{c1}Value", justify="right", width=10)
+    i = 0
+    for metric, value in stats.items():
+        try: # Discard non-numeric values
+            int(value)
+        except:
+            continue
+
+        u = left if i % 2 == 0 else right
+        u.add_row(f'{c2}{metric}', f'{b2}{value:.3f}')
+        i += 1
+
+    for i in range(max_stats[0] - i):
+        u = left if i % 2 == 0 else right
+        u.add_row('', '')
+
+    max_stats[0] = max(max_stats[0], i)
+
+    table = Table(box=None, expand=True, pad_edge=False)
+    dashboard.add_row(table)
+    table.add_row(f' {c1}Message: {c2}{msg}')
+
+    with console.capture() as capture:
+        console.print(dashboard)
+
+    print('\033[0;0H' + capture.get())
