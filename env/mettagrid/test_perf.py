@@ -31,7 +31,7 @@ def main(cfg):
     from cProfile import run
     global env
 
-    cfg.env.game.max_steps = np.inf
+    cfg.env.game.max_steps = 999999999
     env = hydra.utils.instantiate(cfg.env, render_mode="human")
     env.reset()
     global actions

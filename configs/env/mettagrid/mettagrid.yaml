@@ -52,7 +52,6 @@ game:
       use_cost: 0
 
     wall:
-      density: 0.01
       hp: 10
 
   actions:
