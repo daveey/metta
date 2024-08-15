@@ -15,6 +15,6 @@ framework:
       num_workers: 24 # num cores
       batch_size: 262144
       minibatch_size: 4096
-      forward_pass_minibatch_target_size: 16320
+      forward_pass_minibatch_target_size: 32768
       async_factor: 2
       zero_copy: True
