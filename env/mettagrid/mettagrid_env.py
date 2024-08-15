@@ -33,7 +33,7 @@ class MettaGridEnv(pufferlib.PufferEnv):
         # self._grid_env = PufferGridEnv(self._c_env)
         env = self._grid_env
 
-        self._env = self._grid_env
+        self._env = env
         #self._env = LastActionTracker(self._grid_env)
         #self._env = Kinship(**sample_config(self._cfg.kinship), env=self._env)
         #self._env = RewardTracker(self._env)

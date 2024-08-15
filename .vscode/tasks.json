@@ -4,7 +4,7 @@
       {
         "label": "build_cython_extensions",
         "type": "shell",
-        "command": "python setup.py build_ext --inplace",
+        "command": "ANNOTATE=1 python setup.py build_ext --inplace",
         "problemMatcher": [
           {
             "owner": "python",

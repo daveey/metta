@@ -5,34 +5,38 @@ from puffergrid.grid_env import StatsTracker
 from libc.stdio cimport printf
 
 from puffergrid.observation_encoder cimport ObservationEncoder
-from puffergrid.grid_object cimport GridObject, GridCoord, GridLocation
+from puffergrid.grid_object cimport GridObject, TypeId, GridCoord, GridLocation
 from puffergrid.event cimport EventHandler
+from puffergrid.action cimport ActionArg
 
 cdef enum GridLayer:
     Agent_Layer = 0
     Object_Layer = 1
 
 cdef cppclass MettaObject(GridObject):
-
-    inline char usable():
-        return False
-    inline char attackable():
-        return False
-
-cdef cppclass Attackable:
     unsigned int hp
-    inline char attackable():
-        return True
 
-cdef cppclass Usable:
+    inline void init_m(unsigned int hp):
+        this.hp = hp
+
+    inline char usable(const Agent *actor):
+        return False
+
+    inline char attackable():
+        return False
+
+cdef cppclass Usable(MettaObject):
     unsigned int energy_cost
     unsigned int cooldown
     unsigned char ready
 
-    inline char usable():
-        return True
-    inline char on_use():
-        printf("object used\n")
+    inline void init_u(unsigned int energy_cost, unsigned int cooldown):
+        this.energy_cost = energy_cost
+        this.cooldown = cooldown
+        this.ready = 1
+
+    inline char usable(const Agent *actor):
+        return this.ready and this.energy_cost <= actor.energy
 
 cdef enum ObjectType:
     AgentT = 0
@@ -41,31 +45,60 @@ cdef enum ObjectType:
     ConverterT = 3
     AltarT = 4
     Count = 5
-cdef cppclass Agent(MettaObject, Attackable):
+
+cdef vector[string] ObjectTypeNames # defined in objects.pyx
+
+cdef enum InventoryItem:
+    r1 = 0,
+    r2 = 1,
+    r3 = 2,
+    InventoryCount = 3
+
+cdef vector[string] InventoryItemNames # defined in objects.pyx
+
+cdef cppclass Agent(MettaObject):
     unsigned int hp
     unsigned int energy
     unsigned int orientation
+    char shield
+    char energy_upkeep
+    vector[unsigned short] inventory
 
     inline Agent(GridCoord r, GridCoord c):
-        init(ObjectType.AgentT, GridLocation(r, c, GridLayer.Agent_Layer))
-        hp = 1
-        energy = 100
-        orientation = 0
+        GridObject.init(ObjectType.AgentT, GridLocation(r, c, GridLayer.Agent_Layer))
+        MettaObject.init_m(1)
+        this.energy = 100
+        this.orientation = 0
+        this.inventory.resize(InventoryItem.InventoryCount)
+
+    inline void update_inventory(InventoryItem item, short amount):
+        this.inventory[<InventoryItem>item] += amount
 
     inline void obs(int[:] obs):
         obs[0] = 1
-        obs[1] = hp
-        obs[2] = energy
-        obs[3] = orientation
+        obs[1] = this.hp
+        obs[2] = this.energy
+        obs[3] = this.orientation
+        obs[4] = this.shield
+
+        cdef unsigned short idx = 5
+        cdef unsigned short i
+        for i in range(InventoryItem.InventoryCount):
+            obs[idx + i] = this.inventory[i]
 
     @staticmethod
     inline vector[string] feature_names():
-        return ["agent", "agent:hp", "agent:energy", "agent:orientation"]
+        return [
+            "agent", "agent:hp", "agent:energy", "agent:orientation",
+            "agent:shield"
 
-cdef cppclass Wall(MettaObject, Attackable):
+        ] + [
+            "agent:inv:" + n for n in InventoryItemNames]
+
+cdef cppclass Wall(MettaObject):
     inline Wall(GridCoord r, GridCoord c):
-        init(ObjectType.WallT, GridLocation(r, c, GridLayer.Object_Layer))
-        hp = 111
+        GridObject.init(ObjectType.WallT, GridLocation(r, c, GridLayer.Object_Layer))
+        MettaObject.init_m(1)
 
     inline void obs(int[:] obs):
         obs[0] = 1
@@ -75,31 +108,44 @@ cdef cppclass Wall(MettaObject, Attackable):
     inline vector[string] feature_names():
         return ["wall", "wall:hp"]
 
-cdef cppclass Generator(MettaObject, Attackable, Usable):
+cdef cppclass Generator(Usable):
     unsigned int r1
 
     inline Generator(GridCoord r, GridCoord c):
-        init(ObjectType.GeneratorT, GridLocation(r, c, GridLayer.Object_Layer))
-        r1 = 10
-        ready = 1
+        GridObject.init(ObjectType.GeneratorT, GridLocation(r, c, GridLayer.Object_Layer))
+        MettaObject.init_m(1)
+        Usable.init_u(0, 0)
+        this.r1 = 10
+
+    inline char usable(const Agent *actor):
+        return Usable.usable(actor) and this.r1 > 0
 
     inline void obs(int[:] obs):
         obs[0] = 1
-        obs[1] = hp
-        obs[2] = r1
-        obs[3] = ready
+        obs[1] = this.hp
+        obs[2] = this.r1
+        obs[3] = this.ready
+
 
     @staticmethod
     inline vector[string] feature_names():
         return ["generator", "generator:hp", "generator:r1", "generator:ready"]
 
-cdef cppclass Converter(MettaObject, Attackable, Usable):
-    char input_resource
-    char output_resource
-    char output_energy
+cdef cppclass Converter(Usable):
+    InventoryItem input_resource
+    InventoryItem output_resource
+    short output_energy
 
     inline Converter(GridCoord r, GridCoord c):
-        init(ObjectType.ConverterT, GridLocation(r, c, GridLayer.Object_Layer))
+        GridObject.init(ObjectType.ConverterT, GridLocation(r, c, GridLayer.Object_Layer))
+        MettaObject.init_m(1)
+        Usable.init_u(0, 3)
+        this.input_resource = InventoryItem.r1
+        this.output_resource = InventoryItem.r2
+        this.output_energy = 10
+
+    inline char usable(const Agent *actor):
+        return Usable.usable(actor) and actor.inventory[this.input_resource] > 0
 
     inline obs(int[:] obs):
         obs[0] = 1
@@ -113,11 +159,11 @@ cdef cppclass Converter(MettaObject, Attackable, Usable):
     inline vector[string] feature_names():
         return ["converter", "converter:hp", "converter:input_resource", "converter:output_resource", "converter:output_energy", "converter:ready"]
 
-cdef cppclass Altar(MettaObject, Attackable, Usable):
+cdef cppclass Altar(Usable):
     inline Altar(GridCoord r, GridCoord c):
-        init(ObjectType.AltarT, GridLocation(r, c, GridLayer.Object_Layer))
-        hp = 10
-        ready = 1
+        GridObject.init(ObjectType.AltarT, GridLocation(r, c, GridLayer.Object_Layer))
+        MettaObject.init_m(1)
+        Usable.init_u(10, 5)
 
     inline void obs(int[:] obs):
         obs[0] = 1

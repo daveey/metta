@@ -8,6 +8,19 @@ cimport cython
 from puffergrid.grid_object cimport GridObject, GridObjectId
 from puffergrid.event cimport EventHandler, EventArg
 
+cdef vector[string] ObjectTypeNames = [
+    "Agent",
+    "Wall",
+    "Generator",
+    "Converter",
+    "Altar"
+]
+
+cdef vector[string] InventoryItemNames = [
+    "r1",
+    "r2",
+    "r3"
+]
 cdef class MettaObservationEncoder(ObservationEncoder):
     def __init__(self) -> None:
         self._offsets.resize(ObjectType.Count)

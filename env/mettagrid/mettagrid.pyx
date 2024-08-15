@@ -72,6 +72,7 @@ cdef class MettaGrid(GridEnv):
                 elif map[r,c][0] == "A":
                     agent = new Agent(r, c)
                     self._grid.add_object(agent)
+                    self.add_agent(agent)
                     self._stats.game_incr("objects.agent")
                     print("agent", r, c)
 
