@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict
 
 import gymnasium as gym
@@ -46,6 +47,7 @@ class MettaGridEnv(pufferlib.PufferEnv):
         level = self._game_builder.level()
         self._c_env = MettaGrid(game_cfg, level)
         self._grid_env = self._c_env
+        self._num_agents = self._c_env.num_agents()
 
         # self._grid_env = PufferGridEnv(self._c_env)
         env = self._grid_env
@@ -75,16 +77,24 @@ class MettaGridEnv(pufferlib.PufferEnv):
     def step(self, actions):
         obs, rewards, terminated, truncated, infos = self._c_env.step(actions.astype(np.int32))
 
-        rewards = np.array(rewards) # xcxc / self._max_level_reward_per_agent
+        rewards_sum = rewards.sum()
+        if rewards_sum != 0:
+            reward_mean = rewards_sum / self._num_agents
+            rewards -= reward_mean
+
         if terminated.all() or truncated.all():
             self.done = True
 
-            num_agents = self._c_env.num_agents()
             stats = self._c_env.get_episode_stats()
-            episode_return = stats["game_stats"].get("reward", 0)
+            episode_rewards = self._c_env.get_episode_rewards()
+            episode_rewards_sum = episode_rewards.sum()
+            episode_rewards_mean = episode_rewards_sum / self._num_agents
 
             infos = {
-                "episode_return": float(episode_return) / num_agents,
+                "episode/reward.sum": episode_rewards_sum,
+                "episode/reward.mean": episode_rewards_mean,
+                "episode/reward.min": episode_rewards.min(),
+                "episode/reward.max": episode_rewards.max(),
                 "episode_length": self._c_env.current_timestep(),
             }
 
@@ -96,7 +106,7 @@ class MettaGridEnv(pufferlib.PufferEnv):
                     agent_stats[k] += v
 
             for k, v in agent_stats.items():
-                infos[f"agent_stats/{k}"] = float(v) / num_agents
+                infos[f"agent_stats/{k}"] = float(v) / self._num_agents
 
         return obs, list(rewards), terminated.all(), truncated.all(), infos
 
@@ -158,7 +168,7 @@ class MettaGridEnv(pufferlib.PufferEnv):
 
     @property
     def player_count(self):
-        return self._env.num_agents()
+        return self._num_agents
 
     def render(self, *args, **kwargs):
         self._c_env.render()
