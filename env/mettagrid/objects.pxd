@@ -16,13 +16,13 @@ cdef enum GridLayer:
     Agent_Layer = 0
     Object_Layer = 1
 
-ctypedef map[const char *, int] ObjectConfig
+ctypedef map[string, int] ObjectConfig
 
 cdef cppclass MettaObject(GridObject):
     unsigned int hp
 
     inline void init_mo(ObjectConfig cfg):
-        this.hp = cfg["hp"]
+        this.hp = cfg[b"hp"]
 
     inline char usable(const Agent *actor):
         return False
@@ -36,8 +36,8 @@ cdef cppclass Usable(MettaObject):
     unsigned char ready
 
     inline void init_usable(ObjectConfig cfg):
-        this.use_cost = cfg["use_cost"]
-        this.cooldown = cfg["cooldown"]
+        this.use_cost = cfg[b"use_cost"]
+        this.cooldown = cfg[b"cooldown"]
         this.ready = 1
 
     inline char usable(const Agent *actor):
@@ -73,7 +73,7 @@ cdef cppclass Agent(MettaObject):
         GridObject.init(ObjectType.AgentT, GridLocation(r, c, GridLayer.Agent_Layer))
         MettaObject.init_mo(cfg)
         this.frozen = False
-        this.energy = cfg["initial_energy"]
+        this.energy = cfg[b"initial_energy"]
         this.orientation = 0
         this.inventory.resize(InventoryItem.InventoryCount)
 
@@ -121,7 +121,7 @@ cdef cppclass Generator(Usable):
         GridObject.init(ObjectType.GeneratorT, GridLocation(r, c, GridLayer.Object_Layer))
         MettaObject.init_mo(cfg)
         Usable.init_usable(cfg)
-        this.r1 = cfg["initial_resources"]
+        this.r1 = cfg[b"initial_resources"]
 
     inline char usable(const Agent *actor):
         return Usable.usable(actor) and this.r1 > 0
@@ -148,7 +148,7 @@ cdef cppclass Converter(Usable):
         Usable.init_usable(cfg)
         this.input_resource = InventoryItem.r1
         this.output_resource = InventoryItem.r2
-        this.output_energy = cfg["energy_output.r1"]
+        this.output_energy = cfg[b"energy_output.r1"]
 
     inline char usable(const Agent *actor):
         return Usable.usable(actor) and actor.inventory[this.input_resource] > 0

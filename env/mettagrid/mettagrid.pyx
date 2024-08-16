@@ -2,6 +2,7 @@
 from libc.stdio cimport printf
 
 import numpy as np
+import gymnasium as gym
 
 from omegaconf import OmegaConf
 
@@ -71,3 +72,7 @@ cdef class MettaGrid(GridEnv):
         grid = self.render_ascii(["A", "#", "g", "c", "a"])
         for r in grid:
             print("".join(r))
+
+    @property
+    def action_space(self):
+        return gym.spaces.MultiDiscrete((self.num_actions(), 10), dtype=np.uint32)

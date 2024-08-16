@@ -9,6 +9,7 @@ pufferlib:
   baseline: False
   backend: clean_pufferl
   train_dir: ${data_dir}/pufferlib
+  render_mode: "rgb_array"
 
   train:
     num_envs_per_worker: ???

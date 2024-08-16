@@ -5,6 +5,7 @@ import numpy as np
 from omegaconf import OmegaConf
 import yaml
 from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
+from env.mettagrid.raylib_client import MettaRaylibClient
 from env.wrapper.feature_masker import FeatureMasker
 from env.wrapper.kinship import Kinship
 from env.wrapper.last_action_tracker import LastActionTracker
@@ -13,6 +14,12 @@ import pufferlib
 from util.sample_config import sample_config
 from env.mettagrid.mettagrid_c import MettaGrid
 from puffergrid.wrappers.grid_env_wrapper import PufferGridEnv
+from pufferlib.environments.ocean.render import GridRender
+
+class GridClient:
+    def __init__(self, width, height):
+        self._width = width
+        self._height = height
 
 class MettaGridEnv(pufferlib.PufferEnv):
     def __init__(self, render_mode: str, **cfg):
@@ -22,6 +29,16 @@ class MettaGridEnv(pufferlib.PufferEnv):
         self._cfg = OmegaConf.create(cfg)
 
         self.make_env()
+
+        if render_mode == "human":
+            self._renderer = MettaRaylibClient(
+                self._env.map_width(), self._env.map_height(),
+            )
+        elif render_mode == "raylib":
+            self._renderer = GridRender(
+                self._env.map_width(), self._env.map_height(),
+                fps=10
+            )
 
     def make_env(self):
         game_cfg = OmegaConf.create(sample_config(self._cfg.game))
@@ -38,6 +55,7 @@ class MettaGridEnv(pufferlib.PufferEnv):
         #self._env = Kinship(**sample_config(self._cfg.kinship), env=self._env)
         #self._env = RewardTracker(self._env)
         #self._env = FeatureMasker(self._env, self._cfg.hidden_features)
+        self.done = False
 
     def reset(self, **kwargs):
         self.make_env()
@@ -59,6 +77,8 @@ class MettaGridEnv(pufferlib.PufferEnv):
 
         rewards = np.array(rewards) # xcxc / self._max_level_reward_per_agent
         if terminated.all() or truncated.all():
+            self.done = True
+
             num_agents = self._c_env.num_agents()
             stats = self._c_env.get_episode_stats()
             episode_return = stats["game_stats"].get("reward", 0)
@@ -141,7 +161,10 @@ class MettaGridEnv(pufferlib.PufferEnv):
         return self._env.num_agents()
 
     def render(self, *args, **kwargs):
-        return self._env.render(*args, **kwargs)
+        self._c_env.render()
+        return self._renderer.render(
+            self._c_env.grid_objects(),
+        )
 
     @property
     def grid_features(self):
@@ -150,3 +173,7 @@ class MettaGridEnv(pufferlib.PufferEnv):
     @property
     def global_features(self):
         return []
+
+    @property
+    def render_mode(self):
+        return self._render_mode

@@ -25,6 +25,9 @@ def main(cfg):
             if cfg.eval.gif_path is not None:
                 replay.generate_replay_gif(cfg.eval.gif_path, result.frames, cfg.eval.fps)
 
+        if cfg.cmd == "play":
+            result = framework.evaluate()
+
     except KeyboardInterrupt:
         os._exit(0)
 

@@ -3,6 +3,7 @@ import numpy as np
 
 import os
 import random
+from omegaconf import OmegaConf
 import psutil
 import time
 
@@ -576,7 +577,7 @@ def try_load_checkpoint(data):
 def count_params(policy):
     return sum(p.numel() for p in policy.parameters() if p.requires_grad)
 
-def rollout(env_creator, env_kwargs, policy_cls, rnn_cls, agent_creator, agent_kwargs,
+def rollout(cfg: OmegaConf, env_creator, env_kwargs, agent_creator, agent_kwargs,
         backend, render_mode='auto', model_path=None, device='cuda'):
 
     # We are just using Serial vecenv to give a consistent
@@ -587,7 +588,7 @@ def rollout(env_creator, env_kwargs, policy_cls, rnn_cls, agent_creator, agent_k
     env = pufferlib.vector.make(env_creator, env_kwargs=env_kwargs, backend=backend)
 
     if model_path is None:
-        agent = agent_creator(env, policy_cls, rnn_cls, agent_kwargs).to(device)
+        agent = agent_creator(env.driver_env, agent_kwargs).to(device)
     else:
         agent = torch.load(model_path, map_location=device)
 
@@ -630,8 +631,8 @@ def rollout(env_creator, env_kwargs, policy_cls, rnn_cls, agent_creator, agent_k
         tick += 1
 
     # Save frames as gif
-    import imageio
-    imageio.mimsave('../docker/eval.gif', frames, fps=15, loop=0)
+    #import imageio
+    #imageio.mimsave('../docker/eval.gif', frames, fps=15, loop=0)
 
 def seed_everything(seed, torch_deterministic):
     random.seed(seed)

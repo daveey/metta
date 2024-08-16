@@ -84,24 +84,25 @@ class PufferLibFramework(RLFramework):
         clean_pufferl.close(data)
 
     def evaluate(self):
-        model_dir = os.path.join(self.puffer_cfg.train_dir, self.cfg.experiment)
-        latest_model_cp = [p for p in os.listdir(model_dir) if p.endswith(".pt")][-1]
-        print(f"Loading model from {latest_model_cp}")
+        # model_dir = os.path.join(self.puffer_cfg.train_dir, self.cfg.experiment)
+        # latest_model_cp = [p for p in os.listdir(model_dir) if p.endswith(".pt")][-1]
+        # print(f"Loading model from {latest_model_cp}")
 
         result = clean_pufferl.rollout(
             self.cfg,
             make_env_func,
             env_kwargs=dict(cfg = dict(**self.cfg.env)),
             agent_creator=puffer_agent_wrapper.make_policy,
-            agent_kwargs={'cfg': self.cfg},
-            model_path=os.path.join(model_dir, latest_model_cp),
-            render_mode="rgb_array",
-            device=self.puffer_cfg.device
+            agent_kwargs=self.cfg,
+            render_mode=self.puffer_cfg.render_mode,
+            device=self.puffer_cfg.device,
+            backend=pufferlib.vector.Serial,
+            # model_path=os.path.join(model_dir, latest_model_cp),
         )
-        return EvaluationResult(
-            reward=result['reward'],
-            frames=result['frames']
-        )
+        # return EvaluationResult(
+        #     reward=result['reward'],
+        #     frames=result['frames']
+        # )
 
     def process_stats(self, data):
         pass
