@@ -5,7 +5,7 @@ pkill -9 -f python
 git pull
 python setup.py build_ext --inplace
 python -m tools.run \
-    framework=sample_factory \
+    framework=pufferlib \
     cmd=train \
     hardware=pufferbox \
     wandb.track=true \

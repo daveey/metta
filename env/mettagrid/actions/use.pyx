@@ -42,8 +42,8 @@ cdef class Use(MettaActionHandler):
 
         if target._type_id == ObjectType.AltarT:
             self.env._rewards[actor_id] += usable.use_cost
-            self.env._stats.agent_add(actor_id, "reward", usable.use_cost)
-            self.env._stats.game_add("reward", usable.use_cost)
+            self.env._stats.agent_incr(actor_id, "reward")
+            self.env._stats.game_incr("reward")
 
         cdef Generator *generator
         if target._type_id == ObjectType.GeneratorT:
