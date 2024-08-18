@@ -14,6 +14,7 @@ class MettaRaylibClient:
         self.height = height
         self.tile_size = tile_size
 
+
         sprite_sheet_path = os.path.join(
             *self.__module__.split('.')[:-1], './puffer_chars.png')
         self.asset_map = {

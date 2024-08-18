@@ -6,7 +6,7 @@ import numpy as np
 from omegaconf import OmegaConf
 import yaml
 from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
-from env.mettagrid.raylib_client import MettaRaylibClient
+from env.mettagrid.renderer.raylib_client import MettaRaylibClient
 from env.wrapper.feature_masker import FeatureMasker
 from env.wrapper.kinship import Kinship
 from env.wrapper.last_action_tracker import LastActionTracker
@@ -29,8 +29,6 @@ class MettaGridEnv(pufferlib.PufferEnv):
         self._render_mode = render_mode
         self._cfg = OmegaConf.create(cfg)
 
-        self.make_env()
-
         if render_mode == "human":
             self._renderer = MettaRaylibClient(
                 self._env.map_width(), self._env.map_height(),
@@ -40,6 +38,8 @@ class MettaGridEnv(pufferlib.PufferEnv):
                 self._env.map_width(), self._env.map_height(),
                 fps=10
             )
+
+        self.make_env()
 
     def make_env(self):
         game_cfg = OmegaConf.create(sample_config(self._cfg.game))
@@ -171,7 +171,6 @@ class MettaGridEnv(pufferlib.PufferEnv):
         return self._num_agents
 
     def render(self, *args, **kwargs):
-        self._c_env.render()
         return self._renderer.render(
             self._c_env.grid_objects(),
         )
