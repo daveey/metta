@@ -1,20 +1,12 @@
-import re
 from typing import Any, Dict
 
-import gymnasium as gym
 import numpy as np
 from omegaconf import OmegaConf
-import yaml
 from env.griddly.mettagrid.game_builder import MettaGridGameBuilder
 from env.mettagrid.renderer.raylib_client import MettaRaylibClient
-from env.wrapper.feature_masker import FeatureMasker
-from env.wrapper.kinship import Kinship
-from env.wrapper.last_action_tracker import LastActionTracker
-from env.wrapper.reward_tracker import RewardTracker
 import pufferlib
 from util.sample_config import sample_config
 from env.mettagrid.mettagrid_c import MettaGrid
-from puffergrid.wrappers.grid_env_wrapper import PufferGridEnv
 from pufferlib.environments.ocean.render import GridRender
 
 class GridClient:
@@ -28,6 +20,7 @@ class MettaGridEnv(pufferlib.PufferEnv):
 
         self._render_mode = render_mode
         self._cfg = OmegaConf.create(cfg)
+        self.make_env()
 
         if render_mode == "human":
             self._renderer = MettaRaylibClient(
@@ -39,7 +32,6 @@ class MettaGridEnv(pufferlib.PufferEnv):
                 fps=10
             )
 
-        self.make_env()
 
     def make_env(self):
         game_cfg = OmegaConf.create(sample_config(self._cfg.game))
