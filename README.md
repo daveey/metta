@@ -1,3 +1,8 @@
+# This Repository Has Moved
+
+The new cleaner code base is at https://github.com/Metta-AI/metta
+
+
 # Metta AI
 A reinforcement learning codebase focusing on the emergence of cooperation and alignment in multi-agent AI systems.
 
